@@ -23,14 +23,29 @@ export const metadata: Metadata = {
     "Parlementaire data, neutraal ontsloten. Moties, stemgedrag en verkiezingsprogramma's — traceerbaar, zonder politieke duiding.",
 };
 
+// Script to set dark class before first paint (prevents flash)
+const themeScript = `
+(function(){
+  try {
+    var t = localStorage.getItem('theme');
+    if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    }
+  } catch(e) {}
+})();
+`;
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="nl" className={`${serif.variable} ${sans.variable}`}>
-      <body className="min-h-screen bg-mist text-ink antialiased font-sans">
+    <html lang="nl" className={`${serif.variable} ${sans.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body className="min-h-screen antialiased font-sans">
         <Nav />
         <div className="min-h-[calc(100vh-56px)]">
           {children}

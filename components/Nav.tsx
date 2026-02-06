@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -52,11 +53,11 @@ export default function Nav() {
   return (
     <>
       {/* Desktop top nav */}
-      <header className="sticky top-0 z-50 h-14 border-b border-border bg-white/78 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 h-14 border-b border-border" style={{ background: "var(--nav-bg)", backdropFilter: "blur(18px) saturate(180%)", WebkitBackdropFilter: "blur(18px) saturate(180%)" }}>
         <div className="mx-auto flex h-full max-w-[1200px] items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-moss text-white">
-              <ShieldIcon />
+            <div className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-moss">
+              <span className="text-white dark:text-[#0E1623]"><ShieldIcon /></span>
             </div>
             <span className="text-[17px] font-serif text-ink tracking-tight">CivicStat</span>
           </Link>
@@ -78,12 +79,12 @@ export default function Nav() {
           </nav>
 
           {/* placeholder for theme toggle / search */}
-          <div className="w-7" />
+          <ThemeToggle />
         </div>
       </header>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-border bg-white pb-[env(safe-area-inset-bottom,0px)] md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-border bg-surface pb-[env(safe-area-inset-bottom,0px)] md:hidden">
         {navItems.map((item) => {
           const active = isActive(item.href);
           const Icon = mobileIcons[item.href];
