@@ -62,10 +62,27 @@ export interface VoteRecord {
   party: PartyRef;
 }
 
+// Raw Stemming entry from TK OData (party-level vote in rawData.Stemming)
+export interface RawStemming {
+  Id: string;
+  Soort: string; // "Voor" | "Tegen" | "Niet deelgenomen"
+  ActorNaam: string; // Party abbreviation
+  ActorFractie?: string;
+  Fractie_Id: string | null;
+  Persoon_Id: string | null;
+  FractieGrootte: number;
+  Vergissing?: boolean;
+}
+
 export interface VoteDetail extends VoteSummary {
   date: string;
   title: string;
   records: VoteRecord[];
+  rawData?: {
+    StemmingsSoort?: string; // "Met handopsteken" | "Hoofdelijk"
+    Stemming?: RawStemming[];
+    [key: string]: unknown;
+  };
   motion?: {
     id: string;
     tkId: string;

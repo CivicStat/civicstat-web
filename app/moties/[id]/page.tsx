@@ -4,7 +4,7 @@ import { formatDate, getInitials, getPartyColor } from "../../../lib/utils";
 import PartyBadge from "../../../components/PartyBadge";
 import StatusBadge from "../../../components/StatusBadge";
 import VoteBar from "../../../components/VoteBar";
-import type { VoteRecord } from "../../../lib/types";
+import type { VoteRecord, RawStemming } from "../../../lib/types";
 
 interface Props {
   params: { id: string };
@@ -44,9 +44,17 @@ export default async function MotieDetailPage({ params }: Props) {
   const firstSponsor = m.sponsors?.[0]?.mp;
   const firstSponsorParty = firstSponsor?.party;
 
-  // Aggregate vote records by party for "met handopsteken" or "hoofdelijk" display
-  const partyAggregates = vote?.records
-    ? aggregateByParty(vote.records)
+  // Determine vote type
+  const stemmingsSoort = vote?.rawData?.StemmingsSoort || "";
+  const isHoofdelijk = stemmingsSoort === "Hoofdelijk";
+  const hasRecords = vote?.records && vote.records.length > 0;
+  const rawStemmingen: RawStemming[] = vote?.rawData?.Stemming || [];
+
+  // Build party aggregates from either records (Hoofdelijk) or rawData.Stemming (Met handopsteken)
+  const partyAggregates = hasRecords
+    ? aggregateByPartyFromRecords(vote!.records)
+    : rawStemmingen.length > 0
+    ? aggregateByPartyFromRaw(rawStemmingen)
     : null;
 
   return (
@@ -117,7 +125,7 @@ export default async function MotieDetailPage({ params }: Props) {
         {firstSponsor && (
           <div className="card p-[18px]">
             <div className="section-label">Indiener</div>
-            <div className="flex items-center gap-2.5">
+            <Link href={`/kamerleden/${firstSponsor.id}`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
               <div
                 className="flex h-[38px] w-[38px] items-center justify-center rounded-full text-[13px] font-semibold text-ink"
                 style={{
@@ -131,7 +139,7 @@ export default async function MotieDetailPage({ params }: Props) {
               </div>
               <div>
                 <div className="text-sm font-semibold text-ink">
-                  {firstSponsor.name} {firstSponsor.surname}
+                  {firstSponsor.name}
                 </div>
                 {firstSponsorParty && (
                   <PartyBadge
@@ -141,7 +149,7 @@ export default async function MotieDetailPage({ params }: Props) {
                   />
                 )}
               </div>
-            </div>
+            </Link>
           </div>
         )}
 
@@ -149,17 +157,48 @@ export default async function MotieDetailPage({ params }: Props) {
         <div className="card p-[18px]">
           <div className="section-label">Soort stemming</div>
           <div className="text-sm font-semibold text-ink mb-1">
-            {vote?.records && vote.records.length > 0
-              ? "Hoofdelijk"
-              : "Met handopsteken"}
+            {isHoofdelijk ? "Hoofdelijk" : "Met handopsteken"}
           </div>
           <p className="text-[13px] leading-snug text-text-tertiary">
-            {vote?.records && vote.records.length > 0
+            {isHoofdelijk
               ? "Individuele stemmen per Kamerlid beschikbaar."
               : "Partijniveau — geen individuele stemmen beschikbaar."}
           </p>
         </div>
       </div>
+
+      {/* Co-sponsors */}
+      {m.sponsors && m.sponsors.length > 1 && (
+        <div className="mb-8">
+          <h2 className="font-serif text-[22px] font-normal text-ink mb-4">
+            Mede-indieners ({m.sponsors.length - 1})
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {m.sponsors.slice(1).map((s) => (
+              <Link
+                key={s.mp.id}
+                href={`/kamerleden/${s.mp.id}`}
+                className="inline-flex items-center gap-2 card px-3 py-2 hover:border-moss/40 transition-colors"
+              >
+                <div
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-semibold text-ink"
+                  style={{
+                    background: s.mp.party
+                      ? `linear-gradient(135deg, ${getPartyColor(s.mp.party.abbreviation, s.mp.party.colorNeutral)}18, ${getPartyColor(s.mp.party.abbreviation, s.mp.party.colorNeutral)}38)`
+                      : "#EEF1F5",
+                  }}
+                >
+                  {getInitials(s.mp.surname)}
+                </div>
+                <span className="text-sm text-ink">{s.mp.surname}</span>
+                {s.mp.party && (
+                  <PartyBadge abbreviation={s.mp.party.abbreviation} colorNeutral={s.mp.party.colorNeutral} size="sm" />
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Vote breakdown table */}
       {partyAggregates && partyAggregates.length > 0 && (
@@ -245,10 +284,62 @@ export default async function MotieDetailPage({ params }: Props) {
               </summary>
               <p className="mt-2 max-w-lg leading-relaxed">
                 Stemgegevens afkomstig van de Tweede Kamer OData API (Besluit →
-                Stemming entiteiten). Bij &apos;met handopsteken&apos; stemmingen zijn
-                alleen partijniveau-resultaten beschikbaar.
+                Stemming entiteiten).{" "}
+                {isHoofdelijk
+                  ? "Bij hoofdelijke stemmingen zijn individuele stemmen per Kamerlid beschikbaar. Partijresultaten zijn geaggregeerd op basis van deze individuele stemmen."
+                  : "Bij 'met handopsteken' stemmingen zijn alleen partijniveau-resultaten beschikbaar. De aantallen komen overeen met de fractiegrootte ten tijde van de stemming."}
               </p>
             </details>
+          </div>
+        </div>
+      )}
+
+      {/* Individual MP votes (Hoofdelijk only) */}
+      {isHoofdelijk && hasRecords && vote && (
+        <div className="mb-8">
+          <h2 className="font-serif text-[22px] font-normal text-ink mb-4">
+            Individuele stemmen ({vote.records.length} Kamerleden)
+          </h2>
+          <div className="card overflow-hidden">
+            <div className="hidden sm:grid grid-cols-[1fr_120px_100px] gap-2 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-text-tertiary border-b border-border bg-surface-sub rounded-t-card">
+              <span>Kamerlid</span>
+              <span>Partij</span>
+              <span className="text-right">Stem</span>
+            </div>
+            {vote.records
+              .sort((a, b) => {
+                const order = { FOR: 0, AGAINST: 1, ABSTAIN: 2, ABSENT: 3 };
+                return (order[a.voteValue] ?? 4) - (order[b.voteValue] ?? 4);
+              })
+              .map((r, i) => (
+                <Link
+                  key={r.id}
+                  href={`/kamerleden/${r.mp.id}`}
+                  className={`grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_120px_100px] gap-2 px-5 py-2.5 items-center table-row-hover ${
+                    i < vote.records.length - 1
+                      ? "border-b border-border-subtle"
+                      : ""
+                  }`}
+                >
+                  <span className="text-sm text-ink truncate">
+                    {r.mp.name}
+                  </span>
+                  <span className="hidden sm:block">
+                    <PartyBadge
+                      abbreviation={r.party.abbreviation}
+                      colorNeutral={r.party.colorNeutral ?? null}
+                      size="sm"
+                    />
+                  </span>
+                  <span className={`text-right text-sm font-medium ${
+                    r.voteValue === "FOR" ? "text-ink" :
+                    r.voteValue === "AGAINST" ? "text-text-secondary" :
+                    "text-text-tertiary"
+                  }`}>
+                    {voteValueLabel(r.voteValue)}
+                  </span>
+                </Link>
+              ))}
           </div>
         </div>
       )}
@@ -298,6 +389,16 @@ export default async function MotieDetailPage({ params }: Props) {
 
 // ─── Helpers ────────────────────────────────────────────────
 
+function voteValueLabel(value: string): string {
+  switch (value) {
+    case "FOR": return "Voor";
+    case "AGAINST": return "Tegen";
+    case "ABSTAIN": return "Onthouden";
+    case "ABSENT": return "Afwezig";
+    default: return value;
+  }
+}
+
 function SourceRow({
   label,
   type,
@@ -337,7 +438,8 @@ interface PartyAggregate {
   total: number;
 }
 
-function aggregateByParty(records: VoteRecord[]): PartyAggregate[] {
+/** Aggregate from VoteRecord entries (Hoofdelijk votes) */
+function aggregateByPartyFromRecords(records: VoteRecord[]): PartyAggregate[] {
   const map = new Map<string, PartyAggregate>();
 
   for (const r of records) {
@@ -356,7 +458,42 @@ function aggregateByParty(records: VoteRecord[]): PartyAggregate[] {
     agg.total++;
     if (r.voteValue === "FOR") agg.voor++;
     else if (r.voteValue === "AGAINST") agg.tegen++;
-    else agg.afwezig++; // ABSTAIN and ABSENT
+    else agg.afwezig++;
+  }
+
+  return Array.from(map.values()).sort((a, b) => b.total - a.total);
+}
+
+/** Aggregate from rawData.Stemming entries (Met handopsteken votes) */
+function aggregateByPartyFromRaw(stemmingen: RawStemming[]): PartyAggregate[] {
+  const map = new Map<string, PartyAggregate>();
+
+  for (const s of stemmingen) {
+    // Use ActorNaam as party abbreviation (it's the party name in the API)
+    const key = s.ActorNaam;
+    const size = s.FractieGrootte || 0;
+    const soort = s.Soort?.toLowerCase() || "";
+
+    if (!map.has(key)) {
+      map.set(key, {
+        abbreviation: key,
+        colorNeutral: null,
+        voor: 0,
+        tegen: 0,
+        afwezig: 0,
+        total: size,
+      });
+    }
+    const agg = map.get(key)!;
+
+    if (soort === "voor") {
+      agg.voor = size;
+    } else if (soort === "tegen") {
+      agg.tegen = size;
+    } else {
+      // "Niet deelgenomen" or other
+      agg.afwezig = size;
+    }
   }
 
   return Array.from(map.values()).sort((a, b) => b.total - a.total);
