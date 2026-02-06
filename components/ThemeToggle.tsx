@@ -8,6 +8,7 @@ export default function ThemeToggle() {
 
   useEffect(() => {
     setMounted(true);
+    // Read from DOM (set by the inline script in layout.tsx)
     setDark(document.documentElement.classList.contains("dark"));
   }, []);
 

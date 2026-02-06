@@ -4,6 +4,7 @@ import { formatDate } from "../lib/utils";
 import PartyBadge from "../components/PartyBadge";
 import StatusBadge from "../components/StatusBadge";
 import VoteBar from "../components/VoteBar";
+import SearchBar from "../components/SearchBar";
 
 export default async function HomePage() {
   let recentMotions;
@@ -41,7 +42,7 @@ export default async function HomePage() {
             <br />
             Feitelijk. Controleerbaar. Open.
           </p>
-          <div className="flex gap-2.5 flex-wrap">
+          <div className="flex gap-2.5 flex-wrap mb-8">
             <Link
               href="/partijen"
               className="inline-flex items-center gap-2 rounded-[9px] bg-moss px-5 py-2.5 text-sm font-medium text-white hover:bg-moss-hover transition-colors"
@@ -55,6 +56,7 @@ export default async function HomePage() {
               Vergelijk stemgedrag
             </Link>
           </div>
+          <SearchBar />
         </div>
       </div>
 
