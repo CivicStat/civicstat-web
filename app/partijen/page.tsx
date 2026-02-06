@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getParties } from "../../lib/api";
 import { getPartyColor } from "../../lib/utils";
 
@@ -90,7 +91,7 @@ export default async function PartijenPage() {
           const seats = SEATS[p.abbreviation] || 0;
 
           return (
-            <div key={p.id} className="card p-[18px]">
+            <Link key={p.id} href={`/partijen/${p.id}`} className="card p-[18px] hover:border-moss/40 transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div
@@ -124,7 +125,7 @@ export default async function PartijenPage() {
                   {p._count.mps} leden in database
                 </div>
               )}
-            </div>
+            </Link>
           );
         })}
       </div>

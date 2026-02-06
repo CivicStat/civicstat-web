@@ -2,7 +2,10 @@ import type {
   MotionListResponse,
   MotionDetail,
   PartyListItem,
+  PartyDetail,
   MemberListItem,
+  MemberDetail,
+  VoteDetail,
 } from "./types";
 
 const API_URL =
@@ -65,4 +68,29 @@ export async function getMembers(params?: {
   if (params?.party) sp.set("party", params.party);
   const qs = sp.toString();
   return apiFetch<MemberListItem[]>(`/members${qs ? `?${qs}` : ""}`);
+}
+
+// ─── Member Detail ──────────────────────────────────────────
+
+export async function getMember(id: string): Promise<MemberDetail> {
+  return apiFetch<MemberDetail>(`/members/${encodeURIComponent(id)}`);
+}
+
+// ─── Party Detail ───────────────────────────────────────────
+
+export async function getParty(id: string): Promise<PartyDetail> {
+  return apiFetch<PartyDetail>(`/parties/${encodeURIComponent(id)}`);
+}
+
+// ─── Votes ──────────────────────────────────────────────────
+
+export async function getVotes(params?: {
+  limit?: number;
+  offset?: number;
+}): Promise<{ items: VoteDetail[]; total: number; limit: number; offset: number }> {
+  const sp = new URLSearchParams();
+  if (params?.limit) sp.set("limit", String(params.limit));
+  if (params?.offset) sp.set("offset", String(params.offset));
+  const qs = sp.toString();
+  return apiFetch(`/votes${qs ? `?${qs}` : ""}`);
 }

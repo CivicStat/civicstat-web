@@ -107,6 +107,60 @@ export interface MemberListItem {
   _count: { sponsors: number; voteRecords: number };
 }
 
+// Member detail
+export interface MemberDetail extends MemberListItem {
+  motions: {
+    id: string;
+    tkId: string;
+    tkNumber: string | null;
+    title: string;
+    text: string;
+    dateIntroduced: string;
+    status: string;
+    role: string;
+  }[];
+  voteRecords: {
+    id: string;
+    voteValue: string;
+    vote: {
+      id: string;
+      title: string;
+      date: string;
+      result: string;
+      totalFor: number;
+      totalAgainst: number;
+    };
+  }[];
+}
+
+// Party detail
+export interface PartyDetail {
+  id: string;
+  tkId: string | null;
+  name: string;
+  abbreviation: string;
+  colorNeutral: string | null;
+  website: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  mps: {
+    id: string;
+    tkId: string;
+    name: string;
+    surname: string;
+    startDate: string;
+    endDate: string | null;
+  }[];
+  motions: {
+    id: string;
+    tkId: string;
+    tkNumber: string | null;
+    title: string;
+    dateIntroduced: string;
+    status: string;
+  }[];
+}
+
 // Program match types
 export interface ProgramMatch {
   id: string;
