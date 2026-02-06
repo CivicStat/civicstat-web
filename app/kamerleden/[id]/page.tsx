@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getMember } from "../../../lib/api";
 import { getPartyColor, formatDate, getInitials } from "../../../lib/utils";
 import PartyBadge from "../../../components/PartyBadge";
-import StatusBadge from "../../../components/StatusBadge";
 import VoteBar from "../../../components/VoteBar";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
@@ -31,18 +30,15 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
   }
 
   const color = getPartyColor(member.party.abbreviation, member.party.colorNeutral);
-  const recentMotions = (member.motions || []).slice(0, 15);
-  const recentVotes = (member.voteRecords || []).slice(0, 20);
+  const motions = member.motions || [];
+  const vs = member.voteStats;
 
-  // Vote stats
-  const voteStats = recentVotes.reduce(
-    (acc, vr) => {
-      if (vr.voteValue === "FOR") acc.voor++;
-      else if (vr.voteValue === "AGAINST") acc.tegen++;
-      else acc.overig++;
-      return acc;
-    },
-    { voor: 0, tegen: 0, overig: 0 }
+  // Separate motions by role
+  const sponsored = motions.filter((m: any) =>
+    m.sponsors?.some((s: any) => s.role === "indiener")
+  );
+  const cosigned = motions.filter((m: any) =>
+    m.sponsors?.every((s: any) => s.role !== "indiener")
   );
 
   return (
@@ -68,10 +64,7 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
           <h1 className="font-serif text-[clamp(24px,4vw,32px)] text-ink leading-tight">
             {member.surname}
           </h1>
-          <p className="text-sm text-text-secondary mt-0.5">
-            {member.name}
-            {member.prefix ? ` ${member.prefix}` : ""} {member.surname}
-          </p>
+          <p className="text-sm text-text-secondary mt-0.5">{member.name}</p>
           <div className="mt-2">
             <Link href={`/partijen/${member.party.id}`}>
               <PartyBadge abbreviation={member.party.abbreviation} colorNeutral={member.party.colorNeutral} size="md" />
@@ -83,26 +76,26 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
         <div className="card p-4">
-          <div className="section-label">Moties ingediend</div>
-          <div className="text-2xl font-serif text-ink">{member._count?.sponsors || recentMotions.length}</div>
+          <div className="section-label">Moties</div>
+          <div className="text-2xl font-serif text-ink">{motions.length}</div>
         </div>
-        <div className="card p-4">
-          <div className="section-label">Stemmen geregistreerd</div>
-          <div className="text-2xl font-serif text-ink">{member._count?.voteRecords || recentVotes.length}</div>
-        </div>
-        {recentVotes.length > 0 && (
+        {vs && vs.totalVotes > 0 && (
           <>
             <div className="card p-4">
+              <div className="section-label">Stemmingen</div>
+              <div className="text-2xl font-serif text-ink">{vs.totalVotes}</div>
+            </div>
+            <div className="card p-4">
               <div className="section-label">Voor gestemd</div>
-              <div className="text-2xl font-serif text-ink">{voteStats.voor}</div>
+              <div className="text-2xl font-serif text-ink">{vs.for}</div>
             </div>
             <div className="card p-4">
               <div className="section-label">Tegen gestemd</div>
-              <div className="text-2xl font-serif text-ink">{voteStats.tegen}</div>
+              <div className="text-2xl font-serif text-ink">{vs.against}</div>
             </div>
           </>
         )}
-        {recentVotes.length === 0 && member.startDate && (
+        {(!vs || vs.totalVotes === 0) && member.startDate && (
           <div className="card p-4">
             <div className="section-label">Actief sinds</div>
             <div className="text-lg font-serif text-ink">{formatDate(member.startDate)}</div>
@@ -110,45 +103,50 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
         )}
       </div>
 
-      {/* Individual vote history (only for roll-call votes) */}
-      {recentVotes.length > 0 && (
+      {/* Voting pattern */}
+      {vs && vs.totalVotes > 0 && (
         <section className="mb-8">
-          <h2 className="font-serif text-xl text-ink mb-4">Stemgedrag (hoofdelijke stemmingen)</h2>
+          <h2 className="font-serif text-xl text-ink mb-4">Stempatroon</h2>
+          <div className="card p-5">
+            <VoteBar voor={vs.for} tegen={vs.against} afwezig={vs.abstain || 0} height={12} showLabels />
+            {vs.participationRate != null && (
+              <p className="text-[12px] text-text-tertiary mt-3">
+                Participatiegraad: {vs.participationRate}%
+                {vs.absent ? ` · ${vs.absent} keer afwezig` : ""}
+              </p>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Motions */}
+      {motions.length > 0 && (
+        <section>
+          <h2 className="font-serif text-xl text-ink mb-4">Moties ({motions.length})</h2>
           <div className="card p-0">
-            {recentVotes.map((vr, i) => {
-              const isVoor = vr.voteValue === "FOR";
-              const isTegen = vr.voteValue === "AGAINST";
+            {motions.map((m: any, i: number) => {
+              const role = m.sponsors?.[0]?.role || "indiener";
               return (
                 <Link
-                  key={vr.id}
-                  href={`/moties/${vr.vote?.id || "#"}`}
+                  key={m.id}
+                  href={`/moties/${m.id}`}
                   className={`flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-surface-sub ${
-                    i < recentVotes.length - 1 ? "border-b border-border-subtle" : ""
+                    i < motions.length - 1 ? "border-b border-border-subtle" : ""
                   }`}
                 >
-                  <span
-                    className={`shrink-0 w-[52px] text-center text-[11px] font-semibold rounded-full py-0.5 ${
-                      isVoor
-                        ? "bg-surface-sub text-ink"
-                        : isTegen
-                        ? "bg-mist text-text-secondary"
-                        : "bg-mist text-text-tertiary"
-                    }`}
-                  >
-                    {isVoor ? "Voor" : isTegen ? "Tegen" : vr.voteValue}
+                  <span className="shrink-0 w-[70px] text-center text-[11px] font-medium text-text-tertiary capitalize">
+                    {role}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-ink truncate">
-                      {vr.vote?.title || "–"}
-                    </div>
+                    <div className="text-sm font-medium text-ink truncate">{m.title}</div>
                     <div className="flex items-center gap-2 mt-0.5 text-[12px] text-text-tertiary">
-                      {vr.vote?.date && <span>{formatDate(vr.vote.date)}</span>}
-                      {vr.vote && (
+                      <span>{m.tkNumber}</span>
+                      {m.dateIntroduced && <><span>·</span><span>{formatDate(m.dateIntroduced)}</span></>}
+                      {m.vote && (
                         <>
                           <span>·</span>
-                          <span>{vr.vote.result}</span>
-                          <span>·</span>
-                          <span>{vr.vote.totalFor}–{vr.vote.totalAgainst}</span>
+                          <span>{m.vote.result}</span>
+                          <span>{m.vote.totalFor}–{m.vote.totalAgainst}</span>
                         </>
                       )}
                     </div>
@@ -158,37 +156,8 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
             })}
           </div>
           <p className="text-[12px] text-text-tertiary mt-3">
-            Individuele stemmen zijn alleen beschikbaar bij hoofdelijke stemmingen. Bij stemmingen met handopsteken worden alleen partijresultaten geregistreerd.
+            Moties waarbij dit kamerlid als indiener of mede-indiener betrokken is.
           </p>
-        </section>
-      )}
-
-      {/* Sponsored motions */}
-      {recentMotions.length > 0 && (
-        <section>
-          <h2 className="font-serif text-xl text-ink mb-4">Ingediende moties</h2>
-          <div className="card p-0">
-            {recentMotions.map((m, i) => (
-              <Link
-                key={m.id}
-                href={`/moties/${m.id}`}
-                className={`flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-surface-sub ${
-                  i < recentMotions.length - 1 ? "border-b border-border-subtle" : ""
-                }`}
-              >
-                <span className="shrink-0 text-[11px] font-medium text-text-tertiary capitalize">
-                  {m.role || "indiener"}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-ink truncate">{m.title}</div>
-                  <div className="flex items-center gap-2 mt-0.5 text-[12px] text-text-tertiary">
-                    <span>{m.tkNumber}</span>
-                    {m.dateIntroduced && <><span>·</span><span>{formatDate(m.dateIntroduced)}</span></>}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
         </section>
       )}
     </div>

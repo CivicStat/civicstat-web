@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getParty } from "../../../lib/api";
-import { getPartyColor, formatDate, getInitials } from "../../../lib/utils";
-import PartyBadge from "../../../components/PartyBadge";
+import { getPartyColor, getInitials } from "../../../lib/utils";
+import VoteBar from "../../../components/VoteBar";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   try {
@@ -36,8 +36,8 @@ export default async function PartyDetailPage({ params }: { params: { id: string
 
   const color = getPartyColor(party.abbreviation, party.colorNeutral);
   const seats = SEATS[party.abbreviation] || 0;
-  const activeMps = party.mps?.filter(m => !m.endDate) || [];
-  const recentMotions = (party.motions || []).slice(0, 20);
+  const activeMps = party.mps?.filter((m: any) => !m.endDate) || [];
+  const vs = party.voteStats;
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
@@ -75,10 +75,20 @@ export default async function PartyDetailPage({ params }: { params: { id: string
           <div className="section-label">Actieve leden</div>
           <div className="text-2xl font-serif text-ink">{activeMps.length}</div>
         </div>
-        <div className="card p-4">
-          <div className="section-label">Moties ingediend</div>
-          <div className="text-2xl font-serif text-ink">{recentMotions.length}{recentMotions.length >= 20 ? "+" : ""}</div>
-        </div>
+        {vs && vs.totalVotes > 0 && (
+          <>
+            <div className="card p-4">
+              <div className="section-label">Stemmingen</div>
+              <div className="text-2xl font-serif text-ink">{vs.totalVotes}</div>
+            </div>
+            <div className="card p-4">
+              <div className="section-label">Gewonnen</div>
+              <div className="text-2xl font-serif text-ink">
+                {vs.votesWon != null ? `${Math.round((vs.votesWon / vs.totalVotes) * 100)}%` : "–"}
+              </div>
+            </div>
+          </>
+        )}
         {party.startDate && (
           <div className="card p-4">
             <div className="section-label">Opgericht</div>
@@ -87,12 +97,42 @@ export default async function PartyDetailPage({ params }: { params: { id: string
         )}
       </div>
 
+      {/* Voting pattern */}
+      {vs && vs.totalVotes > 0 && (
+        <section className="mb-8">
+          <h2 className="font-serif text-xl text-ink mb-4">Stempatroon</h2>
+          <div className="card p-5">
+            <VoteBar voor={vs.for} tegen={vs.against} afwezig={vs.abstain || 0} height={12} showLabels />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 text-sm">
+              <div>
+                <span className="text-text-tertiary text-xs">Voor</span>
+                <div className="text-ink font-semibold">{vs.for} ({Math.round((vs.for / vs.totalVotes) * 100)}%)</div>
+              </div>
+              <div>
+                <span className="text-text-tertiary text-xs">Tegen</span>
+                <div className="text-ink font-semibold">{vs.against} ({Math.round((vs.against / vs.totalVotes) * 100)}%)</div>
+              </div>
+              <div>
+                <span className="text-text-tertiary text-xs">Onthouden</span>
+                <div className="text-ink font-semibold">{vs.abstain || 0}</div>
+              </div>
+              {vs.votesWon != null && (
+                <div>
+                  <span className="text-text-tertiary text-xs">Winnende kant</span>
+                  <div className="text-ink font-semibold">{vs.votesWon} van {vs.totalVotes}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Members */}
       {activeMps.length > 0 && (
-        <section className="mb-8">
-          <h2 className="font-serif text-xl text-ink mb-4">Kamerleden</h2>
+        <section>
+          <h2 className="font-serif text-xl text-ink mb-4">Kamerleden ({activeMps.length})</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {activeMps.sort((a, b) => a.surname.localeCompare(b.surname)).map(mp => (
+            {activeMps.sort((a: any, b: any) => a.surname.localeCompare(b.surname)).map((mp: any) => (
               <Link key={mp.id} href={`/kamerleden/${mp.id}`} className="card p-4 hover:border-moss/40 transition-colors">
                 <div className="flex items-center gap-3">
                   <div
@@ -107,32 +147,6 @@ export default async function PartyDetailPage({ params }: { params: { id: string
                   <div className="min-w-0">
                     <div className="text-sm font-semibold text-ink truncate">{mp.surname}</div>
                     <div className="text-[11px] text-text-tertiary truncate">{mp.name}</div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Recent motions */}
-      {recentMotions.length > 0 && (
-        <section>
-          <h2 className="font-serif text-xl text-ink mb-4">Ingediende moties</h2>
-          <div className="card p-0">
-            {recentMotions.map((m, i) => (
-              <Link
-                key={m.id}
-                href={`/moties/${m.id}`}
-                className={`flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-surface-sub ${
-                  i < recentMotions.length - 1 ? "border-b border-border-subtle" : ""
-                }`}
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-ink truncate">{m.title}</div>
-                  <div className="flex items-center gap-2 mt-1 text-[12px] text-text-tertiary">
-                    <span>{m.tkNumber}</span>
-                    {m.dateIntroduced && <><span>·</span><span>{formatDate(m.dateIntroduced)}</span></>}
                   </div>
                 </div>
               </Link>

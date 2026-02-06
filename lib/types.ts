@@ -107,8 +107,21 @@ export interface MemberListItem {
   _count: { sponsors: number; voteRecords: number };
 }
 
+// Vote stats (shared between member & party detail)
+export interface VoteStats {
+  totalVotes: number;
+  for: number;
+  against: number;
+  abstain: number;
+  absent?: number;
+  participationRate?: number;
+  votesWon?: number;
+  votesLost?: number;
+}
+
 // Member detail
 export interface MemberDetail extends MemberListItem {
+  constituency?: string | null;
   motions: {
     id: string;
     tkId: string;
@@ -117,20 +130,14 @@ export interface MemberDetail extends MemberListItem {
     text: string;
     dateIntroduced: string;
     status: string;
-    role: string;
-  }[];
-  voteRecords: {
-    id: string;
-    voteValue: string;
-    vote: {
-      id: string;
-      title: string;
-      date: string;
+    sponsors?: { role: string }[];
+    vote?: {
       result: string;
       totalFor: number;
       totalAgainst: number;
-    };
+    } | null;
   }[];
+  voteStats: VoteStats;
 }
 
 // Party detail
@@ -151,14 +158,7 @@ export interface PartyDetail {
     startDate: string;
     endDate: string | null;
   }[];
-  motions: {
-    id: string;
-    tkId: string;
-    tkNumber: string | null;
-    title: string;
-    dateIntroduced: string;
-    status: string;
-  }[];
+  voteStats: VoteStats;
 }
 
 // Program match types
