@@ -92,8 +92,30 @@ export interface VoteDetail extends VoteSummary {
   } | null;
 }
 
+export interface MotionPromiseMatch {
+  id: string;
+  matchType: string;
+  confidence: number;
+  promise: {
+    id: string;
+    promiseCode: string;
+    summary: string;
+    theme: string;
+    expectedVoteDirection: string | null;
+    program: {
+      electionYear: number;
+      party: {
+        id: string;
+        abbreviation: string;
+        colorNeutral: string | null;
+      };
+    };
+  };
+}
+
 export interface MotionDetail extends MotionListItem {
   vote: VoteDetail | null;
+  promiseMatches?: MotionPromiseMatch[];
 }
 
 // Party types

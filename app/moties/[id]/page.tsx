@@ -344,6 +344,49 @@ export default async function MotieDetailPage({ params }: Props) {
         </div>
       )}
 
+      {/* Related promises */}
+      {m.promiseMatches && m.promiseMatches.length > 0 && (
+        <div className="mb-8">
+          <h2 className="font-serif text-[22px] font-normal text-ink mb-4">
+            Gerelateerde beloften ({m.promiseMatches.length})
+          </h2>
+          <div className="space-y-2">
+            {m.promiseMatches.map((pm) => (
+              <Link
+                key={pm.id}
+                href={`/beloften/${pm.promise.id}`}
+                className="card px-5 py-3.5 flex items-center gap-3 hover:border-moss/40 transition-colors"
+              >
+                <PartyBadge
+                  abbreviation={pm.promise.program.party.abbreviation}
+                  colorNeutral={pm.promise.program.party.colorNeutral}
+                  size="sm"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] text-ink truncate">
+                    {pm.promise.summary}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-text-tertiary">
+                    <span className="font-mono">{pm.promise.promiseCode}</span>
+                    <span>·</span>
+                    <span>{themeLabel(pm.promise.theme)}</span>
+                    <span>·</span>
+                    <span className="rounded-full bg-surface-sub border border-border px-1.5 py-0 text-[10px]">
+                      {Math.round(pm.confidence * 100)}% match
+                    </span>
+                  </div>
+                </div>
+                {pm.promise.expectedVoteDirection && (
+                  <span className="text-[11px] text-text-tertiary shrink-0">
+                    Verwacht: {pm.promise.expectedVoteDirection === 'VOOR' ? 'voor' : 'tegen'}
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Full text */}
       <div className="mb-8">
         <h2 className="font-serif text-[22px] font-normal text-ink mb-4">
@@ -397,6 +440,16 @@ function voteValueLabel(value: string): string {
     case "ABSENT": return "Afwezig";
     default: return value;
   }
+}
+
+function themeLabel(theme: string): string {
+  const map: Record<string, string> = {
+    BESTUUR: "Bestuur", BUITENLAND: "Buitenland", DEFENSIE: "Defensie",
+    ECONOMIE: "Economie", KLIMAAT: "Klimaat", LANDBOUW: "Landbouw",
+    MIGRATIE: "Migratie", ONDERWIJS: "Onderwijs", SOCIAAL: "Sociaal",
+    VEILIGHEID: "Veiligheid", WONEN: "Wonen", ZORG: "Zorg",
+  };
+  return map[theme] || theme;
 }
 
 function SourceRow({
