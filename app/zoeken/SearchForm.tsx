@@ -3,21 +3,22 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function SearchBar() {
+export default function SearchForm({ initialQuery }: { initialQuery: string }) {
   const router = useRouter();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialQuery);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (q.trim()) {
-      router.push(`/zoeken?q=${encodeURIComponent(q.trim())}`);
+    const trimmed = q.trim();
+    if (trimmed) {
+      router.push(`/zoeken?q=${encodeURIComponent(trimmed)}`);
     } else {
       router.push("/zoeken");
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-[520px]">
+    <form onSubmit={handleSubmit} className="mb-6">
       <div className="card flex items-center gap-2 px-3 py-1">
         <svg
           width="18"
@@ -36,8 +37,9 @@ export default function SearchBar() {
           type="text"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Zoek moties, Kamerleden of partijen..."
+          placeholder="Zoek moties, beloften of Kamerleden..."
           className="flex-1 border-none outline-none bg-transparent text-sm text-ink py-2.5 placeholder:text-text-tertiary"
+          autoFocus
         />
         {q.trim() && (
           <button

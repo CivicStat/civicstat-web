@@ -84,8 +84,24 @@ export default function Nav() {
             ))}
           </nav>
 
-          {/* placeholder for theme toggle / search */}
-          <ThemeToggle />
+          {/* Search + theme toggle */}
+          <div className="flex items-center gap-1.5">
+            <Link
+              href="/zoeken"
+              className={`rounded-[7px] p-2 transition-colors ${
+                isActive("/zoeken")
+                  ? "bg-surface-sub text-ink"
+                  : "text-text-tertiary hover:bg-surface-sub/60 hover:text-text-secondary"
+              }`}
+              aria-label="Zoeken"
+            >
+              <svg width={16} height={16} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 

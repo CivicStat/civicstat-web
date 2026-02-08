@@ -1,5 +1,6 @@
 import type {
   MotionListResponse,
+  MotionListItem,
   MotionDetail,
   PartyListItem,
   PartyDetail,
@@ -7,6 +8,7 @@ import type {
   MemberDetail,
   VoteDetail,
   PromiseListResponse,
+  PromiseListItem,
   PromiseDetail,
 } from "./types";
 
@@ -64,9 +66,11 @@ export async function getParties(): Promise<PartyListItem[]> {
 // ─── Members ────────────────────────────────────────────────
 
 export async function getMembers(params?: {
+  q?: string;
   party?: string;
 }): Promise<MemberListItem[]> {
   const sp = new URLSearchParams();
+  if (params?.q) sp.set("q", params.q);
   if (params?.party) sp.set("party", params.party);
   const qs = sp.toString();
   return apiFetch<MemberListItem[]>(`/members${qs ? `?${qs}` : ""}`);
@@ -89,12 +93,14 @@ export async function getParty(id: string): Promise<PartyDetail> {
 // ─── Promises ───────────────────────────────────────────────
 
 export async function getPromises(params?: {
+  q?: string;
   party?: string;
   theme?: string;
   limit?: number;
   offset?: number;
 }): Promise<PromiseListResponse> {
   const sp = new URLSearchParams();
+  if (params?.q) sp.set("q", params.q);
   if (params?.party) sp.set("party", params.party);
   if (params?.theme) sp.set("theme", params.theme);
   if (params?.limit) sp.set("limit", String(params.limit));
@@ -119,4 +125,34 @@ export async function getVotes(params?: {
   if (params?.offset) sp.set("offset", String(params.offset));
   const qs = sp.toString();
   return apiFetch(`/votes${qs ? `?${qs}` : ""}`);
+}
+
+// ─── Search All ────────────────────────────────────────────
+// Queries motions, promises, and members in parallel; never throws.
+
+export interface SearchAllResults {
+  motions: { items: MotionListItem[]; total: number };
+  promises: { items: PromiseListItem[]; total: number };
+  members: MemberListItem[];
+}
+
+export async function searchAll(q: string): Promise<SearchAllResults> {
+  const [motionsResult, promisesResult, membersResult] = await Promise.allSettled([
+    getMotions({ q, limit: 10 }),
+    getPromises({ q, limit: 10 }),
+    getMembers({ q }),
+  ]);
+
+  return {
+    motions:
+      motionsResult.status === "fulfilled"
+        ? { items: motionsResult.value.items, total: motionsResult.value.total }
+        : { items: [], total: 0 },
+    promises:
+      promisesResult.status === "fulfilled"
+        ? { items: promisesResult.value.items, total: promisesResult.value.total }
+        : { items: [], total: 0 },
+    members:
+      membersResult.status === "fulfilled" ? membersResult.value : [],
+  };
 }
