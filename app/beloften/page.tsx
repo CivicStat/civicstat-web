@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { getPromises, getParties } from "../../lib/api";
 import type { PromiseListItem } from "../../lib/types";
-import { formatDate } from "../../lib/utils";
 import PartyBadge from "../../components/PartyBadge";
-import VoteBar from "../../components/VoteBar";
 import BeloftenFilters from "./BeloftenFilters";
+import MotionMatchList from "./MotionMatchList";
 
 interface Props {
   searchParams: {
@@ -26,15 +25,18 @@ export const metadata = {
 
 function themeLabel(theme: string): string {
   const map: Record<string, string> = {
+    BESTUUR: "Bestuur",
+    BUITENLAND: "Buitenland",
     DEFENSIE: "Defensie",
-    MIGRATIE: "Migratie",
-    KLIMAAT: "Klimaat",
-    ZORG: "Zorg",
-    ONDERWIJS: "Onderwijs",
     ECONOMIE: "Economie",
+    KLIMAAT: "Klimaat",
+    LANDBOUW: "Landbouw",
+    MIGRATIE: "Migratie",
+    ONDERWIJS: "Onderwijs",
+    SOCIAAL: "Sociaal",
     VEILIGHEID: "Veiligheid",
     WONEN: "Wonen",
-    BESTUUR: "Bestuur",
+    ZORG: "Zorg",
   };
   return map[theme] || theme;
 }
@@ -42,10 +44,15 @@ function themeLabel(theme: string): string {
 function specificityLabel(s: string): string {
   const map: Record<string, string> = {
     CONCRETE: "Concreet",
+    DIRECTIONAL: "Directioneel",
     MODERATE: "Matig",
     VAGUE: "Vaag",
   };
   return map[s] || s;
+}
+
+function directionLabel(d: string): string {
+  return d === "VOOR" ? "Verwacht: voor" : d === "TEGEN" ? "Verwacht: tegen" : d;
 }
 
 /** Count how many matched motions were adopted / rejected */
@@ -106,13 +113,6 @@ export default async function BeloftenPage({ searchParams }: Props) {
   const { items, total } = data;
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
-  // Group promises by party for the summary banner
-  const partyGroups = new Map<string, number>();
-  for (const item of items) {
-    const abbr = item.program.party.abbreviation;
-    partyGroups.set(abbr, (partyGroups.get(abbr) || 0) + 1);
-  }
-
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
       {/* Header */}
@@ -159,7 +159,12 @@ export default async function BeloftenPage({ searchParams }: Props) {
                   <span className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
                     {specificityLabel(promise.specificity)}
                   </span>
-                  <span className="text-[11px] text-text-tertiary ml-auto">
+                  {promise.expectedVoteDirection && (
+                    <span className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
+                      {directionLabel(promise.expectedVoteDirection)}
+                    </span>
+                  )}
+                  <span className="text-[11px] text-text-tertiary ml-auto font-mono">
                     {promise.promiseCode}
                   </span>
                 </div>
@@ -170,123 +175,29 @@ export default async function BeloftenPage({ searchParams }: Props) {
                 </h2>
 
                 {/* Original program text */}
-                <p className="text-[13px] text-text-secondary leading-relaxed line-clamp-2">
+                <p className="text-[13px] text-text-secondary leading-relaxed line-clamp-3">
                   {promise.text}
                 </p>
 
                 {/* Source line */}
                 <div className="mt-2 text-[11px] text-text-tertiary">
-                  Bron: {promise.program.title} ({promise.program.electionYear})
-                  {promise.pageRef && ` · p. ${promise.pageRef}`}
+                  Bron:{" "}
+                  <span className="italic">
+                    {promise.program.title}
+                  </span>{" "}
+                  ({promise.program.electionYear})
+                  {promise.pageRef && <> &middot; p. {promise.pageRef}</>}
                 </div>
               </div>
 
-              {/* Match summary bar */}
+              {/* Motion matches */}
               {stats.total > 0 ? (
-                <div className="border-t border-border-subtle px-5 py-3 bg-surface-sub/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
-                      Gerelateerde moties ({stats.total})
-                    </span>
-                    <div className="flex items-center gap-3 text-[11px] text-text-secondary">
-                      {stats.adopted > 0 && (
-                        <span className="flex items-center gap-1">
-                          <svg width={10} height={10} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                          {stats.adopted} aangenomen
-                        </span>
-                      )}
-                      {stats.rejected > 0 && (
-                        <span className="flex items-center gap-1">
-                          <svg width={10} height={10} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24">
-                            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                          </svg>
-                          {stats.rejected} verworpen
-                        </span>
-                      )}
-                      {stats.noVote > 0 && (
-                        <span>{stats.noVote} zonder stemming</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Show first 3 matched motions */}
-                  <div className="space-y-1.5">
-                    {promise.motionMatches.slice(0, 3).map((match) => {
-                      const vote = match.motion.votes?.[0];
-                      return (
-                        <Link
-                          key={match.id}
-                          href={`/moties/${match.motion.id}`}
-                          className="flex items-center gap-3 rounded-lg px-3 py-2 -mx-1 transition-colors hover:bg-surface-sub"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <div className="text-[13px] text-ink truncate">
-                              {match.motion.text || match.motion.title}
-                            </div>
-                            <div className="flex items-center gap-2 mt-0.5 text-[11px] text-text-tertiary">
-                              {match.motion.tkNumber && (
-                                <span>{match.motion.tkNumber}</span>
-                              )}
-                              <span>{formatDate(match.motion.dateIntroduced)}</span>
-                              <span
-                                className={`rounded-full px-1.5 py-0 text-[10px] font-medium ${
-                                  match.matchType === "EXPLICIT_MATCH"
-                                    ? "bg-accent-subtle text-moss"
-                                    : match.matchType === "CONTRA_MATCH"
-                                    ? "bg-surface-sub text-text-tertiary"
-                                    : "bg-surface-sub text-text-secondary"
-                                }`}
-                              >
-                                {match.matchType === "EXPLICIT_MATCH"
-                                  ? "direct"
-                                  : match.matchType === "CONTRA_MATCH"
-                                  ? "contra"
-                                  : "impliciet"}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Vote result */}
-                          {vote ? (
-                            <div className="flex-shrink-0 w-[80px] text-right">
-                              <div className="w-[60px] ml-auto">
-                                <VoteBar
-                                  voor={vote.totalFor}
-                                  tegen={vote.totalAgainst}
-                                  height={5}
-                                />
-                              </div>
-                              <div className="mt-0.5 text-[11px] text-text-tertiary">
-                                {vote.totalFor}–{vote.totalAgainst}{" "}
-                                <span
-                                  className={
-                                    vote.result === "Aangenomen"
-                                      ? "font-semibold text-ink"
-                                      : ""
-                                  }
-                                >
-                                  {vote.result === "Aangenomen" ? "✓" : "✗"}
-                                </span>
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="flex-shrink-0 text-[11px] text-text-tertiary">
-                              –
-                            </span>
-                          )}
-                        </Link>
-                      );
-                    })}
-
-                    {promise.motionMatches.length > 3 && (
-                      <div className="text-[11px] text-text-tertiary pl-3 pt-1">
-                        + {promise.motionMatches.length - 3} meer
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <MotionMatchList
+                  matches={promise.motionMatches}
+                  adopted={stats.adopted}
+                  rejected={stats.rejected}
+                  noVote={stats.noVote}
+                />
               ) : (
                 <div className="border-t border-border-subtle px-5 py-3 bg-surface-sub/30">
                   <span className="text-[11px] text-text-tertiary">
@@ -311,7 +222,7 @@ export default async function BeloftenPage({ searchParams }: Props) {
                 page={page - 1}
                 partij={searchParams.partij}
                 thema={searchParams.thema}
-                label="← Vorige"
+                label="\u2190 Vorige"
               />
             )}
             {page < totalPages && (
@@ -319,7 +230,7 @@ export default async function BeloftenPage({ searchParams }: Props) {
                 page={page + 1}
                 partij={searchParams.partij}
                 thema={searchParams.thema}
-                label="Volgende →"
+                label="Volgende \u2192"
               />
             )}
           </div>

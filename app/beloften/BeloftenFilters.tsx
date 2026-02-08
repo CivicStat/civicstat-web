@@ -3,16 +3,19 @@
 import { useRouter, useSearchParams } from "next/navigation";
 
 const THEMES = [
-  { value: "", label: "Alle thema's" },
+  { value: "", label: "Alle thema\u2019s" },
+  { value: "BESTUUR", label: "Bestuur" },
+  { value: "BUITENLAND", label: "Buitenland" },
   { value: "DEFENSIE", label: "Defensie" },
-  { value: "MIGRATIE", label: "Migratie" },
-  { value: "KLIMAAT", label: "Klimaat" },
-  { value: "ZORG", label: "Zorg" },
-  { value: "ONDERWIJS", label: "Onderwijs" },
   { value: "ECONOMIE", label: "Economie" },
+  { value: "KLIMAAT", label: "Klimaat" },
+  { value: "LANDBOUW", label: "Landbouw" },
+  { value: "MIGRATIE", label: "Migratie" },
+  { value: "ONDERWIJS", label: "Onderwijs" },
+  { value: "SOCIAAL", label: "Sociaal" },
   { value: "VEILIGHEID", label: "Veiligheid" },
   { value: "WONEN", label: "Wonen" },
-  { value: "BESTUUR", label: "Bestuur" },
+  { value: "ZORG", label: "Zorg" },
 ];
 
 interface Props {
