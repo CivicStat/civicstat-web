@@ -6,6 +6,7 @@ import type {
   MemberListItem,
   MemberDetail,
   VoteDetail,
+  PromiseListResponse,
 } from "./types";
 
 const API_URL =
@@ -80,6 +81,26 @@ export async function getMember(id: string): Promise<MemberDetail> {
 
 export async function getParty(id: string): Promise<PartyDetail> {
   return apiFetch<PartyDetail>(`/parties/${encodeURIComponent(id)}`);
+}
+
+// ─── Votes ──────────────────────────────────────────────────
+
+// ─── Promises ───────────────────────────────────────────────
+
+export async function getPromises(params?: {
+  party?: string;
+  theme?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<PromiseListResponse> {
+  const sp = new URLSearchParams();
+  if (params?.party) sp.set("party", params.party);
+  if (params?.theme) sp.set("theme", params.theme);
+  if (params?.limit) sp.set("limit", String(params.limit));
+  if (params?.offset) sp.set("offset", String(params.offset));
+
+  const qs = sp.toString();
+  return apiFetch<PromiseListResponse>(`/promises${qs ? `?${qs}` : ""}`);
 }
 
 // ─── Votes ──────────────────────────────────────────────────

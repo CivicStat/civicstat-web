@@ -178,6 +178,60 @@ export interface PartyDetail {
   voteStats: VoteStats;
 }
 
+// ─── Promise types ─────────────────────────────────────────
+
+export interface PromiseMotionMatch {
+  id: string;
+  matchType: "EXPLICIT_MATCH" | "IMPLICIT_MATCH" | "CONTRA_MATCH";
+  confidence: number;
+  rationale: string;
+  matchMethod: string;
+  motion: {
+    id: string;
+    tkId: string;
+    tkNumber: string | null;
+    title: string;
+    text: string;
+    dateIntroduced: string;
+    status: string;
+    votes: {
+      id: string;
+      result: string;
+      totalFor: number;
+      totalAgainst: number;
+      totalAbstain: number;
+    }[];
+  };
+}
+
+export interface PromiseListItem {
+  id: string;
+  programId: string;
+  promiseCode: string;
+  text: string;
+  summary: string;
+  theme: string;
+  specificity: string;
+  pageRef: string | null;
+  expectedVoteDirection: string;
+  extractedBy: string;
+  createdAt: string;
+  program: {
+    id: string;
+    electionYear: number;
+    title: string;
+    party: PartyRef;
+  };
+  motionMatches: PromiseMotionMatch[];
+}
+
+export interface PromiseListResponse {
+  items: PromiseListItem[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
 // Program match types
 export interface ProgramMatch {
   id: string;
