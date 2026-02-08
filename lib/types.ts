@@ -232,6 +232,34 @@ export interface PromiseListResponse {
   offset: number;
 }
 
+export interface PromiseDetail {
+  id: string;
+  programId: string;
+  promiseCode: string;
+  text: string;
+  summary: string;
+  theme: string;
+  specificity: string;
+  pageRef: string | null;
+  expectedVoteDirection: string;
+  extractedBy: string;
+  createdAt: string;
+  program: {
+    id: string;
+    electionYear: number;
+    title: string;
+    sourceUrl: string | null;
+    party: PartyRef;
+  };
+  passage: {
+    id: string;
+    chapter: string | null;
+    heading: string | null;
+    passageText: string;
+  } | null;
+  motionMatches: PromiseMotionMatch[];
+}
+
 // Program match types
 export interface ProgramMatch {
   id: string;

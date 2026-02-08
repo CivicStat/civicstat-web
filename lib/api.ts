@@ -7,6 +7,7 @@ import type {
   MemberDetail,
   VoteDetail,
   PromiseListResponse,
+  PromiseDetail,
 } from "./types";
 
 const API_URL =
@@ -101,6 +102,10 @@ export async function getPromises(params?: {
 
   const qs = sp.toString();
   return apiFetch<PromiseListResponse>(`/promises${qs ? `?${qs}` : ""}`);
+}
+
+export async function getPromise(id: string): Promise<PromiseDetail> {
+  return apiFetch<PromiseDetail>(`/promises/${encodeURIComponent(id)}`);
 }
 
 // ─── Votes ──────────────────────────────────────────────────

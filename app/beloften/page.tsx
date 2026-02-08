@@ -171,7 +171,12 @@ export default async function BeloftenPage({ searchParams }: Props) {
 
                 {/* Summary */}
                 <h2 className="text-[15px] font-medium text-ink leading-snug mb-1.5">
-                  {promise.summary}
+                  <Link
+                    href={`/beloften/${promise.id}`}
+                    className="hover:text-moss transition-colors"
+                  >
+                    {promise.summary}
+                  </Link>
                 </h2>
 
                 {/* Original program text */}
