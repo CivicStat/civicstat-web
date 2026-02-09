@@ -1,19 +1,42 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function SearchForm({ initialQuery }: { initialQuery: string }) {
   const router = useRouter();
   const [q, setQ] = useState(initialQuery);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced navigation
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    const trimmed = q.trim();
+
+    // Don't auto-search for very short queries
+    if (trimmed.length > 0 && trimmed.length < 2) return;
+
+    debounceRef.current = setTimeout(() => {
+      if (trimmed) {
+        router.push(`/zoeken?q=${encodeURIComponent(trimmed)}`);
+      } else {
+        router.push("/zoeken");
+      }
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [q, router]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // Cancel debounce and navigate immediately
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     const trimmed = q.trim();
     if (trimmed) {
       router.push(`/zoeken?q=${encodeURIComponent(trimmed)}`);
-    } else {
-      router.push("/zoeken");
     }
   }
 
@@ -43,10 +66,23 @@ export default function SearchForm({ initialQuery }: { initialQuery: string }) {
         />
         {q.trim() && (
           <button
-            type="submit"
-            className="rounded-md bg-moss px-3 py-1.5 text-xs font-medium text-white hover:bg-moss-hover transition-colors"
+            type="button"
+            onClick={() => setQ("")}
+            className="p-1 text-text-tertiary hover:text-text-secondary transition-colors"
+            aria-label="Wissen"
           >
-            Zoek
+            <svg
+              width={14}
+              height={14}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              viewBox="0 0 24 24"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         )}
       </div>

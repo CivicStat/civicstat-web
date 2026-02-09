@@ -97,6 +97,64 @@ function matchStats(matches: PromiseMotionMatch[]) {
   return { adopted, rejected, noVote, total: matches.length };
 }
 
+/**
+ * Compute a consistency badge for a promise based on its motion matches.
+ * Compares adopted/rejected counts against expectedVoteDirection and matchType.
+ */
+function computeConsistency(
+  matches: PromiseMotionMatch[],
+  expectedDirection: string
+): { label: string; icon: "check" | "mixed" | "cross" | "none"; className: string } {
+  // Only consider matches that have a vote
+  let aligned = 0;
+  let opposed = 0;
+
+  for (const m of matches) {
+    const vote = m.motion.votes?.[0];
+    if (!vote) continue;
+
+    const isAdopted = vote.result === "Aangenomen";
+    const isContra = m.matchType === "CONTRA_MATCH";
+
+    // For VOOR expected direction:
+    //   - EXPLICIT/IMPLICIT match + Aangenomen = aligned
+    //   - EXPLICIT/IMPLICIT match + Verworpen = opposed
+    //   - CONTRA match inverts: Aangenomen = opposed, Verworpen = aligned
+    // For TEGEN expected direction: logic inverts
+    const expectsFor = expectedDirection === "VOOR";
+
+    if (isContra) {
+      // Contra match: adopted means opposed to promise, rejected means aligned
+      if (isAdopted) opposed++;
+      else aligned++;
+    } else {
+      // Direct/implicit match
+      if (expectsFor) {
+        if (isAdopted) aligned++;
+        else opposed++;
+      } else {
+        // Expected TEGEN: adoption of a direct match is actually opposed
+        if (isAdopted) opposed++;
+        else aligned++;
+      }
+    }
+  }
+
+  const scored = aligned + opposed;
+  if (scored === 0) {
+    return { label: "Onvoldoende data", icon: "none", className: "bg-surface-sub text-text-tertiary" };
+  }
+
+  const ratio = aligned / scored;
+  if (ratio >= 0.7) {
+    return { label: "Consistent", icon: "check", className: "bg-accent-subtle text-moss" };
+  }
+  if (ratio <= 0.3) {
+    return { label: "Inconsistent", icon: "cross", className: "bg-red-500/10 text-red-400" };
+  }
+  return { label: "Gemengd", icon: "mixed", className: "bg-amber-500/10 text-amber-600" };
+}
+
 // ─── Page ─────────────────────────────────────────────────────
 
 export default async function BelofteDetailPage({ params }: Props) {
@@ -121,6 +179,7 @@ export default async function BelofteDetailPage({ params }: Props) {
 
   const p = promise;
   const stats = matchStats(p.motionMatches);
+  const consistency = computeConsistency(p.motionMatches, p.expectedVoteDirection);
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-6 pb-24">
@@ -180,6 +239,39 @@ export default async function BelofteDetailPage({ params }: Props) {
           {p.text}
         </blockquote>
       </div>
+
+      {/* ─── CONSISTENCY BADGE ─────────────────────────────────── */}
+      {stats.total > 0 && (
+        <div className="card px-5 py-4 mb-8 flex items-center gap-3">
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${consistency.className}`}>
+            {consistency.icon === "check" && (
+              <svg width={13} height={13} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            )}
+            {consistency.icon === "cross" && (
+              <svg width={13} height={13} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            )}
+            {consistency.icon === "mixed" && (
+              <svg width={13} height={13} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24">
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            )}
+            {consistency.label}
+          </span>
+          <span className="text-[12px] text-text-secondary">
+            {consistency.icon === "check"
+              ? "Het stemgedrag in de Kamer komt overeen met deze belofte."
+              : consistency.icon === "cross"
+              ? "Het stemgedrag in de Kamer wijkt af van deze belofte."
+              : consistency.icon === "mixed"
+              ? "Het stemgedrag in de Kamer is deels in lijn met deze belofte."
+              : "Er zijn onvoldoende stemmingen om de consistentie te bepalen."}
+          </span>
+        </div>
+      )}
 
       {/* ─── SOURCE SECTION ──────────────────────────────────── */}
       <div className="card p-5 mb-8">

@@ -113,9 +113,31 @@ export interface MotionPromiseMatch {
   };
 }
 
+// Vote prediction types
+export interface PartyPredictionItem {
+  id: string;
+  partyId: string;
+  predictedVote: "FOR" | "AGAINST" | "UNKNOWN";
+  confidence: number;
+  rationale: string | null;
+  party: {
+    id: string;
+    abbreviation: string;
+    colorNeutral: string | null;
+  };
+}
+
+export interface VotePrediction {
+  id: string;
+  motionId: string;
+  algorithmVersion: string;
+  partyPredictions: PartyPredictionItem[];
+}
+
 export interface MotionDetail extends MotionListItem {
   vote: VoteDetail | null;
   promiseMatches?: MotionPromiseMatch[];
+  prediction?: VotePrediction | null;
 }
 
 // Party types

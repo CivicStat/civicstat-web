@@ -4,7 +4,7 @@ import { formatDate, getInitials, getPartyColor } from "../../../lib/utils";
 import PartyBadge from "../../../components/PartyBadge";
 import StatusBadge from "../../../components/StatusBadge";
 import VoteBar from "../../../components/VoteBar";
-import type { VoteRecord, RawStemming } from "../../../lib/types";
+import type { VoteRecord, RawStemming, PartyPredictionItem } from "../../../lib/types";
 
 interface Props {
   params: { id: string };
@@ -290,6 +290,105 @@ export default async function MotieDetailPage({ params }: Props) {
                   : "Bij 'met handopsteken' stemmingen zijn alleen partijniveau-resultaten beschikbaar. De aantallen komen overeen met de fractiegrootte ten tijde van de stemming."}
               </p>
             </details>
+          </div>
+        </div>
+      )}
+
+      {/* ─── PREDICTION SECTION ──────────────────────────────── */}
+      {m.prediction && m.prediction.partyPredictions.length > 0 && vote && (
+        <div className="mb-8">
+          <h2 className="font-serif text-[22px] font-normal text-ink mb-2">
+            Belofte-kloof
+          </h2>
+          <p className="text-[13px] text-text-secondary mb-4 max-w-[68ch]">
+            Op basis van verkiezingsbeloften voorspelt ons algoritme hoe partijen
+            zouden stemmen. Vergelijk dit met het daadwerkelijke stemgedrag.
+          </p>
+          <div className="card overflow-hidden">
+            {/* Table header */}
+            <div className="hidden sm:grid grid-cols-[140px_1fr_1fr_80px] gap-2 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-text-tertiary border-b border-border bg-surface-sub rounded-t-card">
+              <span>Partij</span>
+              <span>Voorspeld</span>
+              <span>Werkelijk</span>
+              <span className="text-right">Match</span>
+            </div>
+            {m.prediction.partyPredictions
+              .filter((pp: PartyPredictionItem) => pp.predictedVote !== "UNKNOWN")
+              .map((pp: PartyPredictionItem, i: number) => {
+                // Find actual vote for this party from partyAggregates or raw data
+                const actualRow = partyAggregates?.find(
+                  (a) => a.abbreviation.toLowerCase() === pp.party.abbreviation.toLowerCase()
+                );
+                const actualVote = actualRow
+                  ? actualRow.voor > actualRow.tegen ? "FOR" : actualRow.tegen > actualRow.voor ? "AGAINST" : "UNKNOWN"
+                  : null;
+                const matches = actualVote && actualVote === pp.predictedVote;
+                const predictedLabel = pp.predictedVote === "FOR" ? "Voor" : "Tegen";
+                const actualLabel = actualVote === "FOR" ? "Voor" : actualVote === "AGAINST" ? "Tegen" : "Onbekend";
+
+                return (
+                  <div
+                    key={pp.id}
+                    className={`grid grid-cols-[140px_1fr_1fr_80px] gap-2 px-5 py-3 items-center ${
+                      i < m.prediction!.partyPredictions.filter((p: PartyPredictionItem) => p.predictedVote !== "UNKNOWN").length - 1
+                        ? "border-b border-border-subtle"
+                        : ""
+                    }`}
+                  >
+                    <PartyBadge
+                      abbreviation={pp.party.abbreviation}
+                      colorNeutral={pp.party.colorNeutral}
+                      size="sm"
+                    />
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[13px] font-medium ${pp.predictedVote === "FOR" ? "text-ink" : "text-text-secondary"}`}>
+                        {predictedLabel}
+                      </span>
+                      <span className="text-[11px] text-text-tertiary font-mono">
+                        {Math.round(pp.confidence * 100)}%
+                      </span>
+                    </div>
+                    <div>
+                      {actualVote ? (
+                        <span className={`text-[13px] font-medium ${actualVote === "FOR" ? "text-ink" : "text-text-secondary"}`}>
+                          {actualLabel}
+                          {actualRow && (
+                            <span className="text-[11px] text-text-tertiary ml-1">
+                              ({actualRow.voor}–{actualRow.tegen})
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-[12px] text-text-tertiary italic">geen data</span>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      {actualVote ? (
+                        matches ? (
+                          <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-moss">
+                            <svg width={12} height={12} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            Klopt
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-red-400">
+                            <svg width={12} height={12} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24">
+                              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                            Afwijking
+                          </span>
+                        )
+                      ) : (
+                        <span className="text-[11px] text-text-tertiary">–</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+          <div className="mt-2 text-[11px] text-text-tertiary">
+            Algoritme: {m.prediction.algorithmVersion} · Gebaseerd op beloftekoppelingen
           </div>
         </div>
       )}
