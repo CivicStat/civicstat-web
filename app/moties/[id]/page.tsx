@@ -90,6 +90,11 @@ export default async function MotieDetailPage({ params }: Props) {
     }
   }
 
+  // Compute reliability (fraction of 15 parties that have predictions with known direction)
+  const reliabilityPct = Math.round((knownCount / 15) * 100);
+  const reliabilityLabel = reliabilityPct >= 50 ? 'Gemiddeld' : 'Laag';
+  const reliabilityColor = reliabilityPct >= 50 ? 'text-text-secondary' : 'text-text-tertiary';
+
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-6 pb-24">
       {/* Back */}
@@ -330,9 +335,15 @@ export default async function MotieDetailPage({ params }: Props) {
       {/* ─── PREDICTION SECTION ──────────────────────────────── */}
       {m.prediction && m.prediction.partyPredictions.length > 0 && vote && (
         <div className="mb-8">
-          <h2 className="font-serif text-[22px] font-normal text-ink mb-2">
-            Belofte-kloof
-          </h2>
+          <div className="flex items-center gap-3 mb-1">
+            <h2 className="font-serif text-[22px] font-normal text-ink">
+              Belofte-kloof
+            </h2>
+            <span className={`inline-flex items-center gap-1.5 rounded-full bg-surface-sub border border-border px-2.5 py-0.5 text-[11px] font-semibold ${reliabilityColor}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${reliabilityPct >= 50 ? 'bg-text-secondary' : 'bg-text-tertiary'}`} />
+              {reliabilityPct}% — {reliabilityLabel} betrouwbaarheid
+            </span>
+          </div>
           <p className="text-[13px] text-text-secondary mb-4 max-w-[68ch]">
             Op basis van verkiezingsbeloften voorspelt ons algoritme hoe partijen
             zouden stemmen. Vergelijk dit met het daadwerkelijke stemgedrag.
@@ -342,7 +353,7 @@ export default async function MotieDetailPage({ params }: Props) {
           {predictedVoor + predictedTegen > 0 && (
             <div className="card p-5 mb-4">
               <div className="space-y-4">
-                {/* Predicted bar */}
+                {/* Predicted bar with stripe overlay */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
@@ -352,7 +363,15 @@ export default async function MotieDetailPage({ params }: Props) {
                       {predictedVoor}–{predictedTegen}
                     </span>
                   </div>
-                  <VoteBar voor={predictedVoor} tegen={predictedTegen} height={12} />
+                  <div className="relative">
+                    <VoteBar voor={predictedVoor} tegen={predictedTegen} height={12} />
+                    <div
+                      className="absolute inset-0 rounded-full pointer-events-none opacity-20"
+                      style={{
+                        backgroundImage: `repeating-linear-gradient(90deg, transparent, transparent 3px, white 3px, white 5px)`,
+                      }}
+                    />
+                  </div>
                 </div>
 
                 {/* Actual bar */}
@@ -368,6 +387,20 @@ export default async function MotieDetailPage({ params }: Props) {
                   <VoteBar voor={vote.totalFor} tegen={vote.totalAgainst} height={12} />
                 </div>
 
+                {/* Delta indicator */}
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-[12px] text-text-secondary">
+                    Belofte-kloof:{' '}
+                    <span className="font-semibold text-ink">
+                      {(() => {
+                        const delta = (vote?.totalFor ?? 0) - predictedVoor;
+                        return `${delta > 0 ? '+' : ''}${delta} stemmen`;
+                      })()}
+                    </span>
+                    {' '}verschil
+                  </span>
+                </div>
+
                 {/* Match summary */}
                 <div className="pt-3 border-t border-border-subtle flex items-center justify-between">
                   <span className="text-[12px] text-text-secondary">
@@ -381,89 +414,71 @@ export default async function MotieDetailPage({ params }: Props) {
             </div>
           )}
 
-          <div className="card overflow-hidden">
-            {/* Table header */}
-            <div className="hidden sm:grid grid-cols-[140px_1fr_1fr_80px] gap-2 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-text-tertiary border-b border-border bg-surface-sub rounded-t-card">
-              <span>Partij</span>
-              <span>Voorspeld</span>
-              <span>Werkelijk</span>
-              <span className="text-right">Match</span>
+          {/* Per-party prediction pills */}
+          <div className="mt-4">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary mb-2">
+              Partij-niveau: voorspelling vs. werkelijkheid
             </div>
-            {m.prediction.partyPredictions
-              .filter((pp: PartyPredictionItem) => pp.predictedVote !== "UNKNOWN")
-              .map((pp: PartyPredictionItem, i: number) => {
-                // Find actual vote for this party from partyAggregates or raw data
-                const actualRow = partyAggregates?.find(
-                  (a) => a.abbreviation.toLowerCase() === pp.party.abbreviation.toLowerCase()
-                );
-                const actualVote = actualRow
-                  ? actualRow.voor > actualRow.tegen ? "FOR" : actualRow.tegen > actualRow.voor ? "AGAINST" : "UNKNOWN"
-                  : null;
-                const matches = actualVote && actualVote === pp.predictedVote;
-                const predictedLabel = pp.predictedVote === "FOR" ? "Voor" : "Tegen";
-                const actualLabel = actualVote === "FOR" ? "Voor" : actualVote === "AGAINST" ? "Tegen" : "Onbekend";
+            <div className="flex flex-wrap gap-1.5">
+              {m.prediction.partyPredictions
+                .filter((pp: PartyPredictionItem) => pp.predictedVote !== 'UNKNOWN')
+                .map((pp: PartyPredictionItem) => {
+                  const actualRow = partyAggregates?.find(
+                    (a) => a.abbreviation.toLowerCase() === pp.party.abbreviation.toLowerCase()
+                  );
+                  const actualVote = actualRow
+                    ? actualRow.voor > actualRow.tegen ? 'FOR' : 'AGAINST'
+                    : null;
+                  const matches = actualVote === pp.predictedVote;
+                  const predictedLabel = pp.predictedVote === 'FOR' ? 'voor' : 'tegen';
+                  const actualLabel = actualVote === 'FOR' ? 'voor' : actualVote === 'AGAINST' ? 'tegen' : null;
 
-                return (
-                  <div
-                    key={pp.id}
-                    className={`grid grid-cols-[140px_1fr_1fr_80px] gap-2 px-5 py-3 items-center ${
-                      i < m.prediction!.partyPredictions.filter((p: PartyPredictionItem) => p.predictedVote !== "UNKNOWN").length - 1
-                        ? "border-b border-border-subtle"
-                        : ""
-                    }`}
-                  >
-                    <PartyBadge
-                      abbreviation={pp.party.abbreviation}
-                      colorNeutral={pp.party.colorNeutral}
-                      size="sm"
-                    />
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[13px] font-medium ${pp.predictedVote === "FOR" ? "text-ink" : "text-text-secondary"}`}>
-                        {predictedLabel}
-                      </span>
-                      <span className="text-[11px] text-text-tertiary font-mono">
-                        {Math.round(pp.confidence * 100)}%
-                      </span>
-                    </div>
-                    <div>
-                      {actualVote ? (
-                        <span className={`text-[13px] font-medium ${actualVote === "FOR" ? "text-ink" : "text-text-secondary"}`}>
-                          {actualLabel}
-                          {actualRow && (
-                            <span className="text-[11px] text-text-tertiary ml-1">
-                              ({actualRow.voor}–{actualRow.tegen})
-                            </span>
-                          )}
-                        </span>
+                  return (
+                    <div
+                      key={pp.id}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] border ${
+                        matches
+                          ? 'bg-surface border-border-subtle'
+                          : 'bg-surface-sub border-border'
+                      }`}
+                    >
+                      <PartyBadge
+                        abbreviation={pp.party.abbreviation}
+                        colorNeutral={pp.party.colorNeutral}
+                        size="sm"
+                      />
+                      <span className="text-text-tertiary">{predictedLabel}</span>
+                      {!matches && actualLabel && (
+                        <>
+                          <span className="text-text-tertiary">→</span>
+                          <span className="font-medium text-text-secondary">{actualLabel}</span>
+                        </>
+                      )}
+                      {matches ? (
+                        <svg width={11} height={11} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="text-moss">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
                       ) : (
-                        <span className="text-[12px] text-text-tertiary italic">geen data</span>
+                        <svg width={11} height={11} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24" className="text-text-tertiary">
+                          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
                       )}
                     </div>
-                    <div className="text-right">
-                      {actualVote ? (
-                        matches ? (
-                          <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-moss">
-                            <svg width={12} height={12} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                            Klopt
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-red-400">
-                            <svg width={12} height={12} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24">
-                              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                            </svg>
-                            Afwijking
-                          </span>
-                        )
-                      ) : (
-                        <span className="text-[11px] text-text-tertiary">–</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+            </div>
           </div>
+
+          {/* Reliability explanation */}
+          <div className="card px-4 py-3 mt-3 bg-surface-sub/50">
+            <p className="text-[12px] text-text-secondary leading-relaxed">
+              <span className="font-semibold text-ink">Betrouwbaarheidsscore ({reliabilityPct}%):</span>{' '}
+              {reliabilityPct >= 50
+                ? 'Meerdere expliciete beloftekoppelingen drijven deze voorspelling. Het verwachte resultaat is redelijk onderbouwd.'
+                : 'Weinig directe beloftekoppelingen gevonden. De voorspelling is gebaseerd op een beperkt aantal partijposities.'}
+            </p>
+          </div>
+
           <div className="mt-2 text-[11px] text-text-tertiary">
             Algoritme: {m.prediction.algorithmVersion} · Gebaseerd op beloftekoppelingen
           </div>
