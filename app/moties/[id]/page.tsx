@@ -57,6 +57,39 @@ export default async function MotieDetailPage({ params }: Props) {
     ? aggregateByPartyFromRaw(rawStemmingen)
     : null;
 
+  // Belofte-kloof: compute predicted vote totals
+  const prediction = m.prediction;
+  let predictedVoor = 0;
+  let predictedTegen = 0;
+  let matchCount = 0;
+  let knownCount = 0;
+
+  const PARTY_SEATS: Record<string, number> = {
+    PVV: 37, 'GL-PvdA': 25, 'GroenLinks-PvdA': 25, VVD: 24, NSC: 20,
+    D66: 9, BBB: 7, CDA: 5, SP: 5, PvdD: 3, CU: 3,
+    FVD: 3, SGP: 3, DENK: 3, Volt: 2, JA21: 1,
+  };
+
+  if (prediction?.partyPredictions) {
+    for (const pp of prediction.partyPredictions) {
+      const seats = PARTY_SEATS[pp.party.abbreviation] || 0;
+      if (pp.predictedVote === 'FOR') predictedVoor += seats;
+      else if (pp.predictedVote === 'AGAINST') predictedTegen += seats;
+
+      // Count matches with actual votes
+      if (pp.predictedVote !== 'UNKNOWN' && partyAggregates) {
+        const actual = partyAggregates.find(
+          a => a.abbreviation.toLowerCase() === pp.party.abbreviation.toLowerCase()
+        );
+        if (actual) {
+          knownCount++;
+          const actualDirection = actual.voor > actual.tegen ? 'FOR' : 'AGAINST';
+          if (actualDirection === pp.predictedVote) matchCount++;
+        }
+      }
+    }
+  }
+
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-6 pb-24">
       {/* Back */}
@@ -304,6 +337,50 @@ export default async function MotieDetailPage({ params }: Props) {
             Op basis van verkiezingsbeloften voorspelt ons algoritme hoe partijen
             zouden stemmen. Vergelijk dit met het daadwerkelijke stemgedrag.
           </p>
+
+          {/* Dual vote bar */}
+          {predictedVoor + predictedTegen > 0 && (
+            <div className="card p-5 mb-4">
+              <div className="space-y-4">
+                {/* Predicted bar */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
+                      Voorspeld (beloften)
+                    </span>
+                    <span className="text-[12px] text-text-secondary font-mono">
+                      {predictedVoor}–{predictedTegen}
+                    </span>
+                  </div>
+                  <VoteBar voor={predictedVoor} tegen={predictedTegen} height={12} />
+                </div>
+
+                {/* Actual bar */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
+                      Werkelijk
+                    </span>
+                    <span className="text-[12px] text-text-secondary font-mono">
+                      {vote.totalFor}–{vote.totalAgainst}
+                    </span>
+                  </div>
+                  <VoteBar voor={vote.totalFor} tegen={vote.totalAgainst} height={12} />
+                </div>
+
+                {/* Match summary */}
+                <div className="pt-3 border-t border-border-subtle flex items-center justify-between">
+                  <span className="text-[12px] text-text-secondary">
+                    {matchCount} van {knownCount} partijen stemde zoals voorspeld
+                  </span>
+                  <span className="text-[11px] text-text-tertiary font-mono">
+                    {Math.round((matchCount / Math.max(knownCount, 1)) * 100)}% nauwkeurigheid
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="card overflow-hidden">
             {/* Table header */}
             <div className="hidden sm:grid grid-cols-[140px_1fr_1fr_80px] gap-2 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-text-tertiary border-b border-border bg-surface-sub rounded-t-card">
