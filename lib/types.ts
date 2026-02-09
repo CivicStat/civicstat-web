@@ -293,6 +293,8 @@ export interface PromiseScore {
   totalMotionsWithVotes: number;
   alignedVotes: number;
   opposedVotes: number;
+  weightedAligned: number;
+  weightedOpposed: number;
   noVoteData: number;
   status: "consistent" | "inconsistent" | "mixed" | "insufficient_data";
 }
