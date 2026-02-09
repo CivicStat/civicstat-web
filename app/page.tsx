@@ -28,7 +28,7 @@ export default async function HomePage() {
             backgroundPosition: "center 35%",
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-mist/30 via-mist/75 to-mist" />
+        <div className="absolute inset-0 bg-gradient-to-b from-mist/30 via-mist/75 to-mist dark:from-mist/80 dark:via-mist/90 dark:to-mist" />
         <div className="relative z-10 mx-auto max-w-[1200px] px-6 pt-[72px] pb-16">
           <p className="text-[13px] font-medium text-moss tracking-wide mb-4">
             Onafhankelijke transparantie over politiek handelen
