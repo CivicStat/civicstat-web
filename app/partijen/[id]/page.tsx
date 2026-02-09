@@ -14,9 +14,9 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 }
 
 const SEATS: Record<string, number> = {
-  PVV: 37, "GL-PvdA": 25, VVD: 24, NSC: 20, D66: 9, BBB: 7,
-  CDA: 5, SP: 5, PvdD: 3, CU: 3, FVD: 3, SGP: 3, DENK: 3,
-  Volt: 2, JA21: 1,
+  PVV: 37, "GroenLinks-PvdA": 25, "GL-PvdA": 25, VVD: 24, NSC: 20,
+  D66: 9, BBB: 7, CDA: 5, SP: 5, PvdD: 3, ChristenUnie: 3, CU: 3,
+  FVD: 3, SGP: 3, DENK: 3, Volt: 2, JA21: 1,
 };
 
 export default async function PartyDetailPage({ params }: { params: { id: string } }) {
@@ -222,7 +222,7 @@ export default async function PartyDetailPage({ params }: { params: { id: string
                   {scorecard.promises.map((ps) => (
                     <Link
                       key={ps.promiseId}
-                      href={`/beloften/${ps.promiseId}`}
+                      href={`/beloften/${encodeURIComponent(ps.promiseCode)}`}
                       className="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface-sub/60 transition-colors"
                     >
                       <span className="text-sm shrink-0">{statusIcon(ps.status)}</span>

@@ -7,9 +7,9 @@ export const metadata = { title: "Partijen — CivicStat" };
 
 // Known current seat counts (hardcoded — the API doesn't have seats)
 const SEATS: Record<string, number> = {
-  PVV: 37, "GL-PvdA": 25, VVD: 24, NSC: 20, D66: 9, BBB: 7,
-  CDA: 5, SP: 5, PvdD: 3, CU: 3, FVD: 3, SGP: 3, DENK: 3,
-  Volt: 2, JA21: 1,
+  PVV: 37, "GroenLinks-PvdA": 25, "GL-PvdA": 25, VVD: 24, NSC: 20,
+  D66: 9, BBB: 7, CDA: 5, SP: 5, PvdD: 3, ChristenUnie: 3, CU: 3,
+  FVD: 3, SGP: 3, DENK: 3, Volt: 2, JA21: 1,
 };
 
 export default async function PartijenPage() {
@@ -103,7 +103,7 @@ export default async function PartijenPage() {
           const seats = SEATS[p.abbreviation] || 0;
 
           return (
-            <Link key={p.id} href={`/partijen/${p.id}`} className="card p-[18px] hover:border-moss/40 transition-colors">
+            <Link key={p.id} href={`/partijen/${encodeURIComponent(p.abbreviation)}`} className="card p-[18px] hover:border-moss/40 transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div
