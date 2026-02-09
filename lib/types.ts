@@ -282,6 +282,34 @@ export interface PromiseDetail {
   motionMatches: PromiseMotionMatch[];
 }
 
+// ─── Scorecard types ──────────────────────────────────────
+
+export interface PromiseScore {
+  promiseId: string;
+  promiseCode: string;
+  summary: string;
+  theme: string;
+  expectedDirection: string;
+  totalMotionsWithVotes: number;
+  alignedVotes: number;
+  opposedVotes: number;
+  noVoteData: number;
+  status: "consistent" | "inconsistent" | "mixed" | "insufficient_data";
+}
+
+export interface PartyScorecard {
+  partyId: string;
+  abbreviation: string;
+  totalPromises: number;
+  scoredPromises: number;
+  consistentCount: number;
+  inconsistentCount: number;
+  mixedCount: number;
+  mandateConsistencyScore: number;
+  byTheme: Record<string, { consistent: number; inconsistent: number; mixed: number; total: number }>;
+  promises?: PromiseScore[];
+}
+
 // Program match types
 export interface ProgramMatch {
   id: string;

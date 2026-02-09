@@ -4,6 +4,7 @@ import type {
   MotionDetail,
   PartyListItem,
   PartyDetail,
+  PartyScorecard,
   MemberListItem,
   MemberDetail,
   VoteDetail,
@@ -86,6 +87,14 @@ export async function getMember(id: string): Promise<MemberDetail> {
 
 export async function getParty(id: string): Promise<PartyDetail> {
   return apiFetch<PartyDetail>(`/parties/${encodeURIComponent(id)}`);
+}
+
+export async function getPartyScorecard(id: string): Promise<PartyScorecard> {
+  return apiFetch<PartyScorecard>(`/parties/${encodeURIComponent(id)}/scorecard`);
+}
+
+export async function getAllScorecards(): Promise<PartyScorecard[]> {
+  return apiFetch<PartyScorecard[]>("/parties/scorecards");
 }
 
 // ─── Votes ──────────────────────────────────────────────────

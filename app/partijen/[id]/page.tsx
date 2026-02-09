@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getParty } from "../../../lib/api";
+import { getParty, getPartyScorecard } from "../../../lib/api";
+import type { PartyScorecard, PromiseScore } from "../../../lib/types";
 import { getPartyColor, getInitials } from "../../../lib/utils";
 import VoteBar from "../../../components/VoteBar";
 
@@ -32,6 +33,13 @@ export default async function PartyDetailPage({ params }: { params: { id: string
         <div className="card p-6 text-sm text-text-secondary">Kon deze partij niet laden.</div>
       </div>
     );
+  }
+
+  let scorecard: PartyScorecard | null = null;
+  try {
+    scorecard = await getPartyScorecard(params.id);
+  } catch {
+    // Party has no promises — don't show scorecard section
   }
 
   const color = getPartyColor(party.abbreviation, party.colorNeutral);
@@ -127,6 +135,137 @@ export default async function PartyDetailPage({ params }: { params: { id: string
         </section>
       )}
 
+      {/* Mandate consistency scorecard */}
+      {scorecard && scorecard.scoredPromises > 0 && (
+        <section className="mb-8">
+          <h2 className="font-serif text-xl text-ink mb-4">Belofteconsistentie</h2>
+
+          <div className="card p-5 mb-4">
+            {/* Big score + summary */}
+            <div className="flex items-start gap-6 mb-5">
+              <div className="text-center shrink-0">
+                <div className="text-[42px] font-serif text-ink leading-none">
+                  {scorecard.mandateConsistencyScore}
+                </div>
+                <div className="text-[11px] text-text-tertiary mt-1">van 100</div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm text-text-secondary mb-3">
+                  Van {scorecard.totalPromises} verkiezingsbeloften zijn er{" "}
+                  {scorecard.scoredPromises} gekoppeld aan stemmingen.
+                </div>
+                {/* Consistency bar */}
+                <div className="flex h-3 rounded-md overflow-hidden gap-px">
+                  {scorecard.consistentCount > 0 && (
+                    <div
+                      className="bg-ink/15"
+                      style={{ flex: scorecard.consistentCount }}
+                      title={`Consistent: ${scorecard.consistentCount}`}
+                    />
+                  )}
+                  {scorecard.mixedCount > 0 && (
+                    <div
+                      className="bg-surface-sub"
+                      style={{ flex: scorecard.mixedCount }}
+                      title={`Wisselend: ${scorecard.mixedCount}`}
+                    />
+                  )}
+                  {scorecard.inconsistentCount > 0 && (
+                    <div
+                      className="bg-surface-sub/50"
+                      style={{ flex: scorecard.inconsistentCount }}
+                      title={`Afwijkend: ${scorecard.inconsistentCount}`}
+                    />
+                  )}
+                </div>
+                <div className="flex gap-4 mt-2 text-[11px] text-text-tertiary">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-sm bg-ink/15" />
+                    Consistent ({scorecard.consistentCount})
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-sm bg-surface-sub border border-border" />
+                    Wisselend ({scorecard.mixedCount})
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-sm bg-surface-sub/50 border border-border" />
+                    Afwijkend ({scorecard.inconsistentCount})
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Theme breakdown */}
+            {Object.keys(scorecard.byTheme).length > 0 && (
+              <div className="border-t border-border pt-4 mb-4">
+                <div className="section-label mb-3">Per thema</div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {Object.entries(scorecard.byTheme)
+                    .sort(([, a], [, b]) => b.total - a.total)
+                    .map(([theme, data]) => (
+                      <div key={theme} className="flex items-center justify-between gap-2 px-3 py-2 rounded-md bg-surface-sub/40">
+                        <span className="text-[12px] text-ink truncate">{themeLabel(theme)}</span>
+                        <span className="text-[11px] text-text-tertiary whitespace-nowrap">
+                          {data.consistent}/{data.total}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {/* Promise list */}
+            {scorecard.promises && scorecard.promises.length > 0 && (
+              <div className="border-t border-border pt-4">
+                <div className="section-label mb-3">Individuele beloften</div>
+                <div className="space-y-1">
+                  {scorecard.promises.map((ps) => (
+                    <Link
+                      key={ps.promiseId}
+                      href={`/beloften/${ps.promiseId}`}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface-sub/60 transition-colors"
+                    >
+                      <span className="text-sm shrink-0">{statusIcon(ps.status)}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] text-ink truncate">{ps.summary}</div>
+                        <div className="flex items-center gap-2 text-[11px] text-text-tertiary mt-0.5">
+                          <span className="font-mono">{ps.promiseCode}</span>
+                          <span>·</span>
+                          <span>{themeLabel(ps.theme)}</span>
+                        </div>
+                      </div>
+                      {ps.totalMotionsWithVotes > 0 && (
+                        <span className="text-[11px] text-text-tertiary shrink-0">
+                          {ps.alignedVotes}/{ps.totalMotionsWithVotes}
+                        </span>
+                      )}
+                      <span className={`text-[10px] rounded-full px-2 py-0.5 border shrink-0 ${statusBadgeClass(ps.status)}`}>
+                        {statusLabel(ps.status)}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Methodology */}
+            <div className="border-t border-border pt-3 mt-4">
+              <details className="text-xs text-text-tertiary">
+                <summary className="cursor-pointer hover:text-text-secondary underline underline-offset-2">
+                  Methodologie
+                </summary>
+                <p className="mt-2 max-w-lg leading-relaxed">
+                  De consistentiescore is gebaseerd op de verhouding tussen stemgedrag en
+                  verkiezingsbeloften. Per belofte wordt gekeken of de partij in de verwachte richting
+                  stemde bij gerelateerde moties. Score: consistent (≥60% aligned), wisselend (40-60%),
+                  afwijkend (≤40%). Moties worden gekoppeld via trefwoordanalyse (keyword-overlap-v1).
+                </p>
+              </details>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Members */}
       {activeMps.length > 0 && (
         <section>
@@ -156,4 +295,43 @@ export default async function PartyDetailPage({ params }: { params: { id: string
       )}
     </div>
   );
+}
+
+// ─── Helpers ────────────────────────────────────────────────
+
+function themeLabel(theme: string): string {
+  const map: Record<string, string> = {
+    BESTUUR: "Bestuur", BUITENLAND: "Buitenland", DEFENSIE: "Defensie",
+    ECONOMIE: "Economie", KLIMAAT: "Klimaat", LANDBOUW: "Landbouw",
+    MIGRATIE: "Migratie", ONDERWIJS: "Onderwijs", SOCIAAL: "Sociaal",
+    VEILIGHEID: "Veiligheid", WONEN: "Wonen", ZORG: "Zorg",
+  };
+  return map[theme] || theme;
+}
+
+function statusIcon(status: PromiseScore["status"]): string {
+  switch (status) {
+    case "consistent": return "●";
+    case "mixed": return "◐";
+    case "inconsistent": return "○";
+    default: return "·";
+  }
+}
+
+function statusLabel(status: PromiseScore["status"]): string {
+  switch (status) {
+    case "consistent": return "Consistent";
+    case "mixed": return "Wisselend";
+    case "inconsistent": return "Afwijkend";
+    default: return "Onvoldoende data";
+  }
+}
+
+function statusBadgeClass(status: PromiseScore["status"]): string {
+  switch (status) {
+    case "consistent": return "text-ink border-ink/20 bg-ink/5";
+    case "mixed": return "text-text-secondary border-border bg-surface-sub";
+    case "inconsistent": return "text-text-tertiary border-border bg-surface-sub/50";
+    default: return "text-text-tertiary border-border-subtle bg-transparent";
+  }
 }

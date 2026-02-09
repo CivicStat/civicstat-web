@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getParties } from "../../lib/api";
+import { getParties, getAllScorecards } from "../../lib/api";
+import type { PartyScorecard } from "../../lib/types";
 import { getPartyColor } from "../../lib/utils";
 
 export const metadata = { title: "Partijen — CivicStat" };
@@ -24,6 +25,17 @@ export default async function PartijenPage() {
         </div>
       </div>
     );
+  }
+
+  // Fetch scorecards (non-blocking — don't break page if it fails)
+  let scorecardMap = new Map<string, PartyScorecard>();
+  try {
+    const scorecards = await getAllScorecards();
+    for (const sc of scorecards) {
+      scorecardMap.set(sc.partyId, sc);
+    }
+  } catch {
+    // Scorecards unavailable — continue without them
   }
 
   // Filter to only parties with known seats, sorted by seats desc
@@ -125,6 +137,28 @@ export default async function PartijenPage() {
                   {p._count.mps} leden in database
                 </div>
               )}
+              {(() => {
+                const sc = scorecardMap.get(p.id);
+                if (!sc || sc.scoredPromises === 0) return null;
+                return (
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <span className="text-[11px] text-text-tertiary">
+                      Consistentie: {sc.mandateConsistencyScore}%
+                    </span>
+                    <div className="flex-1 flex h-1.5 rounded-full overflow-hidden gap-px max-w-[80px]">
+                      {sc.consistentCount > 0 && (
+                        <div className="bg-ink/20" style={{ flex: sc.consistentCount }} />
+                      )}
+                      {sc.mixedCount > 0 && (
+                        <div className="bg-ink/8" style={{ flex: sc.mixedCount }} />
+                      )}
+                      {sc.inconsistentCount > 0 && (
+                        <div className="bg-ink/4" style={{ flex: sc.inconsistentCount }} />
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </Link>
           );
         })}
