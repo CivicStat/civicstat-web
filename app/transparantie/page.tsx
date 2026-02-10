@@ -32,7 +32,7 @@ export default function TransparantiePage() {
           <StepCard
             step="1"
             title="Ingest"
-            description="Moties, stemmingen, Kamerleden en fracties worden dagelijks opgehaald via de OData REST-feed van de Tweede Kamer."
+            description="Moties, stemmingen, Kamerleden en fracties worden opgehaald via de OData REST-feed van de Tweede Kamer."
           />
           <StepCard
             step="2"
@@ -47,19 +47,38 @@ export default function TransparantiePage() {
         </div>
       </section>
 
-      {/* ─── 2. Databronnen ────────────────────────────────────── */}
+      {/* ─── 2. Huidige data ───────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={2} title="Databronnen" />
+        <SectionHeading number={2} title="Huidige data" />
+        <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
+          CivicStat bevat momenteel de volgende gegevens uit de lopende
+          parlementaire periode (TK2023–heden).
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatCard label="Moties" value="12.485" />
+          <StatCard label="Stemmingen" value="6.601" />
+          <StatCard label="Beloften" value="150" />
+          <StatCard label="Partijen" value="10" />
+        </div>
+        <p className="text-xs text-text-tertiary mt-3">
+          Stemkoppeling: 85% van de stemmingen is gekoppeld aan een motie.
+          Individuele stemrecords: 7.307 (uit 224 hoofdelijke stemmingen).
+        </p>
+      </section>
+
+      {/* ─── 3. Databronnen ────────────────────────────────────── */}
+      <section className="card p-6 mb-5">
+        <SectionHeading number={3} title="Databronnen" />
         <div className="space-y-3">
           <SourceItem
-            name="Tweede Kamer OData API"
+            name="Tweede Kamer OData API (v4.0)"
             url="https://gegevensmagazijn.tweedekamer.nl"
             description="Besluiten, stemmingen, personen en fracties. Offici&euml;le bron van alle parlementaire data."
           />
           <SourceItem
-            name="Verkiezingsprogramma's (PDF)"
-            url="https://tweedekamer.nl"
-            description="Verkiezingsprogramma's TK2023 van alle 15 deelnemende partijen. Gedownload van de offici&euml;le partijwebsites."
+            name="DNPP Repository"
+            url="https://dnpprepo.ub.rug.nl"
+            description="Documentatiecentrum Nederlandse Politieke Partijen, Rijksuniversiteit Groningen. Academisch archief van alle verkiezingsprogramma's."
           />
           <SourceItem
             name="Kiesraad"
@@ -69,45 +88,46 @@ export default function TransparantiePage() {
         </div>
       </section>
 
-      {/* ─── 3. MCS Methodologie ───────────────────────────────── */}
+      {/* ─── 4. Scores & berekeningen ──────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={3} title="Mandate Consistency Score (MCS)" />
-        <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
-          De MCS meet in hoeverre een partij stemt in lijn met haar
-          verkiezingsbeloften. De score wordt per partij berekend op basis van
-          alle beloften waarvoor minimaal &eacute;&eacute;n gerelateerde motie met
-          stemmingsresultaat beschikbaar is.
-        </p>
+        <SectionHeading number={4} title="Scores &amp; berekeningen" />
 
-        <div className="bg-surface-sub rounded-lg p-4 mb-4 font-mono text-[13px] text-ink max-w-[500px]">
-          MCS = (consistent + mixed &times; 0.5) / scored &times; 100
+        <div className="space-y-5 max-w-[68ch]">
+          <ScoreDefinition
+            term="Mandate Consistency Score (MCS)"
+            definition="Meet hoe consistent een partij stemt ten opzichte van de eigen verkiezingsbeloften. 100% = altijd consistent. Berekend per thema en als totaalcijfer."
+            formula="MCS = (consistent + mixed × 0.5) / scored × 100"
+          />
+          <ScoreDefinition
+            term="Belofte-kloof"
+            definition="Het verschil tussen het verwachte stemresultaat (op basis van verkiezingsbeloften × zetels) en het werkelijke stemresultaat. Een positief getal betekent meer steun dan verwacht; een negatief getal minder."
+            formula="Belofte-kloof = werkelijke stemmen 'voor' − verwachte stemmen 'voor'"
+          />
+          <ScoreDefinition
+            term="Betrouwbaarheidsscore"
+            definition="Geeft aan hoe goed onderbouwd een voorspelling is. Gebaseerd op het aantal partijen waarvoor een beloftematch beschikbaar is ten opzichte van het totaal. Hoog (≥70%) = veel matches. Laag (<40%) = grotendeels afgeleid."
+            formula="Betrouwbaarheid = partijen met voorspelling / totaal partijen × 100"
+          />
         </div>
 
-        <div className="space-y-2 text-sm text-text-secondary max-w-[68ch]">
+        <div className="mt-4 space-y-2 text-sm text-text-secondary max-w-[68ch]">
           <p>
-            <strong className="text-ink">Consistent:</strong> &ge;70% van de
-            gerelateerde moties is in lijn met de belofte (rekening houdend met
-            verwachte stemrichting en matchtype).
+            <strong className="text-ink">Consistent:</strong> ≥70% van de
+            gerelateerde moties is in lijn met de belofte.
           </p>
           <p>
-            <strong className="text-ink">Inconsistent:</strong> &le;30% van de
+            <strong className="text-ink">Inconsistent:</strong> ≤30% van de
             gerelateerde moties is in lijn.
           </p>
           <p>
             <strong className="text-ink">Gemengd:</strong> tussen 30% en 70%.
           </p>
-          <p>
-            <strong className="text-ink">Confidence weighting:</strong> matches
-            met een betrouwbaarheidsscore &lt;0.3 worden uitgesloten. De
-            gewogen ratio wordt gebruikt zodat sterkere matches zwaarder
-            meetellen.
-          </p>
         </div>
       </section>
 
-      {/* ─── 4. Matching-algoritme ─────────────────────────────── */}
+      {/* ─── 5. Matching-algoritme ─────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={4} title="Matching-algoritme" />
+        <SectionHeading number={5} title="Matching-algoritme" />
         <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
           Moties worden automatisch gekoppeld aan beloften via een
           trefwoordalgoritme. Elke belofte heeft een set thematische
@@ -115,103 +135,136 @@ export default function TransparantiePage() {
           overlap vertoont.
         </p>
 
-        <div className="space-y-2 text-sm text-text-secondary max-w-[68ch]">
-          <p>
-            <strong className="text-ink">Match-types:</strong>
-          </p>
-          <ul className="list-disc list-inside space-y-1 ml-2">
-            <li>
-              <span className="text-ink font-medium">Direct (explicit):</span>{" "}
-              de motie behandelt hetzelfde onderwerp als de belofte.
-            </li>
-            <li>
-              <span className="text-ink font-medium">Impliciet:</span> de motie
-              raakt aan het thema maar is niet een directe vertaling.
-            </li>
-            <li>
-              <span className="text-ink font-medium">Contra:</span> de motie
-              gaat in tegen de richting van de belofte.
-            </li>
-          </ul>
-          <p className="mt-2">
-            Elke match krijgt een betrouwbaarheidsscore van 0 tot 1. Matches
-            onder 0.3 worden niet getoond.
-          </p>
+        <div className="space-y-3 max-w-[68ch]">
+          <MatchTypeItem
+            label="EXPLICIET"
+            labelClass="bg-accent-subtle text-moss"
+            description="De motie adresseert direct dezelfde concrete toezegging als de belofte. Weegt mee met factor 1.0."
+          />
+          <MatchTypeItem
+            label="IMPLICIET"
+            labelClass="bg-surface-sub text-text-secondary"
+            description="De motie valt binnen hetzelfde thema maar is geen directe vertaling. Weegt mee met factor 0.5."
+          />
+          <MatchTypeItem
+            label="TEGENGESTELD"
+            labelClass="bg-surface-sub text-text-tertiary"
+            description="De motie druist in tegen de belofte. De voorspelde stemrichting wordt omgekeerd. Factor 1.0."
+          />
+        </div>
+
+        <p className="text-sm text-text-secondary mt-4 max-w-[68ch]">
+          Elke match krijgt een betrouwbaarheidsscore van 0 tot 1. Matches
+          onder 0.3 worden niet getoond. Het huidige algoritme is <span className="font-mono text-xs bg-surface-sub px-1.5 py-0.5 rounded text-ink">keyword-overlap-v1</span>.
+        </p>
+      </section>
+
+      {/* ─── 6. Specificiteit ──────────────────────────────────── */}
+      <section className="card p-6 mb-5">
+        <SectionHeading number={6} title="Specificiteit van beloften" />
+        <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
+          Elke belofte krijgt een specificiteitsclassificatie die aangeeft hoe
+          concreet en toetsbaar de toezegging is.
+        </p>
+        <div className="space-y-3 max-w-[68ch]">
+          <MatchTypeItem
+            label="SPECIFIEK"
+            labelClass="bg-accent-subtle text-moss"
+            description="Meetbare, concrete toezegging met een duidelijk toetsbaar doel. Bijv. '100.000 woningen per jaar', 'defensie naar 2% bbp'."
+          />
+          <MatchTypeItem
+            label="GEMIDDELD"
+            labelClass="bg-surface-sub text-text-secondary"
+            description="Duidelijke richting, maar geen exact meetbaar doel. Bijv. 'stikstofregels versoepelen', 'eigen risico verlagen'."
+          />
+          <MatchTypeItem
+            label="VAAG"
+            labelClass="bg-surface-sub text-text-tertiary"
+            description="Abstracte toezegging die moeilijk objectief toetsbaar is. Bijv. 'investeren in onderwijs', 'de economie versterken'."
+          />
         </div>
       </section>
 
-      {/* ─── 5. Neutraliteit ───────────────────────────────────── */}
+      {/* ─── 7. Neutraliteit ───────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={5} title="Neutraliteit &amp; onpartijdigheid" />
+        <SectionHeading number={7} title="Neutraliteit &amp; onpartijdigheid" />
         <div className="space-y-3 text-sm text-text-secondary max-w-[68ch]">
           <p>
             CivicStat is politiek onafhankelijk en ontvangt geen financiering
             van politieke partijen, bedrijven of belangengroepen.
           </p>
-          <ul className="list-disc list-inside space-y-1 ml-2">
-            <li>
-              Alle partijen worden op dezelfde manier behandeld: dezelfde
-              algoritmes, dezelfde drempelwaarden, dezelfde weergave.
-            </li>
-            <li>
-              We publiceren geen rankings of &ldquo;beste partij&rdquo;-scores. De data
-              spreekt voor zich.
-            </li>
-            <li>
-              Elke berekening is reproduceerbaar. De broncode van de ETL-pipeline
-              en de scoringsalgoritmes is openbaar beschikbaar.
-            </li>
-            <li>
-              Fouten en beperkingen worden expliciet benoemd (zie hieronder).
-            </li>
-          </ul>
+          <p>
+            Alle partijen worden op dezelfde manier behandeld: dezelfde
+            algoritmes, dezelfde drempelwaarden, dezelfde weergave.
+            We publiceren geen rankings of &ldquo;beste partij&rdquo;-scores.
+            Elke berekening is reproduceerbaar en fouten en beperkingen worden
+            expliciet benoemd.
+          </p>
         </div>
       </section>
 
-      {/* ─── 6. Beperkingen ────────────────────────────────────── */}
+      {/* ─── 8. Beperkingen ────────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={6} title="Beperkingen" />
+        <SectionHeading number={8} title="Beperkingen" />
         <div className="space-y-3 text-sm text-text-secondary max-w-[68ch]">
-          <ul className="list-disc list-inside space-y-2 ml-2">
-            <li>
-              <strong className="text-ink">Moties ≠ al het beleid.</strong>{" "}
-              Wetsvoorstellen, amendementen en begrotingsbesluiten worden nog
-              niet meegenomen.
-            </li>
-            <li>
-              <strong className="text-ink">Automatische matching is
-              imperfect.</strong>{" "}
-              Sommige koppelingen kunnen onjuist zijn. We werken continu aan
-              verbetering van het algoritme.
-            </li>
-            <li>
-              <strong className="text-ink">Coalitiedwang.</strong> Partijen in
-              een coalitie stemmen soms mee met het regeerakkoord, ook als dit
-              afwijkt van hun verkiezingsprogramma. Dit nuanceren we nog niet
-              automatisch.
-            </li>
-            <li>
-              <strong className="text-ink">Enkel TK2023.</strong> Vooralsnog
-              beperken we ons tot de Tweede Kamerverkiezingen van 2023.
-              Historische data volgt later.
-            </li>
-            <li>
-              <strong className="text-ink">Beloften zijn handmatig
-              ge&euml;xtraheerd.</strong> Hoewel we waar mogelijk geautomatiseerde
-              methoden gebruiken, zijn de initi&euml;le beloften per partij
-              handmatig gevalideerd.
-            </li>
-          </ul>
+          <p>
+            <strong className="text-ink">Moties ≠ al het beleid.</strong>{" "}
+            Wetsvoorstellen, amendementen en begrotingsbesluiten worden nog
+            niet meegenomen.
+          </p>
+          <p>
+            <strong className="text-ink">Automatische matching is
+            imperfect.</strong>{" "}
+            Sommige koppelingen kunnen onjuist zijn. We werken continu aan
+            verbetering van het algoritme.
+          </p>
+          <p>
+            <strong className="text-ink">Coalitiedwang.</strong>{" "}
+            Partijen in een coalitie stemmen soms mee met het regeerakkoord,
+            ook als dit afwijkt van hun verkiezingsprogramma. Dit nuanceren
+            we nog niet automatisch.
+          </p>
+          <p>
+            <strong className="text-ink">Enkel TK2023.</strong>{" "}
+            Vooralsnog beperken we ons tot de Tweede Kamerverkiezingen van 2023.
+            Historische data volgt later.
+          </p>
+          <p>
+            <strong className="text-ink">Beloften zijn handmatig
+            ge&euml;xtraheerd.</strong>{" "}
+            Hoewel we waar mogelijk geautomatiseerde methoden gebruiken, zijn
+            de initi&euml;le beloften per partij handmatig gevalideerd.
+          </p>
         </div>
       </section>
 
-      {/* ─── 7. Begrippenlijst ─────────────────────────────────── */}
+      {/* ─── 9. Begrippenlijst ─────────────────────────────────── */}
       <section className="card p-6">
-        <SectionHeading number={7} title="Begrippenlijst" />
+        <SectionHeading number={9} title="Begrippenlijst" />
         <div className="space-y-3">
           <GlossaryItem
             term="Motie"
-            definition="Een verzoek van een of meer Kamerleden aan de regering. Moties zijn niet bindend maar wel politiek relevant."
+            definition="Een verzoek van een of meer Kamerleden aan de regering. Moties worden ingediend tijdens een debat en in stemming gebracht. Ze zijn niet juridisch bindend maar politiek zwaarwegend."
+          />
+          <GlossaryItem
+            term="Stemming"
+            definition="De formele beslissing van de Kamer over een voorstel. Er zijn twee vormen: 'met handopsteken' (partijniveau) en 'hoofdelijk' (individueel per Kamerlid)."
+          />
+          <GlossaryItem
+            term="Hoofdelijke stemming"
+            definition="Stemming waarbij elk individueel Kamerlid per naam stemt. Vindt plaats op verzoek van minstens 30 leden. Alleen hierbij zijn individuele stemrecords beschikbaar."
+          />
+          <GlossaryItem
+            term="Met handopsteken"
+            definition="De standaard stemmethode. De voorzitter telt de stemmen per fractie. Alleen partijstandpunten worden geregistreerd, geen individuele stemmen."
+          />
+          <GlossaryItem
+            term="Fractie"
+            definition="Een groep Kamerleden die samen een partij vertegenwoordigen. De fractiegrootte bepaalt het aantal zetels bij stemmingen met handopsteken."
+          />
+          <GlossaryItem
+            term="Indiener"
+            definition="Het Kamerlid dat een motie indient. Medeindieners ondersteunen de motie formeel. Geregistreerd als ZaakActor in de TK API."
           />
           <GlossaryItem
             term="Belofte"
@@ -222,20 +275,16 @@ export default function TransparantiePage() {
             definition="Een percentage dat aangeeft in hoeverre een partij stemt in lijn met haar beloften. 100% = volledig consistent."
           />
           <GlossaryItem
+            term="Belofte-kloof"
+            definition="Het verschil in zetels tussen de verwachte uitslag (op basis van beloften) en de werkelijke stemming."
+          />
+          <GlossaryItem
             term="Match confidence"
             definition="Betrouwbaarheidsscore (0–100%) van de automatische koppeling tussen een motie en een belofte."
           />
           <GlossaryItem
             term="Verwachte stemrichting"
             definition="Of een partij naar verwachting voor of tegen een gerelateerde motie zou stemmen, gebaseerd op de belofte."
-          />
-          <GlossaryItem
-            term="Hoofdelijke stemming"
-            definition="Stemming waarbij alle individuele Kamerleden hun stem uitbrengen. Levert per-lid stemdata op."
-          />
-          <GlossaryItem
-            term="Stemming met handopsteken"
-            definition="Standaardprocedure waarbij de voorzitter de uitslag vaststelt. Alleen partijniveau-data beschikbaar."
           />
         </div>
       </section>
@@ -320,6 +369,62 @@ function SourceItem({
           </svg>
         </a>
       </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-surface-sub border border-border-subtle p-4 text-center">
+      <div className="text-[22px] font-serif text-ink">{value}</div>
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary mt-0.5">
+        {label}
+      </div>
+    </div>
+  );
+}
+
+function ScoreDefinition({
+  term,
+  definition,
+  formula,
+}: {
+  term: string;
+  definition: string;
+  formula: string;
+}) {
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-ink mb-1">{term}</h3>
+      <p className="text-[13px] text-text-secondary leading-relaxed mb-2">
+        {definition}
+      </p>
+      <div className="bg-surface-sub rounded-lg px-3 py-2 font-mono text-[12px] text-moss">
+        {formula}
+      </div>
+    </div>
+  );
+}
+
+function MatchTypeItem({
+  label,
+  labelClass,
+  description,
+}: {
+  label: string;
+  labelClass: string;
+  description: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 py-2 border-b border-border-subtle last:border-0">
+      <span
+        className={`mt-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0 ${labelClass}`}
+      >
+        {label}
+      </span>
+      <p className="text-[13px] text-text-secondary leading-relaxed">
+        {description}
+      </p>
     </div>
   );
 }
