@@ -12,6 +12,10 @@ const navItems = [
   { href: "/partijen", label: "Partijen" },
 ];
 
+const desktopOnlyItems = [
+  { href: "/transparantie", label: "Transparantie" },
+];
+
 function ShieldIcon() {
   return (
     <svg width={14} height={14} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -69,7 +73,7 @@ export default function Nav() {
           </Link>
 
           <nav className="hidden items-center gap-0.5 md:flex">
-            {navItems.map((item) => (
+            {[...navItems, ...desktopOnlyItems].map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
