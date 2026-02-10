@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { getPromise } from "../../../lib/api";
+import { getPromise, getPromises } from "../../../lib/api";
 import { formatDate } from "../../../lib/utils";
 import PartyBadge from "../../../components/PartyBadge";
 import VoteBar from "../../../components/VoteBar";
-import type { PromiseMotionMatch } from "../../../lib/types";
+import ExpandablePassage from "./ExpandablePassage";
+import type { PromiseMotionMatch, PromiseListItem } from "../../../lib/types";
 
 interface Props {
   params: { id: string };
@@ -181,6 +182,19 @@ export default async function BelofteDetailPage({ params }: Props) {
   const stats = matchStats(p.motionMatches);
   const consistency = computeConsistency(p.motionMatches, p.expectedVoteDirection);
 
+  // Fetch same-theme promises from other parties for cross-party comparison
+  let crossPartyPromises: PromiseListItem[] = [];
+  try {
+    const sameTheme = await getPromises({ theme: p.theme, limit: 20 });
+    crossPartyPromises = sameTheme.items.filter(
+      (cp) =>
+        cp.program.party.abbreviation !== p.program.party.abbreviation &&
+        cp.id !== p.id
+    );
+  } catch {
+    // Non-critical — ignore
+  }
+
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-6 pb-24">
       {/* Back */}
@@ -328,12 +342,11 @@ export default async function BelofteDetailPage({ params }: Props) {
                 </span>
               )}
             </div>
-            <p className="text-[13px] text-text-secondary leading-relaxed max-w-[68ch]">
-              <PassageWithHighlight
-                passage={p.passage.passageText}
-                promiseText={p.text}
-              />
-            </p>
+            <ExpandablePassage
+              passage={p.passage.passageText}
+              promiseText={p.text}
+              maxLength={300}
+            />
           </div>
         )}
       </div>
@@ -464,6 +477,45 @@ export default async function BelofteDetailPage({ params }: Props) {
         )}
       </div>
 
+      {/* ─── CROSS-PARTY COMPARISON ─────────────────────────── */}
+      {crossPartyPromises.length > 0 && (
+        <div className="mb-8">
+          <h2 className="font-serif text-[22px] font-normal text-ink mb-4">
+            Zelfde thema bij andere partijen
+          </h2>
+          <div className="card overflow-hidden">
+            {crossPartyPromises.slice(0, 8).map((cp, i) => (
+              <Link
+                key={cp.id}
+                href={`/beloften/${cp.id}`}
+                className={`flex items-center gap-3 px-5 py-3 transition-colors hover:bg-surface-sub group ${
+                  i < Math.min(crossPartyPromises.length, 8) - 1
+                    ? "border-b border-border-subtle"
+                    : ""
+                }`}
+              >
+                <PartyBadge
+                  abbreviation={cp.program.party.abbreviation}
+                  colorNeutral={cp.program.party.colorNeutral}
+                  size="sm"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] text-ink leading-snug group-hover:text-moss transition-colors line-clamp-1">
+                    {cp.summary}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-text-tertiary">
+                    <span className="font-mono">{cp.promiseCode}</span>
+                    {cp.motionMatches.length > 0 && (
+                      <span>{cp.motionMatches.length} moties</span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ─── METHODOLOGY NOTE ────────────────────────────────── */}
       <div className="card px-5 py-4">
         <h3 className="text-[13px] font-semibold text-ink mb-1">
@@ -485,36 +537,3 @@ export default async function BelofteDetailPage({ params }: Props) {
   );
 }
 
-// ─── Sub-components ──────────────────────────────────────────
-
-/** Renders passage text with the promise text highlighted inline */
-function PassageWithHighlight({
-  passage,
-  promiseText,
-}: {
-  passage: string;
-  promiseText: string;
-}) {
-  // Try to find the promise text within the passage
-  const idx = passage.toLowerCase().indexOf(promiseText.toLowerCase().slice(0, 60));
-
-  if (idx === -1) {
-    // No overlap found — just show the passage
-    return <>{passage}</>;
-  }
-
-  // Find the end of the matching region (use first 60 chars for fuzzy locate)
-  const before = passage.slice(0, idx);
-  const highlighted = passage.slice(idx, idx + promiseText.length);
-  const after = passage.slice(idx + promiseText.length);
-
-  return (
-    <>
-      {before}
-      <mark className="bg-accent-subtle/60 text-ink rounded-sm px-0.5">
-        {highlighted}
-      </mark>
-      {after}
-    </>
-  );
-}
