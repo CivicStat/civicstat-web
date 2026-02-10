@@ -13,6 +13,7 @@ const navItems = [
 ];
 
 const desktopOnlyItems = [
+  { href: "/verbinding", label: "Verbinding" },
   { href: "/transparantie", label: "Transparantie" },
 ];
 
