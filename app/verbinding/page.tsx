@@ -10,153 +10,28 @@ export const metadata: Metadata = {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://civicstat-api.fly.dev";
 
-// The main parties we track (with seats for TK2023)
-const TRACKED_PARTIES = [
-  "PVV", "GL-PvdA", "VVD", "NSC", "BBB", "D66", "CDA", "SP", "PvdD", "CU",
-  "SGP", "DENK", "Volt", "JA21", "FVD", "50PLUS",
-];
-
-// Abbreviation mapping from TK API names to our tracked names
-const ABBR_MAP: Record<string, string> = {
-  "GroenLinks-PvdA": "GL-PvdA",
-  "ChristenUnie": "CU",
-};
-
-function normalizePartyName(name: string): string {
-  return ABBR_MAP[name] || name;
-}
-
-interface RawVote {
-  id: string;
-  result: string;
-  rawData: {
-    Stemming?: Array<{
-      ActorNaam: string;
-      Soort: string;
-    }>;
-  };
-}
-
 interface PartyPair {
   a: string;
   b: string;
   agree: number;
-  disagree: number;
   total: number;
   pct: number;
 }
 
-async function fetchVotesForConsensus(): Promise<RawVote[]> {
-  // Fetch recent votes in batches
-  const allVotes: RawVote[] = [];
-  const batchSize = 100;
-
-  for (let offset = 0; offset < 1000; offset += batchSize) {
-    try {
-      const res = await fetch(
-        `${API_URL}/votes?limit=${batchSize}&offset=${offset}`,
-        { next: { revalidate: 3600 } } // cache 1 hour
-      );
-      if (!res.ok) break;
-      const data = await res.json();
-      const items = data.items || [];
-      allVotes.push(...items);
-      if (items.length < batchSize) break;
-    } catch {
-      break;
-    }
-  }
-
-  return allVotes;
-}
-
-function computeConsensusMatrix(votes: RawVote[]): {
-  pairs: PartyPair[];
-  parties: string[];
-  matrix: Record<string, Record<string, number>>;
-} {
-  // Count agreement between every pair of parties
-  const pairCounts: Record<string, { agree: number; total: number }> = {};
-
-  const partySet = new Set<string>();
-
-  for (const vote of votes) {
-    const stemmingen = vote.rawData?.Stemming;
-    if (!stemmingen || stemmingen.length === 0) continue;
-
-    // Build a map: party -> vote direction
-    const partyVotes: Record<string, string> = {};
-    for (const s of stemmingen) {
-      const name = normalizePartyName(s.ActorNaam);
-      if (TRACKED_PARTIES.includes(name)) {
-        partyVotes[name] = s.Soort; // "Voor", "Tegen", "Niet deelgenomen"
-        partySet.add(name);
-      }
-    }
-
-    // Compare every pair
-    const votingParties = Object.keys(partyVotes);
-    for (let i = 0; i < votingParties.length; i++) {
-      for (let j = i + 1; j < votingParties.length; j++) {
-        const a = votingParties[i];
-        const b = votingParties[j];
-        const key = [a, b].sort().join("|");
-
-        if (!pairCounts[key]) pairCounts[key] = { agree: 0, total: 0 };
-        pairCounts[key].total++;
-
-        if (partyVotes[a] === partyVotes[b]) {
-          pairCounts[key].agree++;
-        }
-      }
-    }
-  }
-
-  // Sort parties by seat count (approximate)
-  const seatOrder = TRACKED_PARTIES;
-  const parties = seatOrder.filter((p) => partySet.has(p));
-
-  // Build matrix
-  const matrix: Record<string, Record<string, number>> = {};
-  for (const a of parties) {
-    matrix[a] = {};
-    for (const b of parties) {
-      if (a === b) {
-        matrix[a][b] = 100;
-      } else {
-        const key = [a, b].sort().join("|");
-        const pc = pairCounts[key];
-        matrix[a][b] = pc && pc.total > 0 ? Math.round((pc.agree / pc.total) * 100) : 0;
-      }
-    }
-  }
-
-  // Build sorted pairs for ranking
-  const pairs: PartyPair[] = [];
-  for (const [key, val] of Object.entries(pairCounts)) {
-    if (val.total < 10) continue; // Need minimum sample
-    const [a, b] = key.split("|");
-    pairs.push({
-      a,
-      b,
-      agree: val.agree,
-      disagree: val.total - val.agree,
-      total: val.total,
-      pct: Math.round((val.agree / val.total) * 100),
-    });
-  }
-
-  pairs.sort((x, y) => y.pct - x.pct);
-
-  return { pairs, parties, matrix };
+async function fetchConsensus() {
+  const res = await fetch(`${API_URL}/votes/consensus`, { next: { revalidate: 3600 } });
+  if (!res.ok) throw new Error("Failed to fetch consensus data");
+  return res.json() as Promise<{
+    parties: string[];
+    matrix: Record<string, Record<string, number>>;
+    topAgreement: PartyPair[];
+    topDisagreement: PartyPair[];
+    totalVotes: number;
+  }>;
 }
 
 export default async function VerbindingPage() {
-  const votes = await fetchVotesForConsensus();
-  const { pairs, parties, matrix } = computeConsensusMatrix(votes);
-
-  const topAgreement = pairs.slice(0, 10);
-  const topDisagreement = [...pairs].sort((a, b) => a.pct - b.pct).slice(0, 10);
+  const { parties, matrix, topAgreement, topDisagreement, totalVotes } = await fetchConsensus();
 
   return (
     <main className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
@@ -167,7 +42,7 @@ export default async function VerbindingPage() {
         </h1>
         <p className="text-sm text-text-secondary leading-relaxed max-w-[68ch]">
           Hoe vaak stemmen partijen hetzelfde? Deze analyse vergelijkt het
-          stemgedrag van alle fracties over {votes.length.toLocaleString("nl-NL")} recente
+          stemgedrag van alle fracties over {totalVotes.toLocaleString("nl-NL")} recente
           stemmingen in de Tweede Kamer.
         </p>
       </div>
@@ -256,10 +131,10 @@ function PairRow({
       <span className="text-[11px] text-text-tertiary w-4 text-right font-mono">
         {rank}
       </span>
-      <div className="flex items-center gap-1.5 w-[120px] shrink-0">
-        <span className="text-[12px] font-medium text-ink">{pair.a}</span>
+      <div className="flex items-center gap-1.5 min-w-fit shrink-0">
+        <PartyBadge abbreviation={pair.a} size="sm" />
         <span className="text-[10px] text-text-tertiary">&amp;</span>
-        <span className="text-[12px] font-medium text-ink">{pair.b}</span>
+        <PartyBadge abbreviation={pair.b} size="sm" />
       </div>
       <div className="flex-1 flex items-center gap-2">
         <div className="flex-1 h-[6px] rounded-full bg-surface-sub overflow-hidden">
