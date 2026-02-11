@@ -4,6 +4,7 @@ interface VoteBarProps {
   afwezig?: number;
   height?: number;
   showLabels?: boolean;
+  showCounts?: boolean;
 }
 
 export default function VoteBar({
@@ -12,6 +13,7 @@ export default function VoteBar({
   afwezig = 0,
   height = 8,
   showLabels = false,
+  showCounts = false,
 }: VoteBarProps) {
   const total = voor + tegen + afwezig || 1;
   const pVoor = (voor / total) * 100;
@@ -26,10 +28,12 @@ export default function VoteBar({
         <div
           className="bg-bar-voor transition-[width] duration-500 ease-out"
           style={{ width: `${pVoor}%` }}
+          title={`Voor: ${voor}`}
         />
         <div
           className="bg-bar-tegen transition-[width] duration-500 ease-out"
           style={{ width: `${pTegen}%` }}
+          title={`Tegen: ${tegen}`}
         />
       </div>
       {showLabels && (
@@ -39,6 +43,12 @@ export default function VoteBar({
             Tegen: {tegen}
             {afwezig > 0 ? ` · Afwezig: ${afwezig}` : ""}
           </span>
+        </div>
+      )}
+      {showCounts && (
+        <div className="mt-0.5 flex justify-between text-[10px] text-text-tertiary tabular-nums">
+          <span>{voor}</span>
+          <span>{tegen}</span>
         </div>
       )}
     </div>

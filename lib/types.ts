@@ -357,3 +357,11 @@ export interface ProgramMatch {
     };
   };
 }
+
+// ─── Promise stats ─────────────────────────────────────────
+export interface PromiseStatsResponse {
+  totalPromises: number;
+  totalMatches: number;
+  byParty: { abbreviation: string; name: string; count: number }[];
+  byTheme: { theme: string; count: number }[];
+}

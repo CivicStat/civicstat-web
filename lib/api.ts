@@ -11,6 +11,7 @@ import type {
   PromiseListResponse,
   PromiseListItem,
   PromiseDetail,
+  PromiseStatsResponse,
 } from "./types";
 
 const API_URL =
@@ -121,6 +122,10 @@ export async function getPromises(params?: {
 
 export async function getPromise(id: string): Promise<PromiseDetail> {
   return apiFetch<PromiseDetail>(`/promises/${encodeURIComponent(id)}`);
+}
+
+export async function getPromiseStats(): Promise<PromiseStatsResponse> {
+  return apiFetch<PromiseStatsResponse>("/promises/stats");
 }
 
 // ─── Votes ──────────────────────────────────────────────────

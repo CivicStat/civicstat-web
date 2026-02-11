@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getMotions, getVotes, getPromiseStats } from "../../lib/api";
 
 export const metadata: Metadata = {
   title: "Transparantie — CivicStat",
@@ -6,7 +7,24 @@ export const metadata: Metadata = {
     "Methodologie, databronnen en algoritmes achter CivicStat. Lees hoe wij verkiezingsbeloften koppelen aan stemgedrag.",
 };
 
-export default function TransparantiePage() {
+export default async function TransparantiePage() {
+  // Fetch live stats — gracefully fall back to "–" if API is unreachable
+  const [motionsRes, votesRes, statsRes] = await Promise.allSettled([
+    getMotions({ limit: 1 }),
+    getVotes({ limit: 1 }),
+    getPromiseStats(),
+  ]);
+
+  const motionCount =
+    motionsRes.status === "fulfilled" ? motionsRes.value.total : null;
+  const voteCount =
+    votesRes.status === "fulfilled" ? votesRes.value.total : null;
+  const promiseStats =
+    statsRes.status === "fulfilled" ? statsRes.value : null;
+
+  const fmt = (n: number | null) =>
+    n != null ? n.toLocaleString("nl-NL") : "\u2013";
+
   return (
     <main className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
       {/* Header */}
@@ -52,17 +70,16 @@ export default function TransparantiePage() {
         <SectionHeading number={2} title="Huidige data" />
         <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
           CivicStat bevat momenteel de volgende gegevens uit de lopende
-          parlementaire periode (TK2023–heden).
+          parlementaire periode (TK2023 &amp; TK2025).
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard label="Moties" value="12.485" />
-          <StatCard label="Stemmingen" value="6.601" />
-          <StatCard label="Beloften" value="150" />
-          <StatCard label="Partijen" value="10" />
+          <StatCard label="Moties" value={fmt(motionCount)} />
+          <StatCard label="Stemmingen" value={fmt(voteCount)} />
+          <StatCard label="Beloften" value={fmt(promiseStats?.totalPromises ?? null)} />
+          <StatCard label="Partijen" value={fmt(promiseStats?.byParty.length ?? null)} />
         </div>
         <p className="text-xs text-text-tertiary mt-3">
-          Stemkoppeling: 85% van de stemmingen is gekoppeld aan een motie.
-          Individuele stemrecords: 7.307 (uit 224 hoofdelijke stemmingen).
+          Data wordt elk uur automatisch bijgewerkt via de Tweede Kamer API.
         </p>
       </section>
 
@@ -225,9 +242,9 @@ export default function TransparantiePage() {
             we nog niet automatisch.
           </p>
           <p>
-            <strong className="text-ink">Enkel TK2023.</strong>{" "}
-            Vooralsnog beperken we ons tot de Tweede Kamerverkiezingen van 2023.
-            Historische data volgt later.
+            <strong className="text-ink">TK2023 &amp; TK2025.</strong>{" "}
+            CivicStat richt zich op de Tweede Kamerverkiezingen van 2023 en
+            2025. Oudere parlementaire periodes worden nog niet meegenomen.
           </p>
           <p>
             <strong className="text-ink">Beloften zijn handmatig

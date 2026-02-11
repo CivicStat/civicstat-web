@@ -150,6 +150,19 @@ export default async function PartyDetailPage({ params }: { params: { id: string
                   {scorecard.mandateConsistencyScore}
                 </div>
                 <div className="text-[11px] text-text-tertiary mt-1">van 100</div>
+                <div className={`text-[10px] mt-1.5 font-medium ${
+                  scorecard.mandateConsistencyScore >= 70
+                    ? "text-ink"
+                    : scorecard.mandateConsistencyScore >= 40
+                      ? "text-text-secondary"
+                      : "text-text-tertiary"
+                }`}>
+                  {scorecard.mandateConsistencyScore >= 70
+                    ? "Hoog"
+                    : scorecard.mandateConsistencyScore >= 40
+                      ? "Gemiddeld"
+                      : "Laag"}
+                </div>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm text-text-secondary mb-3">
@@ -160,21 +173,21 @@ export default async function PartyDetailPage({ params }: { params: { id: string
                 <div className="flex h-3 rounded-md overflow-hidden gap-px">
                   {scorecard.consistentCount > 0 && (
                     <div
-                      className="bg-ink/15"
+                      className="bg-ink/30 dark:bg-white/30"
                       style={{ flex: scorecard.consistentCount }}
                       title={`Consistent: ${scorecard.consistentCount}`}
                     />
                   )}
                   {scorecard.mixedCount > 0 && (
                     <div
-                      className="bg-surface-sub"
+                      className="bg-ink/12 dark:bg-white/12"
                       style={{ flex: scorecard.mixedCount }}
                       title={`Wisselend: ${scorecard.mixedCount}`}
                     />
                   )}
                   {scorecard.inconsistentCount > 0 && (
                     <div
-                      className="bg-surface-sub/50"
+                      className="bg-ink/4 dark:bg-white/4 border border-border/50"
                       style={{ flex: scorecard.inconsistentCount }}
                       title={`Afwijkend: ${scorecard.inconsistentCount}`}
                     />
@@ -182,15 +195,15 @@ export default async function PartyDetailPage({ params }: { params: { id: string
                 </div>
                 <div className="flex gap-4 mt-2 text-[11px] text-text-tertiary">
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-sm bg-ink/15" />
+                    <span className="w-2 h-2 rounded-sm bg-ink/30 dark:bg-white/30" />
                     <Term definition="Het stemgedrag komt in ≥70% van de gerelateerde moties overeen met de belofte.">Consistent</Term> ({scorecard.consistentCount})
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-sm bg-surface-sub border border-border" />
+                    <span className="w-2 h-2 rounded-sm bg-ink/12 dark:bg-white/12" />
                     <Term definition="Het stemgedrag komt in 40-70% van de gerelateerde moties overeen met de belofte.">Wisselend</Term> ({scorecard.mixedCount})
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-sm bg-surface-sub/50 border border-border" />
+                    <span className="w-2 h-2 rounded-sm bg-ink/4 dark:bg-white/4 border border-border/50" />
                     <Term definition="Het stemgedrag wijkt in >60% van de gerelateerde moties af van de belofte.">Afwijkend</Term> ({scorecard.inconsistentCount})
                   </span>
                 </div>
@@ -265,6 +278,21 @@ export default async function PartyDetailPage({ params }: { params: { id: string
               </details>
               <MethodologyLink />
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* No-promises info */}
+      {(!scorecard || scorecard.scoredPromises === 0) && (
+        <section className="mb-8">
+          <h2 className="font-serif text-xl text-ink mb-4">Belofteconsistentie</h2>
+          <div className="card px-5 py-6 text-center">
+            <p className="text-sm text-text-secondary">
+              Voor {party.abbreviation} zijn nog geen verkiezingsbeloften geanalyseerd.
+            </p>
+            <p className="text-xs text-text-tertiary mt-2">
+              Zodra beloften zijn geëxtraheerd en gekoppeld aan moties, verschijnt hier de consistentiescore.
+            </p>
           </div>
         </section>
       )}
