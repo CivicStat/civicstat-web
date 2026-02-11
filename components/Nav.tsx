@@ -1,11 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
+import MethodologyPanel from "./MethodologyPanel";
 
 const navItems = [
-  { href: "/", label: "Home" },
   { href: "/beloften", label: "Beloften" },
   { href: "/moties", label: "Moties" },
   { href: "/kamerleden", label: "Kamerleden" },
@@ -13,6 +14,14 @@ const navItems = [
 ];
 
 const desktopOnlyItems = [
+  { href: "/verbinding", label: "Verbinding" },
+  { href: "/transparantie", label: "Transparantie" },
+];
+
+const mobileNavItems = [
+  { href: "/beloften", label: "Beloften" },
+  { href: "/moties", label: "Moties" },
+  { href: "/partijen", label: "Partijen" },
   { href: "/verbinding", label: "Verbinding" },
   { href: "/transparantie", label: "Transparantie" },
 ];
@@ -26,11 +35,6 @@ function ShieldIcon() {
 }
 
 const mobileIcons: Record<string, (props: { active: boolean }) => JSX.Element> = {
-  "/": ({ active }) => (
-    <svg width={20} height={20} fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.8} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
-    </svg>
-  ),
   "/beloften": ({ active }) => (
     <svg width={20} height={20} fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.8} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
@@ -51,10 +55,23 @@ const mobileIcons: Record<string, (props: { active: boolean }) => JSX.Element> =
       <rect x="4" y="2" width="16" height="20" rx="2" /><path d="M9 22v-4h6v4" />
     </svg>
   ),
+  "/verbinding": ({ active }) => (
+    <svg width={20} height={20} fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.8} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  ),
+  "/transparantie": ({ active }) => (
+    <svg width={20} height={20} fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.8} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  ),
 };
 
 export default function Nav() {
   const pathname = usePathname();
+  const [methodologyOpen, setMethodologyOpen] = useState(false);
 
   function isActive(href: string) {
     if (href === "/") return pathname === "/";
@@ -89,8 +106,18 @@ export default function Nav() {
             ))}
           </nav>
 
-          {/* Search + theme toggle */}
+          {/* Begrippen + Search + theme toggle */}
           <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setMethodologyOpen(true)}
+              className="hidden md:flex items-center gap-1.5 rounded-[7px] bg-surface-sub border border-border px-3 py-1.5 text-[13px] text-text-secondary hover:text-ink transition-colors"
+            >
+              <svg width={14} height={14} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              </svg>
+              <span>Begrippen</span>
+            </button>
             <Link
               href="/zoeken"
               className={`rounded-[7px] p-2 transition-colors ${
@@ -112,7 +139,7 @@ export default function Nav() {
 
       {/* Mobile bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-border bg-surface pb-[env(safe-area-inset-bottom,0px)] md:hidden">
-        {navItems.map((item) => {
+        {mobileNavItems.map((item) => {
           const active = isActive(item.href);
           const Icon = mobileIcons[item.href];
           return (
@@ -125,12 +152,14 @@ export default function Nav() {
             >
               {Icon && <Icon active={active} />}
               <span className={`text-[10.5px] ${active ? "font-semibold" : ""}`}>
-                {item.label === "Kamerleden" ? "Leden" : item.label}
+                {item.label}
               </span>
             </Link>
           );
         })}
       </nav>
+
+      <MethodologyPanel open={methodologyOpen} onClose={() => setMethodologyOpen(false)} />
     </>
   );
 }

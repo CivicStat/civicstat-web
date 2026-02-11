@@ -98,3 +98,14 @@ button:focus-visible, a:focus-visible {
 .table-row-hover {
   @apply transition-colors hover:bg-surface-sub;
 }
+
+/* ─── Panel animations ─── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}

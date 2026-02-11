@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
 import Nav from "../components/Nav";
 
@@ -56,11 +57,23 @@ export default function RootLayout({
               CivicStat — Democratie, controleerbaar gemaakt.
             </span>
             <div className="flex gap-4 text-xs text-text-tertiary">
-              {["Over", "Methodologie", "Open API", "Governance"].map((l) => (
-                <span key={l} className="cursor-pointer hover:text-text-secondary transition-colors">
-                  {l}
-                </span>
-              ))}
+              <Link href="/" className="hover:text-text-secondary transition-colors">
+                Over
+              </Link>
+              <Link href="/transparantie" className="hover:text-text-secondary transition-colors">
+                Methodologie
+              </Link>
+              <a
+                href="https://civicstat-api.fly.dev/health"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-text-secondary transition-colors"
+              >
+                Open API
+              </a>
+              <Link href="/transparantie" className="hover:text-text-secondary transition-colors">
+                Governance
+              </Link>
             </div>
           </div>
         </footer>

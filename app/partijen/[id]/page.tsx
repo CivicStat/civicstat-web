@@ -3,6 +3,8 @@ import { getParty, getPartyScorecard } from "../../../lib/api";
 import type { PartyScorecard, PromiseScore } from "../../../lib/types";
 import { getPartyColor, getInitials } from "../../../lib/utils";
 import VoteBar from "../../../components/VoteBar";
+import MethodologyLink from "../../../components/MethodologyLink";
+import Term from "../../../components/Term";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   try {
@@ -181,15 +183,15 @@ export default async function PartyDetailPage({ params }: { params: { id: string
                 <div className="flex gap-4 mt-2 text-[11px] text-text-tertiary">
                   <span className="flex items-center gap-1">
                     <span className="w-2 h-2 rounded-sm bg-ink/15" />
-                    Consistent ({scorecard.consistentCount})
+                    <Term definition="Het stemgedrag komt in ≥70% van de gerelateerde moties overeen met de belofte.">Consistent</Term> ({scorecard.consistentCount})
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="w-2 h-2 rounded-sm bg-surface-sub border border-border" />
-                    Wisselend ({scorecard.mixedCount})
+                    <Term definition="Het stemgedrag komt in 40-70% van de gerelateerde moties overeen met de belofte.">Wisselend</Term> ({scorecard.mixedCount})
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="w-2 h-2 rounded-sm bg-surface-sub/50 border border-border" />
-                    Afwijkend ({scorecard.inconsistentCount})
+                    <Term definition="Het stemgedrag wijkt in >60% van de gerelateerde moties af van de belofte.">Afwijkend</Term> ({scorecard.inconsistentCount})
                   </span>
                 </div>
               </div>
@@ -261,6 +263,7 @@ export default async function PartyDetailPage({ params }: { params: { id: string
                   afwijkend (≤40%). Moties worden gekoppeld via trefwoordanalyse (keyword-overlap-v1).
                 </p>
               </details>
+              <MethodologyLink />
             </div>
           </div>
         </section>

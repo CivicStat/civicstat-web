@@ -4,6 +4,8 @@ import { formatDate } from "../../../lib/utils";
 import PartyBadge from "../../../components/PartyBadge";
 import VoteBar from "../../../components/VoteBar";
 import ExpandablePassage from "./ExpandablePassage";
+import MethodologyLink from "../../../components/MethodologyLink";
+import Term from "../../../components/Term";
 import type { PromiseMotionMatch, PromiseListItem } from "../../../lib/types";
 
 interface Props {
@@ -524,7 +526,10 @@ export default async function BelofteDetailPage({ params }: Props) {
         <p className="text-[12px] text-text-secondary leading-relaxed max-w-[68ch]">
           Moties worden automatisch gekoppeld aan beloften op basis van
           trefwoordovereenkomsten en tekstuele gelijkenis. Het matchtype geeft
-          aan of de motie direct, impliciet of tegenstrijdig gerelateerd is. De
+          aan of de motie{" "}
+          <Term definition="De motie adresseert direct dezelfde concrete toezegging als de belofte. Weegt mee met factor 1.0.">direct</Term>,{" "}
+          <Term definition="De motie valt binnen hetzelfde thema als de belofte, maar er is geen directe tekstuele overeenkomst. Weegt mee met factor 0.5.">impliciet</Term> of{" "}
+          <Term definition="De motie druist in tegen de belofte. De voorspelde stemrichting wordt omgekeerd. Weegt mee met factor 1.0.">tegenstrijdig</Term> gerelateerd is. De
           betrouwbaarheidsscore (%) weerspiegelt de sterkte van de match.
         </p>
         {p.motionMatches.length > 0 && (
@@ -532,6 +537,7 @@ export default async function BelofteDetailPage({ params }: Props) {
             Methode: {p.motionMatches[0].matchMethod}
           </div>
         )}
+        <MethodologyLink />
       </div>
     </div>
   );

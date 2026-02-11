@@ -4,6 +4,8 @@ import { formatDate, getInitials, getPartyColor } from "../../../lib/utils";
 import PartyBadge from "../../../components/PartyBadge";
 import StatusBadge from "../../../components/StatusBadge";
 import VoteBar from "../../../components/VoteBar";
+import MethodologyLink from "../../../components/MethodologyLink";
+import Term from "../../../components/Term";
 import type { VoteRecord, RawStemming, PartyPredictionItem } from "../../../lib/types";
 
 interface Props {
@@ -195,7 +197,9 @@ export default async function MotieDetailPage({ params }: Props) {
         <div className="card p-[18px]">
           <div className="section-label">Soort stemming</div>
           <div className="text-sm font-semibold text-ink mb-1">
-            {isHoofdelijk ? "Hoofdelijk" : "Met handopsteken"}
+            {isHoofdelijk
+              ? <Term definition="Stemming waarbij elk individueel Kamerlid per naam stemt. Vindt plaats op verzoek van minstens 30 leden. Alleen hierbij zijn individuele stemrecords beschikbaar.">Hoofdelijk</Term>
+              : <Term definition="De standaard stemmethode. De voorzitter telt de stemmen per fractie. Alleen partijstandpunten worden geregistreerd, geen individuele stemmen.">Met handopsteken</Term>}
           </div>
           <p className="text-[13px] leading-snug text-text-tertiary">
             {isHoofdelijk
@@ -328,6 +332,7 @@ export default async function MotieDetailPage({ params }: Props) {
                   : "Bij 'met handopsteken' stemmingen zijn alleen partijniveau-resultaten beschikbaar. De aantallen komen overeen met de fractiegrootte ten tijde van de stemming."}
               </p>
             </details>
+            <MethodologyLink />
           </div>
         </div>
       )}
