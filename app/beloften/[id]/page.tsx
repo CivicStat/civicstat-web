@@ -289,6 +289,53 @@ export default async function BelofteDetailPage({ params }: Props) {
         </div>
       )}
 
+      {/* ─── METHODOLOGY EXPANDABLE ────────────────────────────── */}
+      {stats.total > 0 && (
+        <details className="card px-5 py-3 mb-8 -mt-5 pt-5 border-t-0 rounded-t-none">
+          <summary className="text-[12px] text-text-tertiary cursor-pointer hover:text-text-secondary transition-colors list-none flex items-center gap-1.5 [&::-webkit-details-marker]:hidden">
+            <svg width={13} height={13} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="shrink-0">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <span className="underline underline-offset-2">Hoe wordt dit berekend?</span>
+          </summary>
+          <div className="mt-3 space-y-2 text-[12px] text-text-secondary leading-relaxed max-w-[68ch]">
+            <p>
+              De consistentiebadge vergelijkt het stemgedrag van de Kamer bij gerelateerde moties
+              met de verwachte stemrichting van deze belofte ({p.expectedVoteDirection === "VOOR" ? "voor" : "tegen"}).
+            </p>
+            <div className="grid grid-cols-3 gap-2 my-2">
+              <div className="bg-surface-sub rounded-lg p-2.5 text-center">
+                <div className="text-lg font-serif text-ink">{stats.adopted}</div>
+                <div className="text-[10px] text-text-tertiary uppercase tracking-wider">Aangenomen</div>
+              </div>
+              <div className="bg-surface-sub rounded-lg p-2.5 text-center">
+                <div className="text-lg font-serif text-ink">{stats.rejected}</div>
+                <div className="text-[10px] text-text-tertiary uppercase tracking-wider">Verworpen</div>
+              </div>
+              <div className="bg-surface-sub rounded-lg p-2.5 text-center">
+                <div className="text-lg font-serif text-ink">{stats.noVote}</div>
+                <div className="text-[10px] text-text-tertiary uppercase tracking-wider">Geen stemming</div>
+              </div>
+            </div>
+            <p>
+              <strong className="text-ink">Consistent</strong> ({"\u2265"}70%): de meerderheid van
+              gerelateerde moties is in lijn met de belofte.{" "}
+              <strong className="text-ink">Inconsistent</strong> ({"\u2264"}30%):
+              de meerderheid wijkt af.{" "}
+              <strong className="text-ink">Gemengd</strong>: tussen 30% en 70%.
+            </p>
+            <p className="text-text-tertiary">
+              Moties zonder stemresultaat tellen niet mee. Het matchtype (direct, impliciet, contra)
+              bepaalt of een aangenomen motie als &ldquo;in lijn&rdquo; of &ldquo;afwijkend&rdquo; wordt
+              geteld.{" "}
+              <em>Deze analyse is indicatief, niet definitief.</em>
+            </p>
+          </div>
+        </details>
+      )}
+
       {/* ─── SOURCE SECTION ──────────────────────────────────── */}
       <div className="card p-5 mb-8">
         <h2 className="font-serif text-[22px] font-normal text-ink mb-3">

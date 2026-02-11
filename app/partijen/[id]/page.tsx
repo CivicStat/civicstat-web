@@ -5,6 +5,7 @@ import { getPartyColor, getInitials } from "../../../lib/utils";
 import VoteBar from "../../../components/VoteBar";
 import MethodologyLink from "../../../components/MethodologyLink";
 import Term from "../../../components/Term";
+import { TK_SEATS } from "../../../lib/seats";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   try {
@@ -14,12 +15,6 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
     return { title: "Partij — CivicStat" };
   }
 }
-
-const SEATS: Record<string, number> = {
-  PVV: 37, "GroenLinks-PvdA": 25, "GL-PvdA": 25, VVD: 24, NSC: 20,
-  D66: 9, BBB: 7, CDA: 5, SP: 5, PvdD: 3, ChristenUnie: 3, CU: 3,
-  FVD: 3, SGP: 3, DENK: 3, Volt: 2, JA21: 1,
-};
 
 export default async function PartyDetailPage({ params }: { params: { id: string } }) {
   let party;
@@ -45,7 +40,7 @@ export default async function PartyDetailPage({ params }: { params: { id: string
   }
 
   const color = getPartyColor(party.abbreviation, party.colorNeutral);
-  const seats = SEATS[party.abbreviation] || 0;
+  const seats = TK_SEATS[party.abbreviation] || 0;
   const activeMps = party.mps?.filter((m: any) => !m.endDate) || [];
   const vs = party.voteStats;
 

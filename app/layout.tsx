@@ -1,8 +1,8 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
 import Nav from "../components/Nav";
+import Footer from "../components/Footer";
 
 const serif = Instrument_Serif({
   subsets: ["latin"],
@@ -46,37 +46,12 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-screen antialiased font-sans">
+      <body className="flex min-h-screen flex-col antialiased font-sans">
         <Nav />
-        <div className="min-h-[calc(100vh-56px)]">
+        <div className="flex-1">
           {children}
         </div>
-        <footer className="border-t border-border px-5 py-6 mt-12">
-          <div className="mx-auto flex max-w-[1200px] items-center justify-between flex-wrap gap-3">
-            <span className="text-xs text-text-tertiary">
-              CivicStat — Democratie, controleerbaar gemaakt.
-            </span>
-            <div className="flex gap-4 text-xs text-text-tertiary">
-              <Link href="/" className="hover:text-text-secondary transition-colors">
-                Over
-              </Link>
-              <Link href="/transparantie" className="hover:text-text-secondary transition-colors">
-                Methodologie
-              </Link>
-              <a
-                href="https://civicstat-api.fly.dev/health"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-text-secondary transition-colors"
-              >
-                Open API
-              </a>
-              <Link href="/transparantie" className="hover:text-text-secondary transition-colors">
-                Governance
-              </Link>
-            </div>
-          </div>
-        </footer>
+        <Footer />
       </body>
     </html>
   );

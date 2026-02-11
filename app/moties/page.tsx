@@ -12,10 +12,13 @@ interface Props {
     status?: string;
     q?: string;
     page?: string;
+    sort?: string;
   };
 }
 
 const PAGE_SIZE = 25;
+
+export const revalidate = 1800; // ISR: re-generate at most every 30 minutes
 
 export const metadata = {
   title: "Moties — CivicStat",
@@ -47,6 +50,16 @@ export default async function MotiesPage({ searchParams }: Props) {
   const { items, total } = data;
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
+  // Client-side sort: when sort=votes, reorder current page by total votes desc
+  const sortedItems =
+    searchParams.sort === "votes"
+      ? [...items].sort((a, b) => {
+          const aV = (a.vote?.totalFor ?? 0) + (a.vote?.totalAgainst ?? 0);
+          const bV = (b.vote?.totalFor ?? 0) + (b.vote?.totalAgainst ?? 0);
+          return bV - aV;
+        })
+      : items;
+
   // Helper to get first vote data from a motion
   function getVote(m: MotionListItem) {
     if (m.vote) return m.vote;
@@ -76,6 +89,7 @@ export default async function MotiesPage({ searchParams }: Props) {
       <MotiesFilters
         currentStatus={searchParams.status}
         currentQ={searchParams.q}
+        currentSort={searchParams.sort}
       />
 
       {/* Table */}
@@ -89,21 +103,22 @@ export default async function MotiesPage({ searchParams }: Props) {
         </div>
 
         {/* Rows */}
-        {items.length === 0 && (
+        {sortedItems.length === 0 && (
           <div className="px-5 py-10 text-center text-sm text-text-tertiary">
             Geen moties gevonden.
           </div>
         )}
-        {items.map((m, i) => {
+        {sortedItems.map((m, i) => {
           const vote = getVote(m);
           const party = getSponsorParty(m);
+          const sponsorName = m.sponsors?.[0]?.mp?.surname ?? null;
 
           return (
             <Link
               key={m.id}
               href={`/moties/${m.id}`}
               className={`block sm:grid sm:grid-cols-[1fr_100px_80px_100px] items-center gap-2 px-5 py-3.5 table-row-hover ${
-                i < items.length - 1 ? "border-b border-border-subtle" : ""
+                i < sortedItems.length - 1 ? "border-b border-border-subtle" : ""
               }`}
             >
               {/* Title + meta */}
@@ -119,11 +134,26 @@ export default async function MotiesPage({ searchParams }: Props) {
                     </>
                   )}
                   {party && (
-                    <PartyBadge
-                      abbreviation={party.abbreviation}
-                      colorNeutral={party.colorNeutral}
-                      size="sm"
-                    />
+                    <>
+                      <PartyBadge
+                        abbreviation={party.abbreviation}
+                        colorNeutral={party.colorNeutral}
+                        size="sm"
+                      />
+                      {sponsorName && (
+                        <>
+                          <span>·</span>
+                          <span className="truncate max-w-[140px]">
+                            {sponsorName}
+                          </span>
+                        </>
+                      )}
+                    </>
+                  )}
+                  {!party && sponsorName && (
+                    <span className="truncate max-w-[140px]">
+                      {sponsorName}
+                    </span>
                   )}
                 </div>
               </div>
@@ -186,6 +216,7 @@ export default async function MotiesPage({ searchParams }: Props) {
                 page={page - 1}
                 status={searchParams.status}
                 q={searchParams.q}
+                sort={searchParams.sort}
                 label="← Vorige"
               />
             )}
@@ -194,6 +225,7 @@ export default async function MotiesPage({ searchParams }: Props) {
                 page={page + 1}
                 status={searchParams.status}
                 q={searchParams.q}
+                sort={searchParams.sort}
                 label="Volgende →"
               />
             )}
@@ -208,17 +240,20 @@ function PaginationLink({
   page,
   status,
   q,
+  sort,
   label,
 }: {
   page: number;
   status?: string;
   q?: string;
+  sort?: string;
   label: string;
 }) {
   const sp = new URLSearchParams();
   sp.set("page", String(page));
   if (status) sp.set("status", status);
   if (q) sp.set("q", q);
+  if (sort) sp.set("sort", sort);
 
   return (
     <Link

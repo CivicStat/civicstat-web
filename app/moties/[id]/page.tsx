@@ -7,6 +7,7 @@ import VoteBar from "../../../components/VoteBar";
 import MethodologyLink from "../../../components/MethodologyLink";
 import Term from "../../../components/Term";
 import type { VoteRecord, RawStemming, PartyPredictionItem } from "../../../lib/types";
+import { TK_SEATS } from "../../../lib/seats";
 
 interface Props {
   params: { id: string };
@@ -66,15 +67,9 @@ export default async function MotieDetailPage({ params }: Props) {
   let matchCount = 0;
   let knownCount = 0;
 
-  const PARTY_SEATS: Record<string, number> = {
-    PVV: 37, 'GL-PvdA': 25, 'GroenLinks-PvdA': 25, VVD: 24, NSC: 20,
-    D66: 9, BBB: 7, CDA: 5, SP: 5, PvdD: 3, CU: 3,
-    FVD: 3, SGP: 3, DENK: 3, Volt: 2, JA21: 1,
-  };
-
   if (prediction?.partyPredictions) {
     for (const pp of prediction.partyPredictions) {
-      const seats = PARTY_SEATS[pp.party.abbreviation] || 0;
+      const seats = TK_SEATS[pp.party.abbreviation] || 0;
       if (pp.predictedVote === 'FOR') predictedVoor += seats;
       else if (pp.predictedVote === 'AGAINST') predictedTegen += seats;
 
@@ -567,8 +562,15 @@ export default async function MotieDetailPage({ params }: Props) {
                     <span>·</span>
                     <span>{themeLabel(pm.promise.theme)}</span>
                     <span>·</span>
-                    <span className="rounded-full bg-surface-sub border border-border px-1.5 py-0 text-[10px]">
-                      {Math.round(pm.confidence * 100)}% match
+                    <span className={`rounded-full border px-1.5 py-0 text-[10px] font-medium ${
+                      pm.confidence >= 0.6
+                        ? 'bg-accent-subtle border-moss/20 text-moss'
+                        : pm.confidence >= 0.3
+                        ? 'bg-surface-sub border-border text-text-secondary'
+                        : 'bg-surface-sub border-border text-text-tertiary'
+                    }`}>
+                      {pm.confidence >= 0.6 ? '●' : pm.confidence >= 0.3 ? '◐' : '○'}{' '}
+                      {Math.round(pm.confidence * 100)}%
                     </span>
                   </div>
                 </div>

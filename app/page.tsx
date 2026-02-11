@@ -1,19 +1,24 @@
 import Link from "next/link";
-import { getMotions } from "../lib/api";
-import { formatDate } from "../lib/utils";
+import { getMotions, getAllScorecards } from "../lib/api";
+import { formatDate, getPartyColor } from "../lib/utils";
 import PartyBadge from "../components/PartyBadge";
 import StatusBadge from "../components/StatusBadge";
 import VoteBar from "../components/VoteBar";
 import SearchBar from "../components/SearchBar";
 
+export const revalidate = 3600; // ISR: re-generate at most every hour
+
 export default async function HomePage() {
   let recentMotions;
-  try {
-    const data = await getMotions({ limit: 5 });
-    recentMotions = data.items;
-  } catch {
-    recentMotions = null;
-  }
+  let scorecards;
+  const [motionsResult, scorecardsResult] = await Promise.allSettled([
+    getMotions({ limit: 5 }),
+    getAllScorecards(),
+  ]);
+  recentMotions =
+    motionsResult.status === "fulfilled" ? motionsResult.value.items : null;
+  scorecards =
+    scorecardsResult.status === "fulfilled" ? scorecardsResult.value : null;
 
   return (
     <div>
@@ -113,6 +118,60 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
+
+        {/* Belofteconsistentie teaser */}
+        {scorecards && scorecards.length > 0 && (
+          <section className="py-12 border-b border-border-subtle">
+            <div className="flex items-baseline justify-between mb-5">
+              <div>
+                <div className="section-label">Belofteconsistentie</div>
+                <h2 className="font-serif text-[22px] font-normal text-ink mt-1.5">
+                  Hoe consistent zijn partijen?
+                </h2>
+              </div>
+              <Link
+                href="/partijen"
+                className="text-[13px] font-medium text-moss hover:underline"
+              >
+                Alle partijen →
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {scorecards
+                .sort(
+                  (a, b) =>
+                    b.mandateConsistencyScore - a.mandateConsistencyScore
+                )
+                .slice(0, 6)
+                .map((sc) => {
+                  const color = getPartyColor(sc.abbreviation);
+                  return (
+                    <Link
+                      key={sc.partyId}
+                      href={`/partijen/${sc.partyId}`}
+                      className="card p-4 hover:border-moss/40 transition-colors text-center"
+                    >
+                      <div
+                        className="text-[28px] font-serif leading-none"
+                        style={{ color }}
+                      >
+                        {sc.mandateConsistencyScore}
+                      </div>
+                      <div className="text-[10px] text-text-tertiary mt-0.5">
+                        van 100
+                      </div>
+                      <div className="text-[13px] font-semibold text-ink mt-2">
+                        {sc.abbreviation}
+                      </div>
+                      <div className="text-[11px] text-text-tertiary">
+                        {sc.scoredPromises} beloften
+                      </div>
+                    </Link>
+                  );
+                })}
+            </div>
+          </section>
+        )}
       </div>
 
       {/* Recent motions */}

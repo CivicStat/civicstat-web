@@ -119,6 +119,15 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
         </section>
       )}
 
+      {/* TODO: Add party alignment indicator per vote.
+          Show how often this MP votes in line with their party's majority position.
+          Prerequisites: the API must return per-motion individual vote records for this
+          MP (currently only aggregate voteStats are available, and motions[] only
+          contains motions the MP sponsored — not their individual vote on each motion).
+          When individual vote records are displayed, compute alignment percentage and
+          show as a badge in the Stempatroon section above.
+          See: computeConsistency() in /app/beloften/[id]/page.tsx for a similar pattern. */}
+
       {/* Motions */}
       {motions.length > 0 && (
         <section>

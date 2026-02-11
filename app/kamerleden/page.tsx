@@ -3,6 +3,8 @@ import { getMembers } from "../../lib/api";
 import { getInitials, getPartyColor } from "../../lib/utils";
 import PartyBadge from "../../components/PartyBadge";
 
+export const revalidate = 3600; // ISR: re-generate at most every hour
+
 export const metadata = { title: "Kamerleden — CivicStat" };
 
 export default async function KamerledenPage() {

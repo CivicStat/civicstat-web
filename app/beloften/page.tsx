@@ -15,6 +15,8 @@ interface Props {
 
 const PAGE_SIZE = 25;
 
+export const revalidate = 3600; // ISR: re-generate at most every hour
+
 export const metadata = {
   title: "Beloften — CivicStat",
   description:

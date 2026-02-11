@@ -2,15 +2,11 @@ import Link from "next/link";
 import { getParties, getAllScorecards } from "../../lib/api";
 import type { PartyScorecard } from "../../lib/types";
 import { getPartyColor } from "../../lib/utils";
+import { TK_SEATS } from "../../lib/seats";
+
+export const revalidate = 3600; // ISR: re-generate at most every hour
 
 export const metadata = { title: "Partijen — CivicStat" };
-
-// Known current seat counts (hardcoded — the API doesn't have seats)
-const SEATS: Record<string, number> = {
-  PVV: 37, "GroenLinks-PvdA": 25, "GL-PvdA": 25, VVD: 24, NSC: 20,
-  D66: 9, BBB: 7, CDA: 5, SP: 5, PvdD: 3, ChristenUnie: 3, CU: 3,
-  FVD: 3, SGP: 3, DENK: 3, Volt: 2, JA21: 1,
-};
 
 export default async function PartijenPage() {
   let parties;
@@ -40,8 +36,8 @@ export default async function PartijenPage() {
 
   // Filter to only parties with known seats, sorted by seats desc
   const activeParties = parties
-    .filter((p) => SEATS[p.abbreviation])
-    .sort((a, b) => (SEATS[b.abbreviation] || 0) - (SEATS[a.abbreviation] || 0));
+    .filter((p) => TK_SEATS[p.abbreviation])
+    .sort((a, b) => (TK_SEATS[b.abbreviation] || 0) - (TK_SEATS[a.abbreviation] || 0));
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
@@ -57,7 +53,7 @@ export default async function PartijenPage() {
         <div className="section-label">Zetelverdeling (150 zetels)</div>
         <div className="flex h-7 rounded-md overflow-hidden gap-px">
           {activeParties.map((p) => {
-            const seats = SEATS[p.abbreviation] || 0;
+            const seats = TK_SEATS[p.abbreviation] || 0;
             const color = getPartyColor(p.abbreviation, p.colorNeutral);
             return (
               <div
@@ -90,7 +86,7 @@ export default async function PartijenPage() {
                   opacity: 0.8,
                 }}
               />
-              {p.abbreviation} ({SEATS[p.abbreviation]})
+              {p.abbreviation} ({TK_SEATS[p.abbreviation]})
             </div>
           ))}
         </div>
@@ -100,7 +96,7 @@ export default async function PartijenPage() {
       <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {activeParties.map((p) => {
           const color = getPartyColor(p.abbreviation, p.colorNeutral);
-          const seats = SEATS[p.abbreviation] || 0;
+          const seats = TK_SEATS[p.abbreviation] || 0;
 
           return (
             <Link key={p.id} href={`/partijen/${encodeURIComponent(p.abbreviation)}`} className="card p-[18px] hover:border-moss/40 transition-colors">
@@ -139,9 +135,17 @@ export default async function PartijenPage() {
               )}
               {(() => {
                 const sc = scorecardMap.get(p.id);
-                if (!sc || sc.scoredPromises === 0) return null;
+                if (!sc || sc.scoredPromises === 0) {
+                  return (
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-text-tertiary/40" />
+                      <span className="text-[11px] text-text-tertiary">Geen analyse</span>
+                    </div>
+                  );
+                }
                 return (
                   <div className="flex items-center gap-2 mt-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-moss shrink-0" />
                     <span className="text-[11px] text-text-tertiary">
                       Consistentie: {sc.mandateConsistencyScore}%
                     </span>

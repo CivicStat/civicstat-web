@@ -42,6 +42,12 @@ export default function MotionMatchList({ matches, adopted, rejected, noVote }: 
   const visible = expanded ? matches : matches.slice(0, INITIAL_SHOW);
   const remaining = matches.length - INITIAL_SHOW;
 
+  const avgConfidence = matches.length > 0
+    ? matches.reduce((sum, m) => sum + m.confidence, 0) / matches.length
+    : 0;
+  const confidenceLabel = avgConfidence >= 0.6 ? "Hoog" : avgConfidence >= 0.3 ? "Gemiddeld" : "Laag";
+  const confidencePct = Math.round(avgConfidence * 100);
+
   return (
     <div className="border-t border-border-subtle px-5 py-3 bg-surface-sub/30">
       {/* Header */}
@@ -67,6 +73,26 @@ export default function MotionMatchList({ matches, adopted, rejected, noVote }: 
           )}
         </div>
       </div>
+
+      {/* Confidence indicator */}
+      {matches.length > 0 && (
+        <div className="flex items-center gap-2 mb-2 text-[11px]">
+          <span className="text-text-tertiary">Match-kwaliteit:</span>
+          <span className={`font-semibold ${
+            avgConfidence >= 0.6 ? "text-moss" : avgConfidence >= 0.3 ? "text-text-secondary" : "text-text-tertiary"
+          }`}>
+            {confidenceLabel} ({confidencePct}%)
+          </span>
+          <div className="flex-1 flex h-1 rounded-full overflow-hidden bg-surface-sub2 max-w-[60px]">
+            <div
+              className={`h-full rounded-full ${
+                avgConfidence >= 0.6 ? "bg-moss" : avgConfidence >= 0.3 ? "bg-text-secondary" : "bg-text-tertiary"
+              }`}
+              style={{ width: `${confidencePct}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Motion rows */}
       <div className="space-y-1">

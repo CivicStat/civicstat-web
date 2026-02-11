@@ -6,17 +6,19 @@ import { useState, useTransition } from "react";
 interface Props {
   currentStatus?: string;
   currentQ?: string;
+  currentSort?: string;
 }
 
-export default function MotiesFilters({ currentStatus, currentQ }: Props) {
+export default function MotiesFilters({ currentStatus, currentQ, currentSort }: Props) {
   const router = useRouter();
   const [q, setQ] = useState(currentQ ?? "");
   const [isPending, startTransition] = useTransition();
 
-  function navigate(params: { status?: string; q?: string }) {
+  function navigate(params: { status?: string; q?: string; sort?: string }) {
     const sp = new URLSearchParams();
     if (params.status) sp.set("status", params.status);
     if (params.q) sp.set("q", params.q);
+    if (params.sort) sp.set("sort", params.sort);
     startTransition(() => {
       router.push(`/moties${sp.toString() ? `?${sp.toString()}` : ""}` as any);
     });
@@ -24,7 +26,7 @@ export default function MotiesFilters({ currentStatus, currentQ }: Props) {
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    navigate({ status: currentStatus, q: q || undefined });
+    navigate({ status: currentStatus, q: q || undefined, sort: currentSort });
   }
 
   return (
@@ -40,7 +42,7 @@ export default function MotiesFilters({ currentStatus, currentQ }: Props) {
           return (
             <button
               key={f.label}
-              onClick={() => navigate({ status: f.value, q: currentQ })}
+              onClick={() => navigate({ status: f.value, q: currentQ, sort: currentSort })}
               className={`rounded-lg px-3.5 py-1.5 text-[13px] font-medium border transition-colors ${
                 active
                   ? "border-moss bg-accent-subtle text-moss"
@@ -69,6 +71,35 @@ export default function MotiesFilters({ currentStatus, currentQ }: Props) {
           Zoek
         </button>
       </form>
+
+      {/* Sort toggle */}
+      <div className="flex gap-1.5">
+        {[
+          { value: undefined as string | undefined, label: "Nieuwste" },
+          { value: "votes" as string | undefined, label: "Meest gestemd" },
+        ].map((s) => {
+          const active = currentSort === s.value;
+          return (
+            <button
+              key={s.label}
+              onClick={() =>
+                navigate({
+                  status: currentStatus,
+                  q: currentQ,
+                  sort: s.value,
+                })
+              }
+              className={`rounded-lg px-3 py-1.5 text-[13px] font-medium border transition-colors ${
+                active
+                  ? "border-moss bg-accent-subtle text-moss"
+                  : "border-border text-text-secondary hover:bg-surface-sub"
+              }`}
+            >
+              {s.label}
+            </button>
+          );
+        })}
+      </div>
 
       {isPending && (
         <div className="text-xs text-text-tertiary animate-pulse">
