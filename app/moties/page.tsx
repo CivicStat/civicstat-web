@@ -160,9 +160,12 @@ export default async function MotiesPage({ searchParams }: Props) {
               <div className="mt-1.5 flex items-center gap-3 sm:hidden text-xs text-text-tertiary">
                 <span>{formatDate(m.dateIntroduced)}</span>
                 {vote && (
-                  <span>
-                    {vote.totalFor}–{vote.totalAgainst}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-[50px]">
+                      <VoteBar voor={vote.totalFor} tegen={vote.totalAgainst} height={4} />
+                    </div>
+                    <span>{vote.totalFor}–{vote.totalAgainst}</span>
+                  </div>
                 )}
               </div>
             </Link>

@@ -23,7 +23,11 @@ export default function ConsensusMatrix({ parties, matrix }: Props) {
   const shown = parties.slice(0, 12);
 
   return (
-    <div className="min-w-[600px]">
+    <div className="relative">
+      {/* Scroll hint gradient — right edge (mobile only) */}
+      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-surface to-transparent pointer-events-none z-10 sm:hidden" />
+      <div className="overflow-x-auto -mx-1 px-1">
+        <div className="min-w-[600px]">
       <table className="w-full border-collapse">
         <thead>
           <tr>
@@ -89,6 +93,11 @@ export default function ConsensusMatrix({ parties, matrix }: Props) {
           ))}
         </tbody>
       </table>
+        </div>
+      </div>
+      <p className="text-[11px] text-text-tertiary mt-2 text-center sm:hidden">
+        ← Scroll voor alle partijen →
+      </p>
     </div>
   );
 }

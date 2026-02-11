@@ -156,15 +156,15 @@ export default async function BeloftenPage({ searchParams }: Props) {
                   <span className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-semibold text-text-secondary">
                     {themeLabel(promise.theme)}
                   </span>
-                  <span className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
+                  <span className="hidden sm:inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
                     {specificityLabel(promise.specificity)}
                   </span>
                   {promise.expectedVoteDirection && (
-                    <span className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
+                    <span className="hidden sm:inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
                       {directionLabel(promise.expectedVoteDirection)}
                     </span>
                   )}
-                  <span className="text-[11px] text-text-tertiary ml-auto font-mono">
+                  <span className="hidden sm:inline text-[11px] text-text-tertiary ml-auto font-mono">
                     {promise.promiseCode}
                   </span>
                 </div>
@@ -178,6 +178,9 @@ export default async function BeloftenPage({ searchParams }: Props) {
                     {promise.summary}
                   </Link>
                 </h2>
+                <span className="sm:hidden text-[11px] text-text-tertiary font-mono">
+                  {promise.promiseCode}
+                </span>
 
                 {/* Original program text */}
                 <p className="text-[13px] text-text-secondary leading-relaxed line-clamp-3">

@@ -21,9 +21,9 @@ const desktopOnlyItems = [
 const mobileNavItems = [
   { href: "/beloften", label: "Beloften" },
   { href: "/moties", label: "Moties" },
+  { href: "/kamerleden", label: "Kamerleden" },
   { href: "/partijen", label: "Partijen" },
   { href: "/verbinding", label: "Verbinding" },
-  { href: "/transparantie", label: "Transparantie" },
 ];
 
 function ShieldIcon() {

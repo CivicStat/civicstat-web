@@ -48,7 +48,7 @@ export default async function VerbindingPage() {
       </div>
 
       {/* ─── Consensus matrix ─────────────────────────────────── */}
-      <section className="card p-5 mb-6 overflow-x-auto">
+      <section className="card p-5 mb-6">
         <h2 className="font-serif text-[20px] font-normal text-ink mb-1">
           Stemoverlap
         </h2>
