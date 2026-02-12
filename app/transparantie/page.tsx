@@ -112,8 +112,8 @@ export default async function TransparantiePage() {
         <div className="space-y-5 max-w-[68ch]">
           <ScoreDefinition
             term="Mandate Consistency Score (MCS)"
-            definition="Meet hoe consistent een partij stemt ten opzichte van de eigen verkiezingsbeloften. 100% = altijd consistent. Berekend per thema en als totaalcijfer."
-            formula="MCS = (consistent + mixed × 0.5) / scored × 100"
+            definition="Meet hoe consistent een partij stemt ten opzichte van de eigen verkiezingsbeloften. 100% = altijd consistent. Berekend per thema en als totaalcijfer. Elke match weegt mee op basis van type en betrouwbaarheid."
+            formula="MCS = &Sigma;(typeGewicht &times; confidence &times; stemuitlijn) / &Sigma;(typeGewicht &times; confidence) &times; 100"
           />
           <ScoreDefinition
             term="Belofte-kloof"
@@ -129,12 +129,29 @@ export default async function TransparantiePage() {
 
         <div className="mt-4 space-y-2 text-sm text-text-secondary max-w-[68ch]">
           <p>
+            <strong className="text-ink">Matchtype-gewichten:</strong>{" "}
+            EXPLICIET = 1.0, TEGENGESTELD = 1.0, IMPLICIET = 0.5. Elke match
+            weegt mee op basis van zowel het type als de betrouwbaarheidsscore.
+          </p>
+          <p>
+            <strong className="text-ink">Minimum drempel:</strong>{" "}
+            Beloften met minder dan 3 gekoppelde moties worden uitgesloten
+            van de scoring en gerapporteerd als &ldquo;onvoldoende data&rdquo;.
+          </p>
+          <p>
+            <strong className="text-ink">Steekproefweging:</strong>{" "}
+            Partijen met meer gekoppelde moties krijgen stabielere scores.
+          </p>
+        </div>
+
+        <div className="mt-4 space-y-2 text-sm text-text-secondary max-w-[68ch]">
+          <p>
             <strong className="text-ink">Consistent:</strong> ≥70% van de
-            gerelateerde moties is in lijn met de belofte.
+            gewogen stemuitlijning is in lijn met de belofte.
           </p>
           <p>
             <strong className="text-ink">Inconsistent:</strong> ≤30% van de
-            gerelateerde moties is in lijn.
+            gewogen stemuitlijning is in lijn.
           </p>
           <p>
             <strong className="text-ink">Gemengd:</strong> tussen 30% en 70%.
@@ -147,10 +164,38 @@ export default async function TransparantiePage() {
         <SectionHeading number={5} title="Matching-algoritme" />
         <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
           Moties worden automatisch gekoppeld aan beloften via een
-          trefwoordalgoritme. Elke belofte heeft een set thematische
-          trefwoorden; een motie wordt gekoppeld als de tekst voldoende
-          overlap vertoont.
+          trefwoordalgoritme in drie stappen.
         </p>
+
+        <div className="space-y-4 max-w-[68ch] mb-5">
+          <div>
+            <h3 className="text-sm font-semibold text-ink mb-1">Stap 1 — Motiefilter</h3>
+            <p className="text-[13px] text-text-secondary leading-relaxed">
+              Procedurele moties worden uitgefilterd v&oacute;&oacute;r de matching.
+              Dit omvat: moties van wantrouwen, moties van afkeuring, moties
+              van orde, ordedebatverzoeken, schorsing/sluiting, regeling van
+              werkzaamheden en spreektijdverzoeken. Dit voorkomt foutieve
+              matches wanneer procedurele taal overlapt met beleidstrefwoorden.
+            </p>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-ink mb-1">Stap 2 — Trefwoordmatching</h3>
+            <p className="text-[13px] text-text-secondary leading-relaxed">
+              Elke belofte heeft een set vooraf gedefinieerde thematische
+              trefwoorden (vastgesteld tijdens extractie, niet algoritmisch
+              afgeleid). Een motie wordt gekoppeld wanneer de titel en tekst
+              voldoende overlap vertonen met de trefwoorden van een belofte.
+            </p>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-ink mb-1">Stap 3 — Betrouwbaarheidsscore</h3>
+            <p className="text-[13px] text-text-secondary leading-relaxed">
+              Elke match krijgt een betrouwbaarheidsscore (0&ndash;1) op basis
+              van het aantal en de specificiteit van trefwoordhits. Matches
+              onder 0.3 worden verworpen.
+            </p>
+          </div>
+        </div>
 
         <div className="space-y-3 max-w-[68ch]">
           <MatchTypeItem
@@ -171,8 +216,7 @@ export default async function TransparantiePage() {
         </div>
 
         <p className="text-sm text-text-secondary mt-4 max-w-[68ch]">
-          Elke match krijgt een betrouwbaarheidsscore van 0 tot 1. Matches
-          onder 0.3 worden niet getoond. Het huidige algoritme is <span className="font-mono text-xs bg-surface-sub px-1.5 py-0.5 rounded text-ink">keyword-overlap-v1</span>.
+          Het huidige algoritme is <span className="font-mono text-xs bg-surface-sub px-1.5 py-0.5 rounded text-ink">keyword-overlap-v2</span>.
         </p>
       </section>
 
@@ -232,8 +276,10 @@ export default async function TransparantiePage() {
           <p>
             <strong className="text-ink">Automatische matching is
             imperfect.</strong>{" "}
-            Sommige koppelingen kunnen onjuist zijn. We werken continu aan
-            verbetering van het algoritme.
+            Versie 2 bevat een procedureel motiefilter dat foutieve matches
+            vermindert, en gebruikt vooraf gedefinieerde trefwoorden per belofte
+            in plaats van automatische extractie. Semantische matching op basis
+            van embeddings is gepland als toekomstige verbetering (v3).
           </p>
           <p>
             <strong className="text-ink">Coalitiedwang.</strong>{" "}
@@ -247,10 +293,11 @@ export default async function TransparantiePage() {
             2025. Oudere parlementaire periodes worden nog niet meegenomen.
           </p>
           <p>
-            <strong className="text-ink">Beloften zijn handmatig
+            <strong className="text-ink">Beloften zijn LLM-ondersteund
             ge&euml;xtraheerd.</strong>{" "}
-            Hoewel we waar mogelijk geautomatiseerde methoden gebruiken, zijn
-            de initi&euml;le beloften per partij handmatig gevalideerd.
+            Beloften worden ge&euml;xtraheerd uit verkiezingsprogramma&rsquo;s
+            met behulp van LLM-analyse (Claude, Anthropic) en vervolgens
+            handmatig gevalideerd op volledigheid en correctheid.
           </p>
         </div>
       </section>
