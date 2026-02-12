@@ -161,8 +161,12 @@ export default async function PartyDetailPage({ params }: { params: { id: string
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm text-text-secondary mb-3">
-                  Van {scorecard.totalPromises} verkiezingsbeloften zijn er{" "}
-                  {scorecard.scoredPromises} gekoppeld aan stemmingen.
+                  {scorecard.note || `Score gebaseerd op ${scorecard.scoredPromises} van ${scorecard.totalPromises} beloften met voldoende stemdata`}
+                  {(scorecard.insufficientDataPromises ?? 0) > 0 && (
+                    <span className="text-text-tertiary">
+                      {" "}({scorecard.insufficientDataPromises} beloften: onvoldoende data)
+                    </span>
+                  )}
                 </div>
                 {/* Consistency bar */}
                 <div className="flex h-3 rounded-md overflow-hidden gap-px">
@@ -265,10 +269,13 @@ export default async function PartyDetailPage({ params }: { params: { id: string
                   Methodologie
                 </summary>
                 <p className="mt-2 max-w-lg leading-relaxed">
-                  De consistentiescore is gebaseerd op de verhouding tussen stemgedrag en
+                  De consistentiescore is gebaseerd op de gewogen verhouding tussen stemgedrag en
                   verkiezingsbeloften. Per belofte wordt gekeken of de partij in de verwachte richting
-                  stemde bij gerelateerde moties. Score: consistent (≥60% aligned), wisselend (40-60%),
-                  afwijkend (≤40%). Moties worden gekoppeld via trefwoordanalyse (keyword-overlap-v1).
+                  stemde bij gerelateerde moties. Het gewicht van elke motie-koppeling is afhankelijk van
+                  het matchtype (direct=1.0, impliciet=0.5) en de betrouwbaarheidsscore.
+                  Score: consistent ({"\u2265"}70%), wisselend (30-70%), afwijkend ({"\u2264"}30%).
+                  Beloften met minder dan 3 gerelateerde moties krijgen geen score.
+                  Moties worden gekoppeld via trefwoordanalyse (keyword-overlap-v2).
                 </p>
               </details>
               <MethodologyLink />

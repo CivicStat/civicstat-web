@@ -277,15 +277,22 @@ export default async function BelofteDetailPage({ params }: Props) {
             )}
             {consistency.label}
           </span>
-          <span className="text-[12px] text-text-secondary">
-            {consistency.icon === "check"
-              ? "Het stemgedrag in de Kamer komt overeen met deze belofte."
-              : consistency.icon === "cross"
-              ? "Het stemgedrag in de Kamer wijkt af van deze belofte."
-              : consistency.icon === "mixed"
-              ? "Het stemgedrag in de Kamer is deels in lijn met deze belofte."
-              : "Er zijn onvoldoende stemmingen om de consistentie te bepalen."}
-          </span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[12px] text-text-secondary">
+              {consistency.icon === "check"
+                ? "Het stemgedrag in de Kamer komt overeen met deze belofte."
+                : consistency.icon === "cross"
+                ? "Het stemgedrag in de Kamer wijkt af van deze belofte."
+                : consistency.icon === "mixed"
+                ? "Het stemgedrag in de Kamer is deels in lijn met deze belofte."
+                : "Er zijn onvoldoende stemmingen om de consistentie te bepalen."}
+            </span>
+            <span className="text-[11px] text-text-tertiary">
+              {consistency.icon === "none"
+                ? `Minder dan 3 moties \u2014 onvoldoende data`
+                : `Gebaseerd op ${stats.adopted + stats.rejected} moties`}
+            </span>
+          </div>
         </div>
       )}
 

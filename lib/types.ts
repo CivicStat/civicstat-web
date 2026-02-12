@@ -326,12 +326,15 @@ export interface PartyScorecard {
   abbreviation: string;
   totalPromises: number;
   scoredPromises: number;
+  insufficientDataPromises: number;
   consistentCount: number;
   inconsistentCount: number;
   mixedCount: number;
   mandateConsistencyScore: number;
-  byTheme: Record<string, { consistent: number; inconsistent: number; mixed: number; total: number }>;
+  matchingAlgorithm: string;
+  byTheme: Record<string, { consistent: number; inconsistent: number; mixed: number; total: number; insufficientData: number }>;
   promises?: PromiseScore[];
+  note: string;
 }
 
 // Program match types
