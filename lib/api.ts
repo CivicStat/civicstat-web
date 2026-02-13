@@ -5,6 +5,8 @@ import type {
   PartyListItem,
   PartyDetail,
   PartyScorecard,
+  ScorecardComparison,
+  KoersvastheidResponse,
   MemberListItem,
   MemberDetail,
   VoteDetail,
@@ -12,6 +14,7 @@ import type {
   PromiseListItem,
   PromiseDetail,
   PromiseStatsResponse,
+  CoalitieverwateringResponse,
 } from "./types";
 
 const API_URL =
@@ -90,12 +93,46 @@ export async function getParty(id: string): Promise<PartyDetail> {
   return apiFetch<PartyDetail>(`/parties/${encodeURIComponent(id)}`);
 }
 
-export async function getPartyScorecard(id: string): Promise<PartyScorecard> {
-  return apiFetch<PartyScorecard>(`/parties/${encodeURIComponent(id)}/scorecard`);
+export async function getPartyScorecard(
+  id: string,
+  params?: { year?: number; periodStart?: string; periodEnd?: string },
+): Promise<PartyScorecard> {
+  const sp = new URLSearchParams();
+  if (params?.year) sp.set("year", String(params.year));
+  if (params?.periodStart) sp.set("periodStart", params.periodStart);
+  if (params?.periodEnd) sp.set("periodEnd", params.periodEnd);
+  const qs = sp.toString();
+  return apiFetch<PartyScorecard>(`/parties/${encodeURIComponent(id)}/scorecard${qs ? `?${qs}` : ""}`);
 }
 
-export async function getAllScorecards(): Promise<PartyScorecard[]> {
-  return apiFetch<PartyScorecard[]>("/parties/scorecards");
+export async function getAllScorecards(
+  params?: { year?: number; periodStart?: string; periodEnd?: string },
+): Promise<PartyScorecard[]> {
+  const sp = new URLSearchParams();
+  if (params?.year) sp.set("year", String(params.year));
+  if (params?.periodStart) sp.set("periodStart", params.periodStart);
+  if (params?.periodEnd) sp.set("periodEnd", params.periodEnd);
+  const qs = sp.toString();
+  return apiFetch<PartyScorecard[]>(`/parties/scorecards${qs ? `?${qs}` : ""}`);
+}
+
+export async function getScorecardYears(): Promise<number[]> {
+  return apiFetch<number[]>("/parties/scorecards/years");
+}
+
+export async function compareScorecards(
+  years: number[] = [2023, 2025],
+): Promise<ScorecardComparison[]> {
+  return apiFetch<ScorecardComparison[]>(`/parties/scorecards/compare?years=${years.join(",")}`);
+}
+
+export async function getKoersvastheid(
+  id: string,
+  years: number[] = [2023, 2025],
+): Promise<KoersvastheidResponse> {
+  return apiFetch<KoersvastheidResponse>(
+    `/parties/${encodeURIComponent(id)}/koersvastheid?years=${years.join(",")}`,
+  );
 }
 
 // ─── Votes ──────────────────────────────────────────────────
@@ -169,4 +206,32 @@ export async function searchAll(q: string): Promise<SearchAllResults> {
     members:
       membersResult.status === "fulfilled" ? membersResult.value : [],
   };
+}
+
+// ─── Regeerakkoord ──────────────────────────────────────────
+
+export async function getRegeerakkoordScorecard(
+  id: string,
+  params?: { year?: number; periodStart?: string; periodEnd?: string },
+): Promise<PartyScorecard> {
+  const sp = new URLSearchParams();
+  if (params?.year) sp.set("year", String(params.year));
+  if (params?.periodStart) sp.set("periodStart", params.periodStart);
+  if (params?.periodEnd) sp.set("periodEnd", params.periodEnd);
+  const qs = sp.toString();
+  return apiFetch<PartyScorecard>(
+    `/parties/${encodeURIComponent(id)}/regeerakkoord${qs ? `?${qs}` : ""}`,
+  );
+}
+
+export async function getCoalitieverwatering(
+  id: string,
+  params?: { year?: number },
+): Promise<CoalitieverwateringResponse> {
+  const sp = new URLSearchParams();
+  if (params?.year) sp.set("year", String(params.year));
+  const qs = sp.toString();
+  return apiFetch<CoalitieverwateringResponse>(
+    `/parties/${encodeURIComponent(id)}/coalitieverwatering${qs ? `?${qs}` : ""}`,
+  );
 }

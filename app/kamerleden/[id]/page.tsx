@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { getMember } from "../../../lib/api";
-import { getPartyColor, formatDate, getInitials } from "../../../lib/utils";
+import { getPartyColor, formatDate } from "../../../lib/utils";
 import PartyBadge from "../../../components/PartyBadge";
 import VoteBar from "../../../components/VoteBar";
+import MemberPhoto from "../../../components/MemberPhoto";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   try {
@@ -51,15 +52,7 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
 
       {/* Header */}
       <div className="flex items-start gap-4 mb-8">
-        <div
-          className="flex h-16 w-16 items-center justify-center rounded-full text-lg font-bold text-ink shrink-0"
-          style={{
-            background: `linear-gradient(135deg, ${color}18, ${color}44)`,
-            border: `3px solid ${color}40`,
-          }}
-        >
-          {getInitials(member.name)}
-        </div>
+        <MemberPhoto tkId={member.tkId} name={member.name} size="lg" color={color} />
         <div>
           <h1 className="font-serif text-[clamp(24px,4vw,32px)] text-ink leading-tight">
             {member.surname}

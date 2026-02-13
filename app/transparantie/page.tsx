@@ -159,9 +159,48 @@ export default async function TransparantiePage() {
         </div>
       </section>
 
-      {/* ─── 5. Matching-algoritme ─────────────────────────────── */}
+      {/* ─── 5. Periodes & koersvastheid ─────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={5} title="Matching-algoritme" />
+        <SectionHeading number={5} title="Periodes &amp; koersvastheid" />
+        <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
+          CivicStat vergelijkt verkiezingsbeloften over meerdere parlementaire
+          periodes. Momenteel ondersteunen we TK2023 en TK2025.
+        </p>
+
+        <div className="space-y-4 max-w-[68ch] mb-5">
+          <div>
+            <h3 className="text-sm font-semibold text-ink mb-1">Periode-filtering</h3>
+            <p className="text-[13px] text-text-secondary leading-relaxed">
+              Elk verkiezingsprogramma heeft een parlementaire periode waarbinnen
+              stemmingen worden meegeteld. TK2023: 6 december 2023 t/m
+              29 oktober 2025. TK2025: 29 oktober 2025 t/m einde volgende
+              parlementaire periode. Stemmingen buiten deze vensters worden
+              uitgesloten van de MCS-berekening.
+            </p>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-ink mb-1">Koersvastheid</h3>
+            <p className="text-[13px] text-text-secondary leading-relaxed">
+              De koersvastheid meet hoe stabiel een partij scoort over
+              verschillende parlementaire periodes. Een partij met een gelijke
+              MCS in TK2023 en TK2025 krijgt koersvastheid 100. Een partij
+              waarvan de MCS sterk schommelt, krijgt een lagere waarde.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-2 space-y-2 text-sm text-text-secondary max-w-[68ch]">
+          <ScoreDefinition
+            term="Koersvastheid"
+            definition="Meet de stabiliteit van de MCS over periodes. 100 = identieke MCS in beide periodes; 0 = maximaal verschil (100 punten)."
+            formula="Koersvastheid = 100 &minus; |MCS(TK2023) &minus; MCS(TK2025)|"
+          />
+        </div>
+      </section>
+
+      {/* ─── 6. Matching-algoritme ─────────────────────────────── */}
+      <section className="card p-6 mb-5">
+        <SectionHeading number={6} title="Matching-algoritme" />
         <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
           Moties worden automatisch gekoppeld aan beloften via een
           trefwoordalgoritme in drie stappen.
@@ -220,9 +259,9 @@ export default async function TransparantiePage() {
         </p>
       </section>
 
-      {/* ─── 6. Specificiteit ──────────────────────────────────── */}
+      {/* ─── 7. Specificiteit ──────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={6} title="Specificiteit van beloften" />
+        <SectionHeading number={7} title="Specificiteit van beloften" />
         <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
           Elke belofte krijgt een specificiteitsclassificatie die aangeeft hoe
           concreet en toetsbaar de toezegging is.
@@ -246,9 +285,9 @@ export default async function TransparantiePage() {
         </div>
       </section>
 
-      {/* ─── 7. Neutraliteit ───────────────────────────────────── */}
+      {/* ─── 8. Neutraliteit ───────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={7} title="Neutraliteit &amp; onpartijdigheid" />
+        <SectionHeading number={8} title="Neutraliteit &amp; onpartijdigheid" />
         <div className="space-y-3 text-sm text-text-secondary max-w-[68ch]">
           <p>
             CivicStat is politiek onafhankelijk en ontvangt geen financiering
@@ -264,9 +303,9 @@ export default async function TransparantiePage() {
         </div>
       </section>
 
-      {/* ─── 8. Beperkingen ────────────────────────────────────── */}
+      {/* ─── 9. Beperkingen ────────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={8} title="Beperkingen" />
+        <SectionHeading number={9} title="Beperkingen" />
         <div className="space-y-3 text-sm text-text-secondary max-w-[68ch]">
           <p>
             <strong className="text-ink">Moties ≠ al het beleid.</strong>{" "}
@@ -302,9 +341,9 @@ export default async function TransparantiePage() {
         </div>
       </section>
 
-      {/* ─── 9. Begrippenlijst ─────────────────────────────────── */}
+      {/* ─── 10. Begrippenlijst ────────────────────────────────── */}
       <section className="card p-6">
-        <SectionHeading number={9} title="Begrippenlijst" />
+        <SectionHeading number={10} title="Begrippenlijst" />
         <div className="space-y-3">
           <GlossaryItem
             term="Motie"
@@ -349,6 +388,14 @@ export default async function TransparantiePage() {
           <GlossaryItem
             term="Verwachte stemrichting"
             definition="Of een partij naar verwachting voor of tegen een gerelateerde motie zou stemmen, gebaseerd op de belofte."
+          />
+          <GlossaryItem
+            term="Koersvastheid"
+            definition="Score (0&ndash;100) die aangeeft hoe stabiel de MCS van een partij is over meerdere parlementaire periodes (TK2023 vs TK2025). 100 = identiek, 0 = maximaal verschil."
+          />
+          <GlossaryItem
+            term="Parlementaire periode"
+            definition="Het tijdvenster waarbinnen stemmingen worden meegeteld voor een verkiezingsprogramma. TK2023: 6 december 2023 t/m 29 oktober 2025. TK2025: vanaf 29 oktober 2025."
           />
         </div>
       </section>

@@ -324,6 +324,9 @@ export interface PromiseScore {
 export interface PartyScorecard {
   partyId: string;
   abbreviation: string;
+  electionYear: number;
+  periodStart: string;
+  periodEnd: string;
   totalPromises: number;
   scoredPromises: number;
   insufficientDataPromises: number;
@@ -335,6 +338,38 @@ export interface PartyScorecard {
   byTheme: Record<string, { consistent: number; inconsistent: number; mixed: number; total: number; insufficientData: number }>;
   promises?: PromiseScore[];
   note: string;
+}
+
+// ─── Multi-period comparison types ────────────────────────
+
+export interface ScorecardComparison {
+  partyId: string;
+  abbreviation: string;
+  periods: {
+    electionYear: number;
+    periodStart: string;
+    periodEnd: string;
+    mandateConsistencyScore: number;
+    totalPromises: number;
+    scoredPromises: number;
+    consistentCount: number;
+    inconsistentCount: number;
+    mixedCount: number;
+  }[];
+  koersvastheid: number | null;
+}
+
+export interface KoersvastheidResponse {
+  partyId: string;
+  abbreviation: string;
+  koersvastheid: number | null;
+  periods: {
+    electionYear: number;
+    mandateConsistencyScore: number;
+    scoredPromises: number;
+    byTheme: Record<string, { score2023?: number; score2025?: number; delta: number }>;
+  }[];
+  themeStability: Record<string, number>;
 }
 
 // Program match types
@@ -367,4 +402,22 @@ export interface PromiseStatsResponse {
   totalMatches: number;
   byParty: { abbreviation: string; name: string; count: number }[];
   byTheme: { theme: string; count: number }[];
+}
+
+// ─── Coalitieverwatering ────────────────────────────────────
+export interface CoalitieverwateringResponse {
+  partyId: string;
+  abbreviation: string;
+  electionYear: number;
+  regeerakkoordYear: number;
+  totalPartyPromises: number;
+  survivedPromises: number;
+  dilutedPromises: number;
+  dilutionRate: number;
+  coalitionPartners: string[];
+  survivedDetails?: {
+    partyPromise: string;
+    regeerakkoordCommitment: string;
+    overlapScore: number;
+  }[];
 }

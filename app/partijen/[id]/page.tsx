@@ -1,11 +1,16 @@
 import Link from "next/link";
-import { getParty, getPartyScorecard } from "../../../lib/api";
-import type { PartyScorecard, PromiseScore } from "../../../lib/types";
-import { getPartyColor, getInitials } from "../../../lib/utils";
+import { Suspense } from "react";
+import { getParty, getPartyScorecard, getScorecardYears, getKoersvastheid, getRegeerakkoordScorecard, getCoalitieverwatering } from "../../../lib/api";
+import type { PartyScorecard, KoersvastheidResponse, PromiseScore, CoalitieverwateringResponse } from "../../../lib/types";
+import { getPartyColor } from "../../../lib/utils";
 import VoteBar from "../../../components/VoteBar";
 import MethodologyLink from "../../../components/MethodologyLink";
+import PeriodSelector from "../../../components/PeriodSelector";
 import Term from "../../../components/Term";
 import { TK_SEATS } from "../../../lib/seats";
+import PartyAvatar from "../../../components/PartyAvatar";
+import MemberPhoto from "../../../components/MemberPhoto";
+import { getCoalitionsForParty } from "../../../lib/coalitions";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   try {
@@ -16,7 +21,13 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
   }
 }
 
-export default async function PartyDetailPage({ params }: { params: { id: string } }) {
+export default async function PartyDetailPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
   let party;
   try {
     party = await getParty(params.id);
@@ -32,11 +43,62 @@ export default async function PartyDetailPage({ params }: { params: { id: string
     );
   }
 
+  // Determine selected period (default: 2023)
+  const jaarParam = typeof searchParams.jaar === "string" ? parseInt(searchParams.jaar) : 2023;
+  const activeYear = [2023, 2025].includes(jaarParam) ? jaarParam : 2023;
+  const availableYears = [2023, 2025];
+
   let scorecard: PartyScorecard | null = null;
   try {
-    scorecard = await getPartyScorecard(params.id);
+    scorecard = await getPartyScorecard(params.id, { year: activeYear });
   } catch {
     // Party has no promises — don't show scorecard section
+  }
+
+  // Fetch the OTHER year's scorecard too (for comparison)
+  const otherYear = activeYear === 2023 ? 2025 : 2023;
+  let otherScorecard: PartyScorecard | null = null;
+  try {
+    otherScorecard = await getPartyScorecard(params.id, { year: otherYear });
+  } catch {}
+
+  // Fetch koersvastheid for comparison
+  let koersvastheid: KoersvastheidResponse | null = null;
+  try {
+    koersvastheid = await getKoersvastheid(params.id);
+  } catch {
+    // Not available yet
+  }
+
+  // Fetch regeerakkoord data for coalition parties
+  const coalitions = getCoalitionsForParty(party.abbreviation);
+  let regeerakkoordScorecards: { year: number; name: string; scorecard: PartyScorecard | null }[] = [];
+  let coalitieverwateringen: { year: number; data: CoalitieverwateringResponse | null }[] = [];
+
+  if (coalitions.length > 0) {
+    const [regResults, cvResults] = await Promise.all([
+      Promise.allSettled(
+        coalitions.map(async (c) => ({
+          year: c.year,
+          name: c.name,
+          scorecard: await getRegeerakkoordScorecard(params.id, { year: c.year }).catch(() => null),
+        })),
+      ),
+      Promise.allSettled(
+        coalitions.map(async (c) => ({
+          year: c.year,
+          data: await getCoalitieverwatering(params.id, { year: c.year }).catch(() => null),
+        })),
+      ),
+    ]);
+
+    regeerakkoordScorecards = regResults
+      .filter((r): r is PromiseFulfilledResult<{ year: number; name: string; scorecard: PartyScorecard | null }> => r.status === "fulfilled")
+      .map((r) => r.value);
+
+    coalitieverwateringen = cvResults
+      .filter((r): r is PromiseFulfilledResult<{ year: number; data: CoalitieverwateringResponse | null }> => r.status === "fulfilled")
+      .map((r) => r.value);
   }
 
   const color = getPartyColor(party.abbreviation, party.colorNeutral);
@@ -54,17 +116,21 @@ export default async function PartyDetailPage({ params }: { params: { id: string
 
       {/* Header */}
       <div className="flex items-start gap-4 mb-8">
-        <div
-          className="flex h-14 w-14 items-center justify-center rounded-xl text-base font-extrabold shrink-0"
-          style={{ backgroundColor: `${color}18`, border: `2px solid ${color}40`, color }}
-        >
-          {party.abbreviation.slice(0, 3)}
-        </div>
+        <PartyAvatar abbreviation={party.abbreviation} color={color} size="md" />
         <div>
           <h1 className="font-serif text-[clamp(26px,4vw,34px)] text-ink leading-tight">
             {party.abbreviation}
           </h1>
           <p className="text-sm text-text-secondary mt-1">{party.name}</p>
+          {coalitions.length > 0 && (
+            <div className="flex gap-1.5 mt-2">
+              {coalitions.map((c) => (
+                <span key={c.year} className="text-[10px] px-2 py-0.5 rounded-full border border-border text-text-tertiary">
+                  Coalitie {c.name}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -102,6 +168,67 @@ export default async function PartyDetailPage({ params }: { params: { id: string
         )}
       </div>
 
+      {/* Period comparison overview — only when both periods have data */}
+      {scorecard && scorecard.scoredPromises > 0 && otherScorecard && otherScorecard.scoredPromises > 0 && (
+        <section className="mb-8">
+          <h2 className="font-serif text-xl text-ink mb-4">Vergelijking verkiezingsperiodes</h2>
+          <div className="card p-5">
+            <div className="grid grid-cols-2 gap-6 mb-5">
+              {[
+                activeYear === 2023 ? scorecard : otherScorecard,
+                activeYear === 2025 ? scorecard : otherScorecard,
+              ].map((sc, i) => {
+                const year = i === 0 ? 2023 : 2025;
+                const isActive = year === activeYear;
+                return (
+                  <div key={year} className={`text-center ${isActive ? "" : "opacity-60"}`}>
+                    <div className="text-[11px] font-medium text-text-tertiary mb-2">TK{year}</div>
+                    <div className="text-[36px] font-serif text-ink leading-none">
+                      {sc.mandateConsistencyScore}
+                    </div>
+                    <div className="text-[11px] text-text-tertiary mt-1">
+                      {sc.scoredPromises}/{sc.totalPromises} beloften
+                    </div>
+                    <div className="flex h-2 rounded-full overflow-hidden gap-px mt-3 mx-auto max-w-[120px]">
+                      {sc.consistentCount > 0 && <div className="bg-ink/30" style={{ flex: sc.consistentCount }} />}
+                      {sc.mixedCount > 0 && <div className="bg-ink/12" style={{ flex: sc.mixedCount }} />}
+                      {sc.inconsistentCount > 0 && <div className="bg-ink/4 border border-border/50" style={{ flex: sc.inconsistentCount }} />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {(() => {
+              const sc2023 = activeYear === 2023 ? scorecard : otherScorecard;
+              const sc2025 = activeYear === 2025 ? scorecard : otherScorecard;
+              const delta = sc2025!.mandateConsistencyScore - sc2023!.mandateConsistencyScore;
+              return (
+                <div className="flex items-center justify-center gap-2 py-3 border-t border-border">
+                  <span className="text-[12px] text-text-tertiary">Verschil:</span>
+                  <span className={`text-sm font-semibold ${
+                    delta > 0 ? "text-ink" : delta < 0 ? "text-text-tertiary" : "text-text-secondary"
+                  }`}>
+                    {delta > 0 ? "+" : ""}{delta} punt{Math.abs(delta) !== 1 ? "en" : ""}
+                  </span>
+                  <span className="text-[12px] text-text-tertiary">
+                    {delta > 5 ? "(consistenter geworden)" :
+                     delta < -5 ? "(minder consistent)" :
+                     "(stabiel)"}
+                  </span>
+                </div>
+              );
+            })()}
+
+            {koersvastheid && koersvastheid.koersvastheid !== null && (
+              <div className="flex items-center justify-center gap-2 pt-2 text-[12px] text-text-tertiary">
+                Koersvastheid: <span className="font-semibold text-ink">{Math.round(koersvastheid.koersvastheid)}%</span>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Voting pattern */}
       {vs && vs.totalVotes > 0 && (
         <section className="mb-8">
@@ -135,7 +262,12 @@ export default async function PartyDetailPage({ params }: { params: { id: string
       {/* Mandate consistency scorecard */}
       {scorecard && scorecard.scoredPromises > 0 && (
         <section className="mb-8">
-          <h2 className="font-serif text-xl text-ink mb-4">Belofteconsistentie</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-serif text-xl text-ink">Belofteconsistentie</h2>
+            <Suspense fallback={null}>
+              <PeriodSelector years={availableYears} activeYear={activeYear} />
+            </Suspense>
+          </div>
 
           <div className="card p-5 mb-4">
             {/* Big score + summary */}
@@ -287,10 +419,15 @@ export default async function PartyDetailPage({ params }: { params: { id: string
       {/* No-promises info */}
       {(!scorecard || scorecard.scoredPromises === 0) && (
         <section className="mb-8">
-          <h2 className="font-serif text-xl text-ink mb-4">Belofteconsistentie</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-serif text-xl text-ink">Belofteconsistentie</h2>
+            <Suspense fallback={null}>
+              <PeriodSelector years={availableYears} activeYear={activeYear} />
+            </Suspense>
+          </div>
           <div className="card px-5 py-6 text-center">
             <p className="text-sm text-text-secondary">
-              Voor {party.abbreviation} zijn nog geen verkiezingsbeloften geanalyseerd.
+              Voor {party.abbreviation} zijn nog geen beloften geanalyseerd voor TK{activeYear}.
             </p>
             <p className="text-xs text-text-tertiary mt-2">
               Zodra beloften zijn geëxtraheerd en gekoppeld aan moties, verschijnt hier de consistentiescore.
@@ -299,23 +436,200 @@ export default async function PartyDetailPage({ params }: { params: { id: string
         </section>
       )}
 
+      {/* Koersvastheid (cross-period comparison) */}
+      {koersvastheid && koersvastheid.koersvastheid !== null && koersvastheid.periods.length >= 2 && (
+        <section className="mb-8">
+          <h2 className="font-serif text-xl text-ink mb-4">Koersvastheid</h2>
+          <div className="card p-5">
+            <div className="flex items-start gap-6 mb-4">
+              <div className="text-center shrink-0">
+                <div className="text-[42px] font-serif text-ink leading-none">
+                  {Math.round(koersvastheid.koersvastheid)}
+                </div>
+                <div className="text-[11px] text-text-tertiary mt-1">van 100</div>
+                <div className={`text-[10px] mt-1.5 font-medium ${
+                  koersvastheid.koersvastheid >= 70
+                    ? "text-ink"
+                    : koersvastheid.koersvastheid >= 40
+                      ? "text-text-secondary"
+                      : "text-text-tertiary"
+                }`}>
+                  {koersvastheid.koersvastheid >= 80
+                    ? "Zeer stabiel"
+                    : koersvastheid.koersvastheid >= 60
+                      ? "Stabiel"
+                      : koersvastheid.koersvastheid >= 40
+                        ? "Wisselend"
+                        : "Instabiel"}
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-text-secondary mb-3">
+                  <Term definition="Koersvastheid meet hoe consistent een partij scoort over meerdere verkiezingsperiodes. 100 = identieke score, 0 = maximaal verschil.">
+                    Koersvastheid
+                  </Term>{" "}
+                  vergelijkt de belofteconsistentie van {party.abbreviation} over meerdere verkiezingsperiodes.
+                </p>
+                {/* Period scores */}
+                <div className="flex gap-3">
+                  {koersvastheid.periods.map((p) => (
+                    <div key={p.electionYear} className="flex items-center gap-2 px-3 py-2 rounded-md bg-surface-sub/40">
+                      <span className="text-[12px] font-medium text-ink">TK{p.electionYear}</span>
+                      <span className="text-[18px] font-serif text-ink">{p.mandateConsistencyScore}</span>
+                      <span className="text-[11px] text-text-tertiary">/ 100</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Theme stability breakdown */}
+            {Object.keys(koersvastheid.themeStability).length > 0 && (
+              <div className="border-t border-border pt-4">
+                <div className="section-label mb-3">Stabiliteit per thema</div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {Object.entries(koersvastheid.themeStability)
+                    .sort(([, a], [, b]) => b - a)
+                    .map(([theme, stability]) => (
+                      <div key={theme} className="flex items-center justify-between gap-2 px-3 py-2 rounded-md bg-surface-sub/40">
+                        <span className="text-[12px] text-ink truncate">{themeLabel(theme)}</span>
+                        <span className={`text-[11px] font-medium ${
+                          stability >= 80 ? "text-ink" : stability >= 50 ? "text-text-secondary" : "text-text-tertiary"
+                        }`}>
+                          {Math.round(stability)}%
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            <div className="border-t border-border pt-3 mt-4">
+              <p className="text-[11px] text-text-tertiary">
+                Formule: koersvastheid = 100 − |MCS(TK2023) − MCS(TK2025)|.
+                Een hoge score betekent dat de partij in beide periodes vergelijkbaar scoort.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Regeerakkoord scorecard — only for coalition parties */}
+      {regeerakkoordScorecards.map(({ year, name, scorecard: regSc }) =>
+        regSc && regSc.scoredPromises > 0 ? (
+          <section key={`reg-${year}`} className="mb-8">
+            <h2 className="font-serif text-xl text-ink mb-4">
+              Regeerakkoord — {name}
+            </h2>
+            <div className="card p-5">
+              <div className="flex items-start gap-6 mb-4">
+                <div className="text-center shrink-0">
+                  <div className="text-[42px] font-serif text-ink leading-none">
+                    {regSc.mandateConsistencyScore}
+                  </div>
+                  <div className="text-[11px] text-text-tertiary mt-1">van 100</div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-text-secondary mb-3">
+                    Score van {party.abbreviation} op de afspraken uit het regeerakkoord.
+                    Gebaseerd op {regSc.scoredPromises} van {regSc.totalPromises} coalitieafspraken
+                    met voldoende stemdata.
+                  </p>
+                  <div className="flex h-3 rounded-md overflow-hidden gap-px">
+                    {regSc.consistentCount > 0 && (
+                      <div className="bg-ink/30" style={{ flex: regSc.consistentCount }} title={`Consistent: ${regSc.consistentCount}`} />
+                    )}
+                    {regSc.mixedCount > 0 && (
+                      <div className="bg-ink/12" style={{ flex: regSc.mixedCount }} title={`Wisselend: ${regSc.mixedCount}`} />
+                    )}
+                    {regSc.inconsistentCount > 0 && (
+                      <div className="bg-ink/4 border border-border/50" style={{ flex: regSc.inconsistentCount }} title={`Afwijkend: ${regSc.inconsistentCount}`} />
+                    )}
+                  </div>
+                  <div className="flex gap-4 mt-2 text-[11px] text-text-tertiary">
+                    <span>Consistent ({regSc.consistentCount})</span>
+                    <span>Wisselend ({regSc.mixedCount})</span>
+                    <span>Afwijkend ({regSc.inconsistentCount})</span>
+                  </div>
+                </div>
+              </div>
+              <div className="border-t border-border pt-3">
+                <p className="text-[11px] text-text-tertiary">
+                  Het regeerakkoord bevat afspraken tussen coalitiepartijen.
+                  Deze score meet of {party.abbreviation} stemt in lijn met die afspraken.
+                </p>
+              </div>
+            </div>
+          </section>
+        ) : null,
+      )}
+
+      {/* Coalitieverwatering — only for coalition parties */}
+      {coalitieverwateringen.map(({ year, data: cv }) =>
+        cv && cv.totalPartyPromises > 0 ? (
+          <section key={`cv-${year}`} className="mb-8">
+            <h2 className="font-serif text-xl text-ink mb-4">
+              <Term definition="Coalitieverwatering meet welk percentage van de eigen verkiezingsbeloften is teruggekomen in het regeerakkoord. Een hoog percentage betekent dat de partij veel heeft ingeleverd.">
+                Coalitieverwatering
+              </Term>
+              {" "} — {year}
+            </h2>
+            <div className="card p-5">
+              <div className="flex items-start gap-6 mb-4">
+                <div className="text-center shrink-0">
+                  <div className="text-[42px] font-serif text-ink leading-none">
+                    {Math.round(cv.dilutionRate)}%
+                  </div>
+                  <div className="text-[11px] text-text-tertiary mt-1">verwatering</div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-text-secondary mb-3">
+                    Van de {cv.totalPartyPromises} verkiezingsbeloften van {party.abbreviation} zijn
+                    er {cv.survivedPromises} herkenbaar terug te vinden in het regeerakkoord.
+                    {cv.dilutedPromises > 0 && ` ${cv.dilutedPromises} beloften zijn niet overgenomen.`}
+                  </p>
+                  <div className="flex h-3 rounded-md overflow-hidden gap-px">
+                    {cv.survivedPromises > 0 && (
+                      <div className="bg-ink/30" style={{ flex: cv.survivedPromises }} title={`Overgenomen: ${cv.survivedPromises}`} />
+                    )}
+                    {cv.dilutedPromises > 0 && (
+                      <div className="bg-ink/4 border border-border/50" style={{ flex: cv.dilutedPromises }} title={`Niet overgenomen: ${cv.dilutedPromises}`} />
+                    )}
+                  </div>
+                  <div className="flex gap-4 mt-2 text-[11px] text-text-tertiary">
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-sm bg-ink/30" />
+                      Overgenomen ({cv.survivedPromises})
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-sm bg-ink/4 border border-border/50" />
+                      Niet overgenomen ({cv.dilutedPromises})
+                    </span>
+                  </div>
+                </div>
+              </div>
+              {cv.coalitionPartners && cv.coalitionPartners.length > 0 && (
+                <div className="border-t border-border pt-3">
+                  <p className="text-[11px] text-text-tertiary">
+                    Coalitiepartners: {cv.coalitionPartners.join(", ")}.
+                    {" "}De verwateringsscore is gebaseerd op trefwoordoverlap — semantische matching volgt.
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
+        ) : null,
+      )}
+
       {/* Members */}
       {activeMps.length > 0 && (
         <section>
           <h2 className="font-serif text-xl text-ink mb-4">Kamerleden ({activeMps.length})</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {activeMps.sort((a: any, b: any) => a.surname.localeCompare(b.surname)).map((mp: any) => (
               <Link key={mp.id} href={`/kamerleden/${mp.id}`} className="card p-4 hover:border-moss/40 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div
-                    className="flex h-10 w-10 items-center justify-center rounded-full text-[13px] font-semibold text-ink shrink-0"
-                    style={{
-                      background: `linear-gradient(135deg, ${color}18, ${color}38)`,
-                      border: `2px solid ${color}33`,
-                    }}
-                  >
-                    {getInitials(mp.name)}
-                  </div>
+                  <MemberPhoto tkId={mp.tkId} name={mp.name} size="sm" color={color} />
                   <div className="min-w-0">
                     <div className="text-sm font-semibold text-ink truncate">{mp.surname}</div>
                     <div className="text-[11px] text-text-tertiary truncate">{mp.name}</div>

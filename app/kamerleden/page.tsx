@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { getMembers } from "../../lib/api";
-import { getInitials, getPartyColor } from "../../lib/utils";
+import { getPartyColor } from "../../lib/utils";
 import PartyBadge from "../../components/PartyBadge";
+import MemberPhoto from "../../components/MemberPhoto";
 
 export const revalidate = 3600; // ISR: re-generate at most every hour
 
@@ -37,15 +38,7 @@ export default async function KamerledenPage() {
           return (
             <Link key={m.id} href={`/kamerleden/${m.id}`} className="card p-[18px] hover:border-moss/40 transition-colors">
               <div className="flex items-center gap-3">
-                <div
-                  className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold text-ink flex-shrink-0"
-                  style={{
-                    background: `linear-gradient(135deg, ${color}18, ${color}38)`,
-                    border: `2px solid ${color}33`,
-                  }}
-                >
-                  {getInitials(m.surname)}
-                </div>
+                <MemberPhoto tkId={m.tkId} name={m.surname} size="sm" color={color} />
                 <div className="min-w-0">
                   <div className="text-sm font-semibold text-ink truncate">
                     {m.prefix ? `${m.name} ${m.prefix} ${m.surname}` : `${m.name} ${m.surname}`}
