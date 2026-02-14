@@ -44,6 +44,7 @@ export async function getMotions(params?: {
   q?: string;
   status?: string;
   party?: string;
+  hasVotes?: boolean;
   limit?: number;
   offset?: number;
 }): Promise<MotionListResponse> {
@@ -51,6 +52,7 @@ export async function getMotions(params?: {
   if (params?.q) sp.set("q", params.q);
   if (params?.status) sp.set("status", params.status);
   if (params?.party) sp.set("party", params.party);
+  if (params?.hasVotes) sp.set("hasVotes", "true");
   if (params?.limit) sp.set("limit", String(params.limit));
   if (params?.offset) sp.set("offset", String(params.offset));
 
@@ -234,4 +236,34 @@ export async function getCoalitieverwatering(
   return apiFetch<CoalitieverwateringResponse>(
     `/parties/${encodeURIComponent(id)}/coalitieverwatering${qs ? `?${qs}` : ""}`,
   );
+}
+
+// ─── Admin / Status ──────────────────────────────────────────
+
+export async function getSystemStatus() {
+  try {
+    const url = `${API_URL}/admin/status`;
+    const res = await fetch(url, {
+      next: { revalidate: 60 },
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function getPipelineRuns(limit: number = 10) {
+  try {
+    const url = `${API_URL}/admin/pipeline-runs?limit=${limit}`;
+    const res = await fetch(url, {
+      next: { revalidate: 60 },
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
 }

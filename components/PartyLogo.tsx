@@ -33,8 +33,8 @@ export default function PartyLogo({
       className={`object-contain transition-all duration-300 ${
         showColor
           ? ""
-          : "grayscale brightness-[0.4] opacity-70 hover:grayscale-0 hover:brightness-100 hover:opacity-100"
-      } ${className}`}
+          : "grayscale brightness-[0.4] opacity-70 hover:grayscale-0 hover:brightness-100 hover:opacity-100 dark:brightness-[0.8] dark:opacity-80"
+      } dark:drop-shadow-[0_0_1px_rgba(255,255,255,0.3)] ${className}`}
       onError={() => {
         setError(true);
         onError?.();

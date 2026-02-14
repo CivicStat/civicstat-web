@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getMotions, getVotes, getPromiseStats } from "../../lib/api";
+import TransparantieNav from "./TransparantieNav";
 
 export const metadata: Metadata = {
   title: "Transparantie — CivicStat",
@@ -39,9 +40,11 @@ export default async function TransparantiePage() {
         </p>
       </div>
 
+      <TransparantieNav />
+
       {/* ─── 1. Data pipeline ──────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={1} title="Datapipeline" />
+        <SectionHeading number={1} title="Datapipeline" id="datapipeline" />
         <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
           Alle parlementaire gegevens komen uit de offici&euml;le Tweede Kamer
           OData API. Er wordt geen data handmatig aangepast of gefilterd.
@@ -67,7 +70,7 @@ export default async function TransparantiePage() {
 
       {/* ─── 2. Huidige data ───────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={2} title="Huidige data" />
+        <SectionHeading number={2} title="Huidige data" id="huidige-data" />
         <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
           CivicStat bevat momenteel de volgende gegevens uit de lopende
           parlementaire periode (TK2023 &amp; TK2025).
@@ -85,7 +88,7 @@ export default async function TransparantiePage() {
 
       {/* ─── 3. Databronnen ────────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={3} title="Databronnen" />
+        <SectionHeading number={3} title="Databronnen" id="databronnen" />
         <div className="space-y-3">
           <SourceItem
             name="Tweede Kamer OData API (v4.0)"
@@ -107,7 +110,7 @@ export default async function TransparantiePage() {
 
       {/* ─── 4. Scores & berekeningen ──────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={4} title="Scores &amp; berekeningen" />
+        <SectionHeading number={4} title="Scores &amp; berekeningen" id="scores" />
 
         <div className="space-y-5 max-w-[68ch]">
           <ScoreDefinition
@@ -161,7 +164,7 @@ export default async function TransparantiePage() {
 
       {/* ─── 5. Periodes & koersvastheid ─────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={5} title="Periodes &amp; koersvastheid" />
+        <SectionHeading number={5} title="Periodes &amp; koersvastheid" id="periodes" />
         <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
           CivicStat vergelijkt verkiezingsbeloften over meerdere parlementaire
           periodes. Momenteel ondersteunen we TK2023 en TK2025.
@@ -200,7 +203,7 @@ export default async function TransparantiePage() {
 
       {/* ─── 6. Matching-algoritme ─────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={6} title="Matching-algoritme" />
+        <SectionHeading number={6} title="Matching-algoritme" id="matching" />
         <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
           Moties worden automatisch gekoppeld aan beloften via een
           trefwoordalgoritme in drie stappen.
@@ -261,7 +264,7 @@ export default async function TransparantiePage() {
 
       {/* ─── 7. Specificiteit ──────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={7} title="Specificiteit van beloften" />
+        <SectionHeading number={7} title="Specificiteit van beloften" id="specificiteit" />
         <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
           Elke belofte krijgt een specificiteitsclassificatie die aangeeft hoe
           concreet en toetsbaar de toezegging is.
@@ -287,7 +290,7 @@ export default async function TransparantiePage() {
 
       {/* ─── 8. Neutraliteit ───────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={8} title="Neutraliteit &amp; onpartijdigheid" />
+        <SectionHeading number={8} title="Neutraliteit &amp; onpartijdigheid" id="neutraliteit" />
         <div className="space-y-3 text-sm text-text-secondary max-w-[68ch]">
           <p>
             CivicStat is politiek onafhankelijk en ontvangt geen financiering
@@ -305,7 +308,7 @@ export default async function TransparantiePage() {
 
       {/* ─── 9. Beperkingen ────────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={9} title="Beperkingen" />
+        <SectionHeading number={9} title="Beperkingen" id="beperkingen" />
         <div className="space-y-3 text-sm text-text-secondary max-w-[68ch]">
           <p>
             <strong className="text-ink">Moties ≠ al het beleid.</strong>{" "}
@@ -343,7 +346,7 @@ export default async function TransparantiePage() {
 
       {/* ─── 10. Begrippenlijst ────────────────────────────────── */}
       <section className="card p-6">
-        <SectionHeading number={10} title="Begrippenlijst" />
+        <SectionHeading number={10} title="Begrippenlijst" id="begrippenlijst" />
         <div className="space-y-3">
           <GlossaryItem
             term="Motie"
@@ -405,9 +408,9 @@ export default async function TransparantiePage() {
 
 // ─── Sub-components ─────────────────────────────────────────
 
-function SectionHeading({ number, title }: { number: number; title: string }) {
+function SectionHeading({ number, title, id }: { number: number; title: string; id?: string }) {
   return (
-    <div className="flex items-center gap-2.5 mb-3">
+    <div id={id} className="flex items-center gap-2.5 mb-3 scroll-mt-20">
       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-moss/10 text-[11px] font-bold text-moss">
         {number}
       </span>

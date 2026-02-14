@@ -102,7 +102,7 @@ function MotionResults({
                     <span>{formatDate(motion.dateIntroduced)}</span>
                     {motion.sponsors?.[0]?.mp && (
                       <span>
-                        {motion.sponsors[0].mp.name} {motion.sponsors[0].mp.surname}
+                        {motion.sponsors[0].mp.name}
                       </span>
                     )}
                   </div>
@@ -241,10 +241,8 @@ function MemberResults({
               {member.surname.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-[13px] font-medium text-ink leading-snug truncate">
-                {member.name}{" "}
-                {member.prefix ? `${member.prefix} ` : ""}
-                {member.surname}
+              <h3 className="text-[13px] font-medium text-ink leading-snug truncate" title={member.name}>
+                {member.name}
               </h3>
               <div className="flex items-center gap-2 mt-0.5">
                 <PartyBadge
@@ -280,8 +278,21 @@ export default async function ZoekenPage({ searchParams }: Props) {
           Doorzoek moties, verkiezingsbeloften en Kamerleden.
         </p>
         <SearchForm initialQuery="" />
-        <div className="card px-5 py-10 text-center text-sm text-text-tertiary">
-          Typ een zoekterm om te beginnen.
+        <div className="card px-5 py-10 text-center">
+          <p className="text-sm text-text-tertiary mb-4">
+            Typ een zoekterm om te beginnen.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {["defensie", "klimaat", "VVD", "Wilders", "zorg", "wonen"].map((term) => (
+              <a
+                key={term}
+                href={`/zoeken?q=${encodeURIComponent(term)}`}
+                className="rounded-lg border border-border px-3 py-1.5 text-[13px] text-text-secondary hover:bg-surface-sub hover:text-ink transition-colors"
+              >
+                {term}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     );

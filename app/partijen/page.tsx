@@ -6,7 +6,7 @@ import { getPartyColor } from "../../lib/utils";
 import { TK_SEATS } from "../../lib/seats";
 import PartyAvatar from "../../components/PartyAvatar";
 import PartySortControl from "../../components/PartySortControl";
-import { isCoalitionParty } from "../../lib/coalitions";
+import { isCoalitionParty, getCoalitionsForParty } from "../../lib/coalitions";
 
 export const revalidate = 3600; // ISR: re-generate at most every hour
 
@@ -98,7 +98,7 @@ export default async function PartijenPage({
               return (
                 <div
                   key={p.id}
-                  title={`${p.abbreviation}: ${seats} zetels`}
+                  title={`${p.abbreviation}: ${seats} ${seats === 1 ? "zetel" : "zetels"}`}
                   className="cursor-pointer transition-opacity hover:opacity-100"
                   style={{
                     width: `${(seats / 150) * 100}%`,
@@ -150,11 +150,17 @@ export default async function PartijenPage({
                   <div>
                     <div className="flex items-center gap-1.5">
                       <span className="text-[15px] font-semibold text-ink">{p.abbreviation}</span>
-                      {isCoalitionParty(p.abbreviation) && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded-full border border-border text-text-tertiary">
-                          coalitie
-                        </span>
-                      )}
+                      {isCoalitionParty(p.abbreviation) && (() => {
+                        const coalitions = getCoalitionsForParty(p.abbreviation);
+                        // Only show tag for current governing coalition (Schoof)
+                        const current = coalitions.find(c => c.year === 2024);
+                        if (!current) return null;
+                        return (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-full border border-border text-text-tertiary">
+                            coalitie
+                          </span>
+                        );
+                      })()}
                     </div>
                     <div className="text-[11px] text-text-tertiary truncate max-w-[180px]">
                       {p.name}
@@ -163,7 +169,7 @@ export default async function PartijenPage({
                 </div>
                 <div className="text-right">
                   <span className="text-2xl font-serif text-ink">{seats}</span>
-                  <span className="text-[11px] text-text-tertiary ml-0.5">zetels</span>
+                  <span className="text-[11px] text-text-tertiary ml-0.5">{seats === 1 ? "zetel" : "zetels"}</span>
                 </div>
               </div>
 
@@ -171,7 +177,9 @@ export default async function PartijenPage({
               {!has23 && !has25 ? (
                 <div className="flex items-center gap-1.5 mt-3">
                   <span className="w-1.5 h-1.5 rounded-full bg-text-tertiary/40" />
-                  <span className="text-[11px] text-text-tertiary">Geen analyse</span>
+                  <span className="text-[11px] text-text-tertiary">
+                    {(sc23 || sc25) ? "Onvoldoende data" : "Geen analyse"}
+                  </span>
                 </div>
               ) : (
                 <div className="mt-3 pt-3 border-t border-border-subtle">

@@ -74,7 +74,8 @@ export function voteBarPercents(
 // ─── Display name ───────────────────────────────────────────
 
 export function mpDisplayName(mp: { name: string; surname: string; prefix?: string | null }): string {
-  return mp.prefix ? `${mp.name} ${mp.prefix} ${mp.surname}` : `${mp.name} ${mp.surname}`;
+  // `name` already contains the full display name from the TK API
+  return mp.name;
 }
 
 // ─── clsx (tiny) ────────────────────────────────────────────

@@ -7,18 +7,20 @@ interface Props {
   currentStatus?: string;
   currentQ?: string;
   currentSort?: string;
+  currentHasVotes?: boolean;
 }
 
-export default function MotiesFilters({ currentStatus, currentQ, currentSort }: Props) {
+export default function MotiesFilters({ currentStatus, currentQ, currentSort, currentHasVotes }: Props) {
   const router = useRouter();
   const [q, setQ] = useState(currentQ ?? "");
   const [isPending, startTransition] = useTransition();
 
-  function navigate(params: { status?: string; q?: string; sort?: string }) {
+  function navigate(params: { status?: string; q?: string; sort?: string; hasVotes?: boolean }) {
     const sp = new URLSearchParams();
     if (params.status) sp.set("status", params.status);
     if (params.q) sp.set("q", params.q);
     if (params.sort) sp.set("sort", params.sort);
+    if (params.hasVotes === false) sp.set("hasVotes", "false");
     startTransition(() => {
       router.push(`/moties${sp.toString() ? `?${sp.toString()}` : ""}` as any);
     });
@@ -26,7 +28,7 @@ export default function MotiesFilters({ currentStatus, currentQ, currentSort }: 
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    navigate({ status: currentStatus, q: q || undefined, sort: currentSort });
+    navigate({ status: currentStatus, q: q || undefined, sort: currentSort, hasVotes: currentHasVotes });
   }
 
   return (
@@ -42,7 +44,7 @@ export default function MotiesFilters({ currentStatus, currentQ, currentSort }: 
           return (
             <button
               key={f.label}
-              onClick={() => navigate({ status: f.value, q: currentQ, sort: currentSort })}
+              onClick={() => navigate({ status: f.value, q: currentQ, sort: currentSort, hasVotes: currentHasVotes })}
               className={`rounded-lg px-3.5 py-1.5 text-[13px] font-medium border transition-colors ${
                 active
                   ? "border-moss bg-accent-subtle text-moss"
@@ -72,6 +74,27 @@ export default function MotiesFilters({ currentStatus, currentQ, currentSort }: 
         </button>
       </form>
 
+      {/* Voted toggle */}
+      <div className="flex gap-1.5">
+        <button
+          onClick={() =>
+            navigate({
+              status: currentStatus,
+              q: currentQ,
+              sort: currentSort,
+              hasVotes: currentHasVotes ? false : undefined,
+            })
+          }
+          className={`rounded-lg px-3 py-1.5 text-[13px] font-medium border transition-colors ${
+            currentHasVotes
+              ? "border-moss bg-accent-subtle text-moss"
+              : "border-border text-text-secondary hover:bg-surface-sub"
+          }`}
+        >
+          Met stemuitslag
+        </button>
+      </div>
+
       {/* Sort toggle */}
       <div className="flex gap-1.5">
         {[
@@ -87,6 +110,7 @@ export default function MotiesFilters({ currentStatus, currentQ, currentSort }: 
                   status: currentStatus,
                   q: currentQ,
                   sort: s.value,
+                  hasVotes: currentHasVotes,
                 })
               }
               className={`rounded-lg px-3 py-1.5 text-[13px] font-medium border transition-colors ${

@@ -19,8 +19,8 @@ function cellColor(pct: number, isDiagonal: boolean): string {
 export default function ConsensusMatrix({ parties, matrix }: Props) {
   const [hovered, setHovered] = useState<{ row: string; col: string } | null>(null);
 
-  // Show max 12 parties for readability
-  const shown = parties.slice(0, 12);
+  // Show all parties
+  const shown = parties;
 
   return (
     <div className="relative">
@@ -98,6 +98,23 @@ export default function ConsensusMatrix({ parties, matrix }: Props) {
       <p className="text-[11px] text-text-tertiary mt-2 text-center sm:hidden">
         ← Scroll voor alle partijen →
       </p>
+
+      {/* Legend */}
+      <div className="flex items-center gap-3 mt-4 justify-center flex-wrap">
+        <span className="text-[10px] text-text-tertiary font-medium uppercase tracking-wider">Stemoverlap:</span>
+        {[
+          { label: "80%+", cls: "bg-moss/30" },
+          { label: "65-80%", cls: "bg-moss/18" },
+          { label: "50-65%", cls: "bg-moss/10" },
+          { label: "35-50%", cls: "bg-surface-sub/80" },
+          { label: "<35%", cls: "bg-ink/5" },
+        ].map((l) => (
+          <div key={l.label} className="flex items-center gap-1">
+            <span className={`w-3 h-3 rounded-[3px] ${l.cls}`} />
+            <span className="text-[10px] text-text-tertiary">{l.label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

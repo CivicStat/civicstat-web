@@ -293,7 +293,11 @@ export default function MethodologyPanel({ open, onClose }: Props) {
               <div key={section.id} className="rounded-lg border border-border overflow-hidden">
                 <button
                   onClick={() => toggleSection(section.id)}
-                  className="flex w-full items-center justify-between px-4 py-3 text-left bg-surface hover:bg-surface-sub/50 transition-colors"
+                  className={`flex w-full items-center justify-between px-4 py-3 text-left transition-colors ${
+                    isOpen
+                      ? "bg-surface-sub/40 dark:bg-surface-sub/60"
+                      : "bg-surface hover:bg-surface-sub/50"
+                  }`}
                 >
                   <span className="text-[13px] font-semibold text-ink">{section.title}</span>
                   <svg

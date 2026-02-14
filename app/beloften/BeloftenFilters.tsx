@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { TK_SEATS } from "../../lib/seats";
 
 const THEMES = [
   { value: "", label: "Alle thema\u2019s" },
@@ -18,13 +19,20 @@ const THEMES = [
   { value: "ZORG", label: "Zorg" },
 ];
 
+const SORT_OPTIONS = [
+  { value: "", label: "Standaard" },
+  { value: "partij", label: "Partij" },
+  { value: "thema", label: "Thema" },
+];
+
 interface Props {
   currentParty?: string;
   currentTheme?: string;
+  currentSort?: string;
   parties: { abbreviation: string; id: string }[];
 }
 
-export default function BeloftenFilters({ currentParty, currentTheme, parties }: Props) {
+export default function BeloftenFilters({ currentParty, currentTheme, currentSort, parties }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -39,6 +47,10 @@ export default function BeloftenFilters({ currentParty, currentTheme, parties }:
     router.push(`/beloften?${sp.toString()}`);
   }
 
+  // Split parties into active (with seats) and other
+  const activeParties = parties.filter((p) => TK_SEATS[p.abbreviation]);
+  const otherParties = parties.filter((p) => !TK_SEATS[p.abbreviation]);
+
   return (
     <div className="flex flex-wrap items-center gap-2 mb-5">
       {/* Party filter */}
@@ -48,11 +60,24 @@ export default function BeloftenFilters({ currentParty, currentTheme, parties }:
         className="rounded-lg border border-border bg-surface px-3 py-1.5 text-[13px] text-ink focus:outline-none focus:ring-2 focus:ring-moss"
       >
         <option value="">Alle partijen</option>
-        {parties.map((p) => (
-          <option key={p.id} value={p.abbreviation}>
-            {p.abbreviation}
-          </option>
-        ))}
+        {activeParties.length > 0 && (
+          <optgroup label="Huidige fracties">
+            {activeParties.map((p) => (
+              <option key={p.id} value={p.abbreviation}>
+                {p.abbreviation}
+              </option>
+            ))}
+          </optgroup>
+        )}
+        {otherParties.length > 0 && (
+          <optgroup label="Overige">
+            {otherParties.map((p) => (
+              <option key={p.id} value={p.abbreviation}>
+                {p.abbreviation}
+              </option>
+            ))}
+          </optgroup>
+        )}
       </select>
 
       {/* Theme filter */}
@@ -64,6 +89,19 @@ export default function BeloftenFilters({ currentParty, currentTheme, parties }:
         {THEMES.map((t) => (
           <option key={t.value} value={t.value}>
             {t.label}
+          </option>
+        ))}
+      </select>
+
+      {/* Sort */}
+      <select
+        value={currentSort || ""}
+        onChange={(e) => navigate("sort", e.target.value)}
+        className="rounded-lg border border-border bg-surface px-3 py-1.5 text-[13px] text-ink focus:outline-none focus:ring-2 focus:ring-moss"
+      >
+        {SORT_OPTIONS.map((s) => (
+          <option key={s.value} value={s.value}>
+            {s.label}
           </option>
         ))}
       </select>

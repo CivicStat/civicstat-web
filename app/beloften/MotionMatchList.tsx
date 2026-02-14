@@ -77,7 +77,9 @@ export default function MotionMatchList({ matches, adopted, rejected, noVote }: 
       {/* Confidence indicator */}
       {matches.length > 0 && (
         <div className="flex items-center gap-2 mb-2 text-[11px]">
-          <span className="text-text-tertiary">Match-kwaliteit:</span>
+          <span className="text-text-tertiary" title="Gebaseerd op woordovereenkomst, niet op inhoudelijke analyse">
+            Woordovereenkomst:
+          </span>
           <span className={`font-semibold ${
             avgConfidence >= 0.6 ? "text-moss" : avgConfidence >= 0.3 ? "text-text-secondary" : "text-text-tertiary"
           }`}>
@@ -91,6 +93,11 @@ export default function MotionMatchList({ matches, adopted, rejected, noVote }: 
               style={{ width: `${confidencePct}%` }}
             />
           </div>
+          {avgConfidence < 0.6 && (
+            <span className="text-text-tertiary/70 italic" title="Lage woordovereenkomst — handmatige controle aanbevolen">
+              ⚠
+            </span>
+          )}
         </div>
       )}
 

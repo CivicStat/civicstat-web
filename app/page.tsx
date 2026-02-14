@@ -13,12 +13,16 @@ export default async function HomePage() {
   let recentMotions;
   let scorecards;
   const [motionsResult, scorecardsResult, statsResult] = await Promise.allSettled([
-    getMotions({ limit: 5 }),
+    getMotions({ limit: 20 }),
     getAllScorecards(),
     getPromiseStats(),
   ]);
   recentMotions =
-    motionsResult.status === "fulfilled" ? motionsResult.value.items : null;
+    motionsResult.status === "fulfilled"
+      ? motionsResult.value.items
+          .filter((m) => m.vote || (m.votes && m.votes.length > 0))
+          .slice(0, 5)
+      : null;
   scorecards =
     scorecardsResult.status === "fulfilled" ? scorecardsResult.value : null;
   const promiseStats = statsResult.status === "fulfilled" ? statsResult.value : null;
@@ -27,18 +31,15 @@ export default async function HomePage() {
     <div>
       {/* Hero */}
       <div className="relative overflow-hidden">
+        {/* Gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-moss/[0.04] via-mist to-surface-sub dark:from-moss/[0.06] dark:via-[#0E1623] dark:to-[#0E1623]" />
+        {/* Subtle geometric pattern */}
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.04]"
           style={{
-            backgroundImage:
-              "url(https://images.unsplash.com/photo-1621944190310-e3cca1564bd7?w=1600&q=80&auto=format&fit=crop)",
-            filter: "saturate(0.6) contrast(1.05)",
-            backgroundPosition: "center 35%",
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23374151' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-mist/30 via-mist/75 to-mist" />
-        {/* Extra dark overlay for dark mode hero text contrast */}
-        <div className="absolute inset-0 hidden dark:block bg-[#0E1623]/70" />
         <div className="relative z-10 mx-auto max-w-[1200px] px-6 pt-[72px] pb-16">
           <p className="text-[13px] font-medium text-moss tracking-wide mb-4">
             Onafhankelijke transparantie over politiek handelen
@@ -76,12 +77,12 @@ export default async function HomePage() {
           <div className="mx-auto max-w-[1200px] px-6 py-5">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-serif text-ink">{promiseStats.totalPromises}</div>
+                <div className="text-2xl font-serif text-ink">{promiseStats.totalPromises.toLocaleString("nl-NL")}</div>
                 <div className="text-[11px] text-text-tertiary mt-0.5">Beloften geanalyseerd</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-serif text-ink">{promiseStats.totalMatches}</div>
-                <div className="text-[11px] text-text-tertiary mt-0.5">Motie-koppelingen</div>
+                <div className="text-2xl font-serif text-ink">{promiseStats.totalMatches.toLocaleString("nl-NL")}</div>
+                <div className="text-[11px] text-text-tertiary mt-0.5">Belofte-motie koppelingen</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-serif text-ink">{promiseStats.byParty.length}</div>
@@ -165,10 +166,9 @@ export default async function HomePage() {
                 Alle partijen →
               </Link>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {scorecards
                 .sort((a, b) => b.mandateConsistencyScore - a.mandateConsistencyScore)
-                .slice(0, 8)
                 .map((sc) => {
                   const color = getPartyColor(sc.abbreviation);
                   return (

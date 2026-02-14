@@ -494,7 +494,7 @@ export default async function BelofteDetailPage({ params }: Props) {
 
         {stats.total === 0 ? (
           <div className="card px-5 py-8 text-center text-sm text-text-tertiary">
-            Nog geen gerelateerde moties gevonden voor deze belofte.
+            Nog geen gerelateerde moties gevonden voor deze belofte. Wordt automatisch bijgewerkt wanneer relevante moties worden ingediend en gestemd.
           </div>
         ) : (
           <div className="card overflow-hidden">

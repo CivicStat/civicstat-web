@@ -10,6 +10,7 @@ interface Props {
     partij?: string;
     thema?: string;
     page?: string;
+    sort?: string;
   };
 }
 
@@ -112,8 +113,22 @@ export default async function BeloftenPage({ searchParams }: Props) {
     );
   }
 
-  const { items, total } = data;
+  const { items: rawItems, total } = data;
   const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  // Client-side sort
+  const items = searchParams.sort
+    ? [...rawItems].sort((a, b) => {
+        switch (searchParams.sort) {
+          case "partij":
+            return a.program.party.abbreviation.localeCompare(b.program.party.abbreviation);
+          case "thema":
+            return a.theme.localeCompare(b.theme);
+          default:
+            return 0;
+        }
+      })
+    : rawItems;
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
@@ -130,6 +145,7 @@ export default async function BeloftenPage({ searchParams }: Props) {
       <BeloftenFilters
         currentParty={searchParams.partij}
         currentTheme={searchParams.thema}
+        currentSort={searchParams.sort}
         parties={parties}
       />
 
@@ -211,7 +227,7 @@ export default async function BeloftenPage({ searchParams }: Props) {
               ) : (
                 <div className="border-t border-border-subtle px-5 py-3 bg-surface-sub/30">
                   <span className="text-[11px] text-text-tertiary">
-                    Nog geen gerelateerde moties gevonden.
+                    Nog geen gerelateerde moties gevonden. Wordt automatisch bijgewerkt wanneer relevante moties worden ingediend en gestemd.
                   </span>
                 </div>
               )}

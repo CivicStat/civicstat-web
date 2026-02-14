@@ -591,9 +591,28 @@ export default async function MotieDetailPage({ params }: Props) {
           Volledige tekst
         </h2>
         <div className="card p-5">
-          <p className="text-sm leading-[1.8] text-text-secondary max-w-[68ch]">
-            {m.text}
-          </p>
+          {m.text && m.text.length > 100 && m.text !== m.title ? (
+            <p className="text-sm leading-[1.8] text-text-secondary max-w-[68ch]">
+              {m.text}
+            </p>
+          ) : (
+            <div className="text-sm text-text-tertiary">
+              <p className="mb-2">
+                {m.text || "Volledige tekst niet beschikbaar via de Tweede Kamer API."}
+              </p>
+              {m.sourceUrl && (
+                <a
+                  href={m.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-moss hover:underline inline-flex items-center gap-1"
+                >
+                  Bekijk op tweedekamer.nl
+                  <svg width={12} height={12} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

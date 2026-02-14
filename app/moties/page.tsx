@@ -13,6 +13,7 @@ interface Props {
     q?: string;
     page?: string;
     sort?: string;
+    hasVotes?: string;
   };
 }
 
@@ -28,11 +29,15 @@ export default async function MotiesPage({ searchParams }: Props) {
   const page = Math.max(1, Number(searchParams.page ?? 1));
   const offset = (page - 1) * PAGE_SIZE;
 
+  // Default to showing only motions with votes, unless explicitly disabled or when searching/filtering by status
+  const hasVotes = searchParams.hasVotes === "false" ? false : !searchParams.q && !searchParams.status;
+
   let data;
   try {
     data = await getMotions({
       status: searchParams.status,
       q: searchParams.q,
+      hasVotes: hasVotes || undefined,
       limit: PAGE_SIZE,
       offset,
     });
@@ -90,6 +95,7 @@ export default async function MotiesPage({ searchParams }: Props) {
         currentStatus={searchParams.status}
         currentQ={searchParams.q}
         currentSort={searchParams.sort}
+        currentHasVotes={hasVotes}
       />
 
       {/* Table */}
