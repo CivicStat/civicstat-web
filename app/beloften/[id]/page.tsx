@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { getPromise, getPromises } from "../../../lib/api";
-import { formatDate } from "../../../lib/utils";
+import { getPromise, getPromises, getPartyScorecard } from "../../../lib/api";
+import { formatDate, getPartyColor } from "../../../lib/utils";
 import PartyBadge from "../../../components/PartyBadge";
+import PartyAvatar from "../../../components/PartyAvatar";
 import VoteBar from "../../../components/VoteBar";
 import ExpandablePassage from "./ExpandablePassage";
 import MethodologyLink from "../../../components/MethodologyLink";
 import Term from "../../../components/Term";
-import type { PromiseMotionMatch, PromiseListItem } from "../../../lib/types";
+import { isCoalitionParty } from "../../../lib/coalitions";
+import type { PromiseMotionMatch, PromiseListItem, PartyScorecard } from "../../../lib/types";
 
 interface Props {
   params: { id: string };
@@ -197,6 +199,14 @@ export default async function BelofteDetailPage({ params }: Props) {
     // Non-critical — ignore
   }
 
+  // Fetch party scorecard for context card
+  let partyScorecard: PartyScorecard | null = null;
+  try {
+    partyScorecard = await getPartyScorecard(p.program.party.id);
+  } catch {
+    // Non-critical — ignore
+  }
+
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-6 pb-24">
       {/* Back */}
@@ -238,6 +248,11 @@ export default async function BelofteDetailPage({ params }: Props) {
           {p.expectedVoteDirection && (
             <span className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
               {directionLabel(p.expectedVoteDirection)}
+            </span>
+          )}
+          {isCoalitionParty(p.program.party.abbreviation) && (
+            <span className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[10px] font-medium text-text-tertiary">
+              Coalitie
             </span>
           )}
           <span className="text-[13px] text-text-tertiary ml-auto font-mono">
@@ -293,6 +308,27 @@ export default async function BelofteDetailPage({ params }: Props) {
                 : `Gebaseerd op ${stats.adopted + stats.rejected} moties`}
             </span>
           </div>
+        </div>
+      )}
+
+      {/* ─── PARTY SCORECARD CONTEXT ─────────────────────────────── */}
+      {partyScorecard && partyScorecard.scoredPromises > 0 && (
+        <div className="card px-5 py-4 mb-8 -mt-5 flex items-center gap-4">
+          <PartyAvatar abbreviation={p.program.party.abbreviation} color={getPartyColor(p.program.party.abbreviation, p.program.party.colorNeutral)} size="sm" />
+          <div className="flex-1 min-w-0">
+            <div className="text-[12px] text-text-tertiary">
+              Partijscore {p.program.party.abbreviation}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-serif text-ink">{partyScorecard.mandateConsistencyScore}</span>
+              <span className="text-[11px] text-text-tertiary">van 100</span>
+              <span className="text-[11px] text-text-tertiary">&middot;</span>
+              <span className="text-[11px] text-text-tertiary">{partyScorecard.scoredPromises} beloften geanalyseerd</span>
+            </div>
+          </div>
+          <Link href={`/partijen/${p.program.party.id}`} className="text-[12px] text-moss hover:underline shrink-0">
+            Partijpagina &rarr;
+          </Link>
         </div>
       )}
 
@@ -564,6 +600,14 @@ export default async function BelofteDetailPage({ params }: Props) {
                     {cp.motionMatches.length > 0 && (
                       <span>{cp.motionMatches.length} moties</span>
                     )}
+                    {(() => {
+                      const cpCon = computeConsistency(cp.motionMatches, cp.expectedVoteDirection);
+                      return cp.motionMatches.length > 0 ? (
+                        <span className={`text-[10px] rounded-full px-1.5 py-0 font-medium ${cpCon.className}`}>
+                          {cpCon.label}
+                        </span>
+                      ) : null;
+                    })()}
                   </div>
                 </div>
               </Link>

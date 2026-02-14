@@ -1,24 +1,27 @@
 import Link from "next/link";
-import { getMotions, getAllScorecards } from "../lib/api";
+import { getMotions, getAllScorecards, getPromiseStats } from "../lib/api";
 import { formatDate, getPartyColor } from "../lib/utils";
 import PartyBadge from "../components/PartyBadge";
 import StatusBadge from "../components/StatusBadge";
 import VoteBar from "../components/VoteBar";
 import SearchBar from "../components/SearchBar";
+import PartyAvatar from "../components/PartyAvatar";
 
 export const revalidate = 3600; // ISR: re-generate at most every hour
 
 export default async function HomePage() {
   let recentMotions;
   let scorecards;
-  const [motionsResult, scorecardsResult] = await Promise.allSettled([
+  const [motionsResult, scorecardsResult, statsResult] = await Promise.allSettled([
     getMotions({ limit: 5 }),
     getAllScorecards(),
+    getPromiseStats(),
   ]);
   recentMotions =
     motionsResult.status === "fulfilled" ? motionsResult.value.items : null;
   scorecards =
     scorecardsResult.status === "fulfilled" ? scorecardsResult.value : null;
+  const promiseStats = statsResult.status === "fulfilled" ? statsResult.value : null;
 
   return (
     <div>
@@ -66,6 +69,32 @@ export default async function HomePage() {
           <SearchBar />
         </div>
       </div>
+
+      {/* Platform stats banner */}
+      {promiseStats && (
+        <div className="border-b border-border-subtle">
+          <div className="mx-auto max-w-[1200px] px-6 py-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-serif text-ink">{promiseStats.totalPromises}</div>
+                <div className="text-[11px] text-text-tertiary mt-0.5">Beloften geanalyseerd</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-serif text-ink">{promiseStats.totalMatches}</div>
+                <div className="text-[11px] text-text-tertiary mt-0.5">Motie-koppelingen</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-serif text-ink">{promiseStats.byParty.length}</div>
+                <div className="text-[11px] text-text-tertiary mt-0.5">Partijen</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-serif text-ink">{promiseStats.byTheme.length}</div>
+                <div className="text-[11px] text-text-tertiary mt-0.5">Thema&apos;s</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto max-w-[1200px] px-6">
         {/* Why section */}
@@ -136,35 +165,33 @@ export default async function HomePage() {
                 Alle partijen →
               </Link>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {scorecards
-                .sort(
-                  (a, b) =>
-                    b.mandateConsistencyScore - a.mandateConsistencyScore
-                )
-                .slice(0, 6)
+                .sort((a, b) => b.mandateConsistencyScore - a.mandateConsistencyScore)
+                .slice(0, 8)
                 .map((sc) => {
                   const color = getPartyColor(sc.abbreviation);
                   return (
                     <Link
                       key={sc.partyId}
                       href={`/partijen/${sc.partyId}`}
-                      className="card p-4 hover:border-moss/40 transition-colors text-center"
+                      className="card p-4 hover:border-moss/40 transition-colors"
                     >
-                      <div
-                        className="text-[28px] font-serif leading-none"
-                        style={{ color }}
-                      >
-                        {sc.mandateConsistencyScore}
+                      <div className="flex items-center gap-3 mb-3">
+                        <PartyAvatar abbreviation={sc.abbreviation} color={color} size="sm" />
+                        <div className="min-w-0">
+                          <div className="text-[13px] font-semibold text-ink">{sc.abbreviation}</div>
+                          <div className="text-[11px] text-text-tertiary">{sc.scoredPromises} beloften</div>
+                        </div>
                       </div>
-                      <div className="text-[10px] text-text-tertiary mt-0.5">
-                        van 100
+                      <div className="flex items-end gap-2">
+                        <div className="text-[28px] font-serif text-ink leading-none">{sc.mandateConsistencyScore}</div>
+                        <div className="text-[10px] text-text-tertiary mb-1">van 100</div>
                       </div>
-                      <div className="text-[13px] font-semibold text-ink mt-2">
-                        {sc.abbreviation}
-                      </div>
-                      <div className="text-[11px] text-text-tertiary">
-                        {sc.scoredPromises} beloften
+                      <div className="flex h-1.5 rounded-full overflow-hidden gap-px mt-2">
+                        {sc.consistentCount > 0 && <div className="bg-ink/25" style={{ flex: sc.consistentCount }} />}
+                        {sc.mixedCount > 0 && <div className="bg-ink/10" style={{ flex: sc.mixedCount }} />}
+                        {sc.inconsistentCount > 0 && <div className="bg-ink/4" style={{ flex: sc.inconsistentCount }} />}
                       </div>
                     </Link>
                   );

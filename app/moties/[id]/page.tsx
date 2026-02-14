@@ -166,8 +166,8 @@ export default async function MotieDetailPage({ params }: Props) {
                 style={{
                   background: firstSponsorParty
                     ? `linear-gradient(135deg, ${getPartyColor(firstSponsorParty.abbreviation, firstSponsorParty.colorNeutral)}22, ${getPartyColor(firstSponsorParty.abbreviation, firstSponsorParty.colorNeutral)}44)`
-                    : "#EEF1F5",
-                  border: `2px solid ${firstSponsorParty ? getPartyColor(firstSponsorParty.abbreviation, firstSponsorParty.colorNeutral) + "33" : "#DDE1E8"}`,
+                    : "var(--color-surface-sub)",
+                  border: `2px solid ${firstSponsorParty ? getPartyColor(firstSponsorParty.abbreviation, firstSponsorParty.colorNeutral) + "33" : "var(--color-border)"}`,
                 }}
               >
                 {getInitials(firstSponsor.surname)}
@@ -222,7 +222,7 @@ export default async function MotieDetailPage({ params }: Props) {
                   style={{
                     background: s.mp.party
                       ? `linear-gradient(135deg, ${getPartyColor(s.mp.party.abbreviation, s.mp.party.colorNeutral)}18, ${getPartyColor(s.mp.party.abbreviation, s.mp.party.colorNeutral)}38)`
-                      : "#EEF1F5",
+                      : "var(--color-surface-sub)",
                   }}
                 >
                   {getInitials(s.mp.surname)}
