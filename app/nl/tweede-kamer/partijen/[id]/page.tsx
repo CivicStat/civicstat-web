@@ -1,19 +1,20 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { getParty, getPartyScorecard, getScorecardYears, getKoersvastheid, getRegeerakkoordScorecard, getCoalitieverwatering } from "../../../lib/api";
-import type { PartyScorecard, KoersvastheidResponse, PromiseScore, CoalitieverwateringResponse } from "../../../lib/types";
-import { getPartyColor } from "../../../lib/utils";
-import VoteBar from "../../../components/VoteBar";
-import MethodologyLink from "../../../components/MethodologyLink";
-import PeriodSelector from "../../../components/PeriodSelector";
-import Term from "../../../components/Term";
-import PartyAvatar from "../../../components/PartyAvatar";
-import MemberPhoto from "../../../components/MemberPhoto";
-import { getCoalitionsForParty, COALITIONS } from "../../../lib/coalitions";
-import type { Coalition } from "../../../lib/coalitions";
-import PartyBadge from "../../../components/PartyBadge";
-import ConfidenceBadge from "../../../components/ConfidenceBadge";
-import { getScoreConfidence } from "../../../lib/scoring";
+import { getParty, getPartyScorecard, getScorecardYears, getKoersvastheid, getRegeerakkoordScorecard, getCoalitieverwatering } from "../../../../../lib/api";
+import type { PartyScorecard, KoersvastheidResponse, PromiseScore, CoalitieverwateringResponse } from "../../../../../lib/types";
+import { getPartyColor } from "../../../../../lib/utils";
+import VoteBar from "../../../../../components/VoteBar";
+import { routes } from "../../../../../lib/routes";
+import MethodologyLink from "../../../../../components/MethodologyLink";
+import PeriodSelector from "../../../../../components/PeriodSelector";
+import Term from "../../../../../components/Term";
+import PartyAvatar from "../../../../../components/PartyAvatar";
+import MemberPhoto from "../../../../../components/MemberPhoto";
+import { getCoalitionsForParty, COALITIONS } from "../../../../../lib/coalitions";
+import type { Coalition } from "../../../../../lib/coalitions";
+import PartyBadge from "../../../../../components/PartyBadge";
+import ConfidenceBadge from "../../../../../components/ConfidenceBadge";
+import { getScoreConfidence } from "../../../../../lib/scoring";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   try {
@@ -37,7 +38,7 @@ export default async function PartyDetailPage({
   } catch {
     return (
       <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
-        <Link href="/partijen" className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink mb-5">
+        <Link href={routes.tk.partijen} className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink mb-5">
           <svg width={15} height={15} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
           Terug naar partijen
         </Link>
@@ -97,7 +98,7 @@ export default async function PartyDetailPage({
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
       {/* Back link */}
-      <Link href="/partijen" className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink mb-6">
+      <Link href={routes.tk.partijen} className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink mb-6">
         <svg width={15} height={15} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
         Terug naar partijen
       </Link>
@@ -359,7 +360,7 @@ export default async function PartyDetailPage({
                   {scorecard.promises.map((ps) => (
                     <Link
                       key={ps.promiseId}
-                      href={`/beloften/${encodeURIComponent(ps.promiseCode)}`}
+                      href={routes.tk.belofte(ps.promiseCode)}
                       className="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface-sub/60 transition-colors"
                     >
                       <span className="text-sm shrink-0">{statusIcon(ps.status)}</span>
@@ -653,7 +654,7 @@ export default async function PartyDetailPage({
             {activeMps.sort((a: any, b: any) => a.surname.localeCompare(b.surname)).map((mp: any) => (
               <Link
                 key={mp.id}
-                href={`/kamerleden/${mp.id}`}
+                href={routes.tk.kamerlid(mp.id)}
                 className="flex flex-col items-center gap-1.5 w-[68px] group"
               >
                 <MemberPhoto tkId={mp.tkId} name={mp.name} size="md" color={color} />

@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { getParties, getAllScorecards } from "../../lib/api";
-import type { PartyScorecard } from "../../lib/types";
-import { getPartyColor } from "../../lib/utils";
-import PartyAvatar from "../../components/PartyAvatar";
-import PartySortControl from "../../components/PartySortControl";
-import { getCoalitionsForParty } from "../../lib/coalitions";
-import { getScoreConfidence } from "../../lib/scoring";
+import { getParties, getAllScorecards } from "../../../../lib/api";
+import type { PartyScorecard } from "../../../../lib/types";
+import { getPartyColor } from "../../../../lib/utils";
+import PartyAvatar from "../../../../components/PartyAvatar";
+import { routes } from "../../../../lib/routes";
+import PartySortControl from "../../../../components/PartySortControl";
+import { getCoalitionsForParty } from "../../../../lib/coalitions";
+import { getScoreConfidence } from "../../../../lib/scoring";
 
 export const revalidate = 3600; // ISR: re-generate at most every hour
 
@@ -171,7 +172,7 @@ export default async function PartijenPage({
           return (
             <Link
               key={p.id}
-              href={`/partijen/${encodeURIComponent(p.abbreviation)}`}
+              href={routes.tk.partij(p.abbreviation)}
               className={`block hover:bg-surface-sub/40 transition-colors ${
                 idx < sortedParties.length - 1 ? "border-b border-border-subtle" : ""
               }`}

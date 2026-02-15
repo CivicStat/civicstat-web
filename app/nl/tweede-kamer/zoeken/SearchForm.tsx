@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { routes } from "../../../../lib/routes";
 import { useState, useEffect, useRef } from "react";
 
 export default function SearchForm({ initialQuery }: { initialQuery: string }) {
@@ -19,9 +20,9 @@ export default function SearchForm({ initialQuery }: { initialQuery: string }) {
 
     debounceRef.current = setTimeout(() => {
       if (trimmed) {
-        router.push(`/zoeken?q=${encodeURIComponent(trimmed)}`);
+        router.push(`${routes.tk.zoeken}?q=${encodeURIComponent(trimmed)}`);
       } else {
-        router.push("/zoeken");
+        router.push(routes.tk.zoeken);
       }
     }, 300);
 
@@ -36,7 +37,7 @@ export default function SearchForm({ initialQuery }: { initialQuery: string }) {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     const trimmed = q.trim();
     if (trimmed) {
-      router.push(`/zoeken?q=${encodeURIComponent(trimmed)}`);
+      router.push(`${routes.tk.zoeken}?q=${encodeURIComponent(trimmed)}`);
     }
   }
 

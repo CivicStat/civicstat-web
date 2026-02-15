@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { searchAll } from "../../lib/api";
-import type { MotionListItem, PromiseListItem, MemberListItem } from "../../lib/types";
-import PartyBadge from "../../components/PartyBadge";
+import { searchAll } from "../../../../lib/api";
+import { routes } from "../../../../lib/routes";
+import type { MotionListItem, PromiseListItem, MemberListItem } from "../../../../lib/types";
+import PartyBadge from "../../../../components/PartyBadge";
 import SearchForm from "./SearchForm";
 
 interface Props {
@@ -69,7 +70,7 @@ function MotionResults({
         </h2>
         {total > 10 && (
           <Link
-            href={`/moties?q=${encodeURIComponent(q)}`}
+            href={`${routes.tk.moties}?q=${encodeURIComponent(q)}`}
             className="text-[12px] font-medium text-moss hover:underline"
           >
             Bekijk alle {total} &rarr;
@@ -82,7 +83,7 @@ function MotionResults({
           return (
             <Link
               key={motion.id}
-              href={`/moties/${motion.id}`}
+              href={routes.tk.motie(motion.id)}
               className="card block px-4 py-3 hover:bg-surface-sub/40 transition-colors"
             >
               <div className="flex items-start gap-3">
@@ -149,7 +150,7 @@ function PromiseResults({
         </h2>
         {total > 10 && (
           <Link
-            href={`/beloften?q=${encodeURIComponent(q)}`}
+            href={`${routes.tk.beloften}?q=${encodeURIComponent(q)}`}
             className="text-[12px] font-medium text-moss hover:underline"
           >
             Bekijk alle {total} &rarr;
@@ -160,7 +161,7 @@ function PromiseResults({
         {items.map((promise) => (
           <Link
             key={promise.id}
-            href={`/beloften/${promise.id}`}
+            href={routes.tk.belofte(promise.id)}
             className="card block px-4 py-3 hover:bg-surface-sub/40 transition-colors"
           >
             <div className="flex items-start gap-3">
@@ -222,7 +223,7 @@ function MemberResults({
         </h2>
         {total > 10 && (
           <Link
-            href={`/kamerleden?q=${encodeURIComponent(q)}`}
+            href={`${routes.tk.kamerleden}?q=${encodeURIComponent(q)}`}
             className="text-[12px] font-medium text-moss hover:underline"
           >
             Bekijk alle {total} &rarr;
@@ -233,7 +234,7 @@ function MemberResults({
         {shown.map((member) => (
           <Link
             key={member.id}
-            href={`/kamerleden/${member.id}`}
+            href={routes.tk.kamerlid(member.id)}
             className="card flex items-center gap-3 px-4 py-3 hover:bg-surface-sub/40 transition-colors"
           >
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-sub text-[13px] font-semibold text-text-secondary">
@@ -286,7 +287,7 @@ export default async function ZoekenPage({ searchParams }: Props) {
             {["defensie", "klimaat", "VVD", "Wilders", "zorg", "wonen"].map((term) => (
               <a
                 key={term}
-                href={`/zoeken?q=${encodeURIComponent(term)}`}
+                href={`${routes.tk.zoeken}?q=${encodeURIComponent(term)}`}
                 className="rounded-lg border border-border px-3 py-1.5 text-[13px] text-text-secondary hover:bg-surface-sub hover:text-ink transition-colors"
               >
                 {term}

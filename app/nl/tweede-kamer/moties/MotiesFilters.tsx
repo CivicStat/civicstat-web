@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
+import { routes } from "../../../../lib/routes";
 
 interface Props {
   currentStatus?: string;
@@ -22,7 +23,7 @@ export default function MotiesFilters({ currentStatus, currentQ, currentSort, cu
     if (params.sort) sp.set("sort", params.sort);
     if (params.hasVotes === false) sp.set("hasVotes", "false");
     startTransition(() => {
-      router.push(`/moties${sp.toString() ? `?${sp.toString()}` : ""}` as any);
+      router.push(`${routes.tk.moties}${sp.toString() ? `?${sp.toString()}` : ""}` as any);
     });
   }
 

@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { getMotions } from "../../lib/api";
-import type { MotionListItem } from "../../lib/types";
-import { formatDate } from "../../lib/utils";
-import PartyBadge from "../../components/PartyBadge";
-import StatusBadge from "../../components/StatusBadge";
-import VoteBar from "../../components/VoteBar";
+import { getMotions } from "../../../../lib/api";
+import { routes } from "../../../../lib/routes";
+import type { MotionListItem } from "../../../../lib/types";
+import { formatDate } from "../../../../lib/utils";
+import PartyBadge from "../../../../components/PartyBadge";
+import StatusBadge from "../../../../components/StatusBadge";
+import VoteBar from "../../../../components/VoteBar";
 import MotiesFilters from "./MotiesFilters";
 
 interface Props {
@@ -122,7 +123,7 @@ export default async function MotiesPage({ searchParams }: Props) {
           return (
             <Link
               key={m.id}
-              href={`/moties/${m.id}`}
+              href={routes.tk.motie(m.id)}
               className={`block sm:grid sm:grid-cols-[1fr_100px_80px_100px] items-center gap-2 px-5 py-3.5 table-row-hover ${
                 i < sortedItems.length - 1 ? "border-b border-border-subtle" : ""
               }`}
@@ -263,7 +264,7 @@ function PaginationLink({
 
   return (
     <Link
-      href={`/moties?${sp.toString()}`}
+      href={`${routes.tk.moties}?${sp.toString()}`}
       className="rounded-lg border border-border px-3.5 py-1.5 text-[13px] font-medium text-text-secondary hover:bg-surface-sub transition-colors"
     >
       {label}

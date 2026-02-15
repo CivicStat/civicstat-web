@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { getPromise, getPromises, getPartyScorecard } from "../../../lib/api";
-import { formatDate, getPartyColor } from "../../../lib/utils";
-import PartyBadge from "../../../components/PartyBadge";
-import PartyAvatar from "../../../components/PartyAvatar";
-import VoteBar from "../../../components/VoteBar";
+import { getPromise, getPromises, getPartyScorecard } from "../../../../../lib/api";
+import { formatDate, getPartyColor } from "../../../../../lib/utils";
+import PartyBadge from "../../../../../components/PartyBadge";
+import PartyAvatar from "../../../../../components/PartyAvatar";
+import VoteBar from "../../../../../components/VoteBar";
 import ExpandablePassage from "./ExpandablePassage";
-import MethodologyLink from "../../../components/MethodologyLink";
-import Term from "../../../components/Term";
-import { isCoalitionParty } from "../../../lib/coalitions";
-import type { PromiseMotionMatch, PromiseListItem, PartyScorecard } from "../../../lib/types";
+import MethodologyLink from "../../../../../components/MethodologyLink";
+import Term from "../../../../../components/Term";
+import { isCoalitionParty } from "../../../../../lib/coalitions";
+import { routes } from "../../../../../lib/routes";
+import type { PromiseMotionMatch, PromiseListItem, PartyScorecard } from "../../../../../lib/types";
 
 interface Props {
   params: { id: string };
@@ -170,7 +171,7 @@ export default async function BelofteDetailPage({ params }: Props) {
     return (
       <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
         <Link
-          href="/beloften"
+          href={routes.tk.beloften}
           className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink transition-colors mb-6"
         >
           &larr; Alle beloften
@@ -211,7 +212,7 @@ export default async function BelofteDetailPage({ params }: Props) {
     <div className="mx-auto max-w-[1200px] px-5 py-6 pb-24">
       {/* Back */}
       <Link
-        href="/beloften"
+        href={routes.tk.beloften}
         className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink transition-colors mb-6"
       >
         <svg
@@ -326,7 +327,7 @@ export default async function BelofteDetailPage({ params }: Props) {
               <span className="text-[11px] text-text-tertiary">{partyScorecard.scoredPromises} beloften geanalyseerd</span>
             </div>
           </div>
-          <Link href={`/partijen/${p.program.party.id}`} className="text-[12px] text-moss hover:underline shrink-0">
+          <Link href={routes.tk.partij(p.program.party.id)} className="text-[12px] text-moss hover:underline shrink-0">
             Partijpagina &rarr;
           </Link>
         </div>
@@ -503,7 +504,7 @@ export default async function BelofteDetailPage({ params }: Props) {
               return (
                 <Link
                   key={match.id}
-                  href={`/moties/${match.motion.id}`}
+                  href={routes.tk.motie(match.motion.id)}
                   className={`flex items-center gap-3 px-5 py-3 transition-colors hover:bg-surface-sub group ${
                     i < p.motionMatches.length - 1
                       ? "border-b border-border-subtle"
@@ -579,7 +580,7 @@ export default async function BelofteDetailPage({ params }: Props) {
             {crossPartyPromises.slice(0, 8).map((cp, i) => (
               <Link
                 key={cp.id}
-                href={`/beloften/${cp.id}`}
+                href={routes.tk.belofte(cp.id)}
                 className={`flex items-center gap-3 px-5 py-3 transition-colors hover:bg-surface-sub group ${
                   i < Math.min(crossPartyPromises.length, 8) - 1
                     ? "border-b border-border-subtle"

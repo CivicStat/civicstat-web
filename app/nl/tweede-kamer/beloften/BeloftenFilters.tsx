@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { routes } from "../../../../lib/routes";
 
 const THEMES = [
   { value: "", label: "Alle thema\u2019s" },
@@ -43,7 +44,7 @@ export default function BeloftenFilters({ currentParty, currentTheme, currentSor
       sp.delete(key);
     }
     sp.delete("page"); // reset pagination on filter change
-    router.push(`/beloften?${sp.toString()}`);
+    router.push(`${routes.tk.beloften}?${sp.toString()}`);
   }
 
   // Split parties into active (with seats) and other

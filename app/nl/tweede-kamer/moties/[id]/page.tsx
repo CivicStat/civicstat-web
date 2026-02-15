@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { getMotion } from "../../../lib/api";
-import { formatDate, getInitials, getPartyColor } from "../../../lib/utils";
-import PartyBadge from "../../../components/PartyBadge";
-import StatusBadge from "../../../components/StatusBadge";
-import VoteBar from "../../../components/VoteBar";
-import MethodologyLink from "../../../components/MethodologyLink";
-import Term from "../../../components/Term";
-import type { VoteRecord, RawStemming, PartyPredictionItem } from "../../../lib/types";
+import { getMotion } from "../../../../../lib/api";
+import { formatDate, getInitials, getPartyColor } from "../../../../../lib/utils";
+import PartyBadge from "../../../../../components/PartyBadge";
+import { routes } from "../../../../../lib/routes";
+import StatusBadge from "../../../../../components/StatusBadge";
+import VoteBar from "../../../../../components/VoteBar";
+import MethodologyLink from "../../../../../components/MethodologyLink";
+import Term from "../../../../../components/Term";
+import type { VoteRecord, RawStemming, PartyPredictionItem } from "../../../../../lib/types";
 
 interface Props {
   params: { id: string };
@@ -29,7 +30,7 @@ export default async function MotieDetailPage({ params }: Props) {
     return (
       <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
         <Link
-          href="/moties"
+          href={routes.tk.moties}
           className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink transition-colors mb-6"
         >
           ← Terug naar moties
@@ -103,7 +104,7 @@ export default async function MotieDetailPage({ params }: Props) {
     <div className="mx-auto max-w-[1200px] px-5 py-6 pb-24">
       {/* Back */}
       <Link
-        href="/moties"
+        href={routes.tk.moties}
         className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink transition-colors mb-6"
       >
         <svg width={15} height={15} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -167,7 +168,7 @@ export default async function MotieDetailPage({ params }: Props) {
         {firstSponsor && (
           <div className="card p-[18px]">
             <div className="section-label">Indiener</div>
-            <Link href={`/kamerleden/${firstSponsor.id}`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+            <Link href={routes.tk.kamerlid(firstSponsor.id)} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
               <div
                 className="flex h-[38px] w-[38px] items-center justify-center rounded-full text-[13px] font-semibold text-ink"
                 style={{
@@ -221,7 +222,7 @@ export default async function MotieDetailPage({ params }: Props) {
             {m.sponsors.slice(1).map((s) => (
               <Link
                 key={s.mp.id}
-                href={`/kamerleden/${s.mp.id}`}
+                href={routes.tk.kamerlid(s.mp.id)}
                 className="inline-flex items-center gap-2 card px-3 py-2 hover:border-moss/40 transition-colors"
               >
                 <div
@@ -512,7 +513,7 @@ export default async function MotieDetailPage({ params }: Props) {
               .map((r, i) => (
                 <Link
                   key={r.id}
-                  href={`/kamerleden/${r.mp.id}`}
+                  href={routes.tk.kamerlid(r.mp.id)}
                   className={`grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_120px_100px] gap-2 px-5 py-2.5 items-center table-row-hover ${
                     i < vote.records.length - 1
                       ? "border-b border-border-subtle"
@@ -552,7 +553,7 @@ export default async function MotieDetailPage({ params }: Props) {
             {m.promiseMatches.map((pm) => (
               <Link
                 key={pm.id}
-                href={`/beloften/${pm.promise.id}`}
+                href={routes.tk.belofte(pm.promise.id)}
                 className="card px-5 py-3.5 flex items-center gap-3 hover:border-moss/40 transition-colors"
               >
                 <PartyBadge

@@ -1,4 +1,4 @@
-import { getMembers } from "../../lib/api";
+import { getMembers } from "../../../../lib/api";
 import KamerledenFilters from "./KamerledenFilters";
 
 export const revalidate = 3600; // ISR: re-generate at most every hour

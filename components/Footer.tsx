@@ -1,79 +1,98 @@
 import Link from "next/link";
+import { routes } from "../lib/routes";
 
 export default function Footer() {
   return (
     <footer className="border-t border-border px-5 py-8 pb-20 md:pb-8 mt-12">
       <div className="mx-auto max-w-[1200px]">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-5">
-          {/* Tagline */}
-          <span className="text-xs text-text-tertiary">
-            CivicStat — Democratie, controleerbaar gemaakt.
-          </span>
+        {/* Top: columns */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-8">
+          {/* Platform */}
+          <div>
+            <div className="text-[10px] font-medium uppercase tracking-widest text-text-tertiary mb-2.5">Platform</div>
+            <div className="space-y-1.5">
+              <FooterLink href={routes.tk.root}>Tweede Kamer</FooterLink>
+              <FooterLink href={routes.transparantie}>Methodologie</FooterLink>
+              <FooterLink href={routes.status}>Status</FooterLink>
+              <FooterLink href={routes.privacy}>Privacy</FooterLink>
+            </div>
+          </div>
 
-          {/* Links */}
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-tertiary">
-            <Link
-              href="/transparantie"
-              className="hover:text-text-secondary transition-colors"
-            >
-              Methodologie
-            </Link>
-            <Link
-              href="/privacy"
-              className="hover:text-text-secondary transition-colors"
-            >
-              Privacy
-            </Link>
-            <Link
-              href="/zoeken"
-              className="hover:text-text-secondary transition-colors"
-            >
-              Zoeken
-            </Link>
-            <Link
-              href="/status"
-              className="hover:text-text-secondary transition-colors"
-            >
-              Status
-            </Link>
+          {/* Tweede Kamer */}
+          <div>
+            <div className="text-[10px] font-medium uppercase tracking-widest text-text-tertiary mb-2.5">Tweede Kamer</div>
+            <div className="space-y-1.5">
+              <FooterLink href={routes.tk.beloften}>Beloften</FooterLink>
+              <FooterLink href={routes.tk.moties}>Moties</FooterLink>
+              <FooterLink href={routes.tk.kamerleden}>Kamerleden</FooterLink>
+              <FooterLink href={routes.tk.partijen}>Partijen</FooterLink>
+              <FooterLink href={routes.tk.verbinding}>Verbinding</FooterLink>
+            </div>
+          </div>
+
+          {/* Open Data */}
+          <div>
+            <div className="text-[10px] font-medium uppercase tracking-widest text-text-tertiary mb-2.5">Open Data</div>
+            <div className="space-y-1.5">
+              <FooterExternal href="https://opendata.tweedekamer.nl">TK Open Data</FooterExternal>
+              <FooterExternal href="https://civicstat-api.fly.dev/health">Open API</FooterExternal>
+            </div>
+          </div>
+
+          {/* Tagline */}
+          <div className="col-span-2 sm:col-span-1">
+            <div className="text-[11px] text-text-tertiary/70 leading-relaxed">
+              <span className="text-xs text-text-tertiary font-medium block mb-2">
+                CivicStat
+              </span>
+              Democratie, controleerbaar gemaakt. Onafhankelijk burgerproject — niet verbonden aan enige
+              politieke partij, overheidsinstelling of belangenorganisatie.
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom: data source */}
+        <div className="border-t border-border-subtle pt-4">
+          <p className="text-[11px] text-text-tertiary/60 leading-relaxed">
+            Alle parlementaire data is afkomstig van de{" "}
             <a
               href="https://opendata.tweedekamer.nl"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-text-secondary transition-colors inline-flex items-center gap-1"
+              className="underline hover:text-text-tertiary"
             >
-              TK Open Data
-              <ExternalIcon />
+              Tweede Kamer Open Data API
             </a>
-            <a
-              href="https://civicstat-api.fly.dev/health"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-text-secondary transition-colors inline-flex items-center gap-1"
-            >
-              Open API
-              <ExternalIcon />
-            </a>
-          </div>
+            . Verkiezingsprogramma&apos;s zijn publiek beschikbaar.
+          </p>
         </div>
-
-        {/* Independence statement */}
-        <p className="text-[11px] text-text-tertiary/70 leading-relaxed max-w-[520px]">
-          CivicStat is een onafhankelijk burgerproject. Niet verbonden aan enige
-          politieke partij, overheidsinstelling of belangenorganisatie. Alle data
-          is afkomstig van de{" "}
-          <a
-            href="https://opendata.tweedekamer.nl"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-text-tertiary"
-          >
-            Tweede Kamer Open Data API
-          </a>
-          .
-        </p>
       </div>
     </footer>
+  );
+}
+
+function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="block text-xs text-text-tertiary hover:text-text-secondary transition-colors"
+    >
+      {children}
+    </Link>
+  );
+}
+
+function FooterExternal({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block text-xs text-text-tertiary hover:text-text-secondary transition-colors inline-flex items-center gap-1"
+    >
+      {children}
+      <ExternalIcon />
+    </a>
   );
 }
 

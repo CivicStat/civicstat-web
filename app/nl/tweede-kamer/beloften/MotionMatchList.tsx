@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import VoteBar from "../../components/VoteBar";
-import { formatDate } from "../../lib/utils";
-import type { PromiseMotionMatch } from "../../lib/types";
+import VoteBar from "../../../../components/VoteBar";
+import { formatDate } from "../../../../lib/utils";
+import type { PromiseMotionMatch } from "../../../../lib/types";
+import { routes } from "../../../../lib/routes";
 
 function matchTypeLabel(t: string) {
   switch (t) {
@@ -108,7 +109,7 @@ export default function MotionMatchList({ matches, adopted, rejected, noVote }: 
           return (
             <Link
               key={match.id}
-              href={`/moties/${match.motion.id}`}
+              href={routes.tk.motie(match.motion.id)}
               className="flex items-center gap-3 rounded-lg px-3 py-2 -mx-1 transition-colors hover:bg-surface-sub group"
             >
               <div className="min-w-0 flex-1">

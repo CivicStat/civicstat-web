@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { routes } from "../lib/routes";
 
 export default function SearchBar() {
   const router = useRouter();
@@ -10,9 +11,9 @@ export default function SearchBar() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (q.trim()) {
-      router.push(`/zoeken?q=${encodeURIComponent(q.trim())}`);
+      router.push(`${routes.tk.zoeken}?q=${encodeURIComponent(q.trim())}`);
     } else {
-      router.push("/zoeken");
+      router.push(routes.tk.zoeken);
     }
   }
 

@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { getMember } from "../../../lib/api";
-import { getPartyColor, formatDate } from "../../../lib/utils";
-import PartyBadge from "../../../components/PartyBadge";
-import VoteBar from "../../../components/VoteBar";
-import MemberPhoto from "../../../components/MemberPhoto";
+import { getMember } from "../../../../../lib/api";
+import { getPartyColor, formatDate } from "../../../../../lib/utils";
+import PartyBadge from "../../../../../components/PartyBadge";
+import { routes } from "../../../../../lib/routes";
+import VoteBar from "../../../../../components/VoteBar";
+import MemberPhoto from "../../../../../components/MemberPhoto";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   try {
@@ -21,7 +22,7 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
   } catch {
     return (
       <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
-        <Link href="/kamerleden" className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink mb-5">
+        <Link href={routes.tk.kamerleden} className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink mb-5">
           <svg width={15} height={15} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
           Terug naar kamerleden
         </Link>
@@ -45,7 +46,7 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
       {/* Back link */}
-      <Link href="/kamerleden" className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink mb-6">
+      <Link href={routes.tk.kamerleden} className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink mb-6">
         <svg width={15} height={15} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
         Terug naar kamerleden
       </Link>
@@ -59,7 +60,7 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
           </h1>
           <p className="text-sm text-text-secondary mt-0.5">{member.name}</p>
           <div className="mt-2">
-            <Link href={`/partijen/${member.party.id}`}>
+            <Link href={routes.tk.partij(member.party.id)}>
               <PartyBadge abbreviation={member.party.abbreviation} colorNeutral={member.party.colorNeutral} size="md" />
             </Link>
           </div>
@@ -131,7 +132,7 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
               return (
                 <Link
                   key={m.id}
-                  href={`/moties/${m.id}`}
+                  href={routes.tk.motie(m.id)}
                   className={`flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-surface-sub ${
                     i < motions.length - 1 ? "border-b border-border-subtle" : ""
                   }`}

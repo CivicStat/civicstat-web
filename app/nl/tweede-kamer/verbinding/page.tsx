@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import PartyBadge from "../../components/PartyBadge";
+import PartyBadge from "../../../../components/PartyBadge";
 import ConsensusMatrix from "./ConsensusMatrix";
 
 export const metadata: Metadata = {

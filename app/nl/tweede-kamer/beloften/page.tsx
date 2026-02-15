@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { getPromises, getParties } from "../../lib/api";
-import type { PromiseListItem } from "../../lib/types";
-import PartyBadge from "../../components/PartyBadge";
+import { getPromises, getParties } from "../../../../lib/api";
+import type { PromiseListItem } from "../../../../lib/types";
+import PartyBadge from "../../../../components/PartyBadge";
 import BeloftenFilters from "./BeloftenFilters";
 import MotionMatchList from "./MotionMatchList";
+import { routes } from "../../../../lib/routes";
 
 interface Props {
   searchParams: {
@@ -190,7 +191,7 @@ export default async function BeloftenPage({ searchParams }: Props) {
                 {/* Summary */}
                 <h2 className="text-[15px] font-medium text-ink leading-snug mb-1.5">
                   <Link
-                    href={`/beloften/${promise.id}`}
+                    href={routes.tk.belofte(promise.id)}
                     className="hover:text-moss transition-colors"
                   >
                     {promise.summary}
@@ -298,7 +299,7 @@ function PaginationLink({
 
   return (
     <Link
-      href={`/beloften?${sp.toString()}`}
+      href={`${routes.tk.beloften}?${sp.toString()}`}
       className="rounded-lg border border-border px-3.5 py-1.5 text-[13px] font-medium text-text-secondary hover:bg-surface-sub transition-colors"
     >
       {label}

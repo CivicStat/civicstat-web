@@ -2,10 +2,11 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import type { MemberListItem } from "../../lib/types";
-import { getPartyColor } from "../../lib/utils";
-import PartyBadge from "../../components/PartyBadge";
-import MemberPhoto from "../../components/MemberPhoto";
+import { routes } from "../../../../lib/routes";
+import type { MemberListItem } from "../../../../lib/types";
+import { getPartyColor } from "../../../../lib/utils";
+import PartyBadge from "../../../../components/PartyBadge";
+import MemberPhoto from "../../../../components/MemberPhoto";
 
 type SortOption = "name" | "party" | "motions" | "votes";
 
@@ -121,7 +122,7 @@ export default function KamerledenFilters({ members, parties }: Props) {
           return (
             <Link
               key={m.id}
-              href={`/kamerleden/${m.id}`}
+              href={routes.tk.kamerlid(m.id)}
               className="card p-[18px] hover:border-moss/40 transition-colors"
             >
               <div className="flex items-center gap-3">

@@ -6,6 +6,7 @@ import StatusBadge from "../components/StatusBadge";
 import VoteBar from "../components/VoteBar";
 import SearchBar from "../components/SearchBar";
 import PartyAvatar from "../components/PartyAvatar";
+import { routes } from "../lib/routes";
 
 export const revalidate = 3600; // ISR: re-generate at most every hour
 
@@ -55,13 +56,13 @@ export default async function HomePage() {
           </p>
           <div className="flex gap-2.5 flex-wrap mb-8">
             <Link
-              href="/partijen"
+              href={routes.tk.partijen}
               className="inline-flex items-center gap-2 rounded-[9px] bg-moss px-5 py-2.5 text-sm font-medium text-white hover:bg-moss-hover transition-colors"
             >
               Bekijk partijen
             </Link>
             <Link
-              href="/moties"
+              href={routes.tk.moties}
               className="inline-flex items-center gap-2 rounded-[9px] border border-border px-5 py-2.5 text-sm font-medium text-text-secondary hover:bg-surface-sub transition-colors"
             >
               Vergelijk stemgedrag
@@ -160,7 +161,7 @@ export default async function HomePage() {
                 </h2>
               </div>
               <Link
-                href="/partijen"
+                href={routes.tk.partijen}
                 className="text-[13px] font-medium text-moss hover:underline"
               >
                 Alle partijen →
@@ -174,7 +175,7 @@ export default async function HomePage() {
                   return (
                     <Link
                       key={sc.partyId}
-                      href={`/partijen/${sc.partyId}`}
+                      href={routes.tk.partij(sc.partyId)}
                       className="card p-4 hover:border-moss/40 transition-colors"
                     >
                       <div className="flex items-center gap-3 mb-3">
@@ -209,7 +210,7 @@ export default async function HomePage() {
               Laatste stemmingen
             </h2>
             <Link
-              href="/moties"
+              href={routes.tk.moties}
               className="text-[13px] font-medium text-moss hover:text-moss-hover transition-colors inline-flex items-center gap-1"
             >
               Alle moties →
@@ -225,7 +226,7 @@ export default async function HomePage() {
                 return (
                   <Link
                     key={m.id}
-                    href={`/moties/${m.id}`}
+                    href={routes.tk.motie(m.id)}
                     className={`flex items-center gap-4 px-5 py-3.5 table-row-hover ${
                       i < recentMotions.length - 1
                         ? "border-b border-border-subtle"
