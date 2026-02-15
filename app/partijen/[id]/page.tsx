@@ -115,7 +115,7 @@ export default async function PartyDetailPage({
 
       {/* Header */}
       <div className="flex items-start gap-4 mb-8">
-        <PartyAvatar abbreviation={party.abbreviation} color={color} size="md" />
+        <PartyAvatar abbreviation={party.abbreviation} color={color} size="md" showColor />
         <div>
           <h1 className="font-serif text-[clamp(26px,4vw,34px)] text-ink leading-tight">
             {party.abbreviation}
@@ -620,20 +620,21 @@ export default async function PartyDetailPage({
         ) : null,
       )}
 
-      {/* Members */}
+      {/* Fractieleden photo grid */}
       {activeMps.length > 0 && (
         <section>
-          <h2 className="font-serif text-xl text-ink mb-4">Kamerleden ({activeMps.length})</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <h2 className="font-serif text-xl text-ink mb-4">Fractieleden ({activeMps.length})</h2>
+          <div className="flex flex-wrap gap-3.5">
             {activeMps.sort((a: any, b: any) => a.surname.localeCompare(b.surname)).map((mp: any) => (
-              <Link key={mp.id} href={`/kamerleden/${mp.id}`} className="card p-4 hover:border-moss/40 transition-colors">
-                <div className="flex items-center gap-3">
-                  <MemberPhoto tkId={mp.tkId} name={mp.name} size="sm" color={color} />
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold text-ink truncate">{mp.surname}</div>
-                    <div className="text-[11px] text-text-tertiary truncate">{mp.name}</div>
-                  </div>
-                </div>
+              <Link
+                key={mp.id}
+                href={`/kamerleden/${mp.id}`}
+                className="flex flex-col items-center gap-1.5 w-[68px] group"
+              >
+                <MemberPhoto tkId={mp.tkId} name={mp.name} size="md" color={color} />
+                <span className="text-[11px] text-text-secondary text-center truncate max-w-[68px] group-hover:text-ink transition-colors">
+                  {mp.surname}
+                </span>
               </Link>
             ))}
           </div>

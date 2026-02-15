@@ -6,13 +6,14 @@ interface PartyAvatarProps {
   abbreviation: string;
   color: string;
   size?: "sm" | "md" | "lg";
+  showColor?: boolean;
 }
 
 const DIMS = { sm: 36, md: 56, lg: 72 } as const;
 const TEXT_SIZE = { sm: "text-[11px]", md: "text-base", lg: "text-lg" } as const;
 const ROUNDED = { sm: "rounded-lg", md: "rounded-xl", lg: "rounded-xl" } as const;
 
-export default function PartyAvatar({ abbreviation, color, size = "sm" }: PartyAvatarProps) {
+export default function PartyAvatar({ abbreviation, color, size = "sm", showColor = false }: PartyAvatarProps) {
   const [logoFailed, setLogoFailed] = useState(false);
   const dims = DIMS[size];
   const textSize = TEXT_SIZE[size];
@@ -48,6 +49,7 @@ export default function PartyAvatar({ abbreviation, color, size = "sm" }: PartyA
       <PartyLogo
         abbreviation={abbreviation}
         size={dims - 8}
+        showColor={showColor}
         onError={() => setLogoFailed(true)}
       />
     </div>
