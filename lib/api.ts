@@ -15,6 +15,7 @@ import type {
   PromiseDetail,
   PromiseStatsResponse,
   CoalitieverwateringResponse,
+  PlatformStats,
 } from "./types";
 
 const API_URL =
@@ -241,6 +242,16 @@ export async function getCoalitieverwatering(
     return await apiFetch<CoalitieverwateringResponse>(
       `/parties/${encodeURIComponent(id)}/coalitieverwatering${qs ? `?${qs}` : ""}`,
     );
+  } catch {
+    return null;
+  }
+}
+
+// ─── Platform Stats ─────────────────────────────────────────
+
+export async function getPlatformStats(): Promise<PlatformStats | null> {
+  try {
+    return await apiFetch<PlatformStats>("/stats");
   } catch {
     return null;
   }

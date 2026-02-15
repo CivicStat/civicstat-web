@@ -12,6 +12,8 @@ import MemberPhoto from "../../../components/MemberPhoto";
 import { getCoalitionsForParty, COALITIONS } from "../../../lib/coalitions";
 import type { Coalition } from "../../../lib/coalitions";
 import PartyBadge from "../../../components/PartyBadge";
+import ConfidenceBadge from "../../../components/ConfidenceBadge";
+import { getScoreConfidence } from "../../../lib/scoring";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   try {
@@ -278,6 +280,9 @@ export default async function PartyDetailPage({
                 </div>
               </div>
               <div className="flex-1 min-w-0">
+                <div className="mb-2">
+                  <ConfidenceBadge scored={scorecard.scoredPromises} total={scorecard.totalPromises} />
+                </div>
                 <div className="text-sm text-text-secondary mb-3">
                   {scorecard.note || `Score gebaseerd op ${scorecard.scoredPromises} van ${scorecard.totalPromises} beloften met voldoende stemdata`}
                   {(scorecard.insufficientDataPromises ?? 0) > 0 && (

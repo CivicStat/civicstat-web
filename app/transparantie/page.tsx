@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getMotions, getVotes, getPromiseStats } from "../../lib/api";
+import { getMotions, getVotes, getPromiseStats, getPlatformStats } from "../../lib/api";
 import TransparantieNav from "./TransparantieNav";
 
 export const metadata: Metadata = {
@@ -10,10 +10,11 @@ export const metadata: Metadata = {
 
 export default async function TransparantiePage() {
   // Fetch live stats — gracefully fall back to "–" if API is unreachable
-  const [motionsRes, votesRes, statsRes] = await Promise.allSettled([
+  const [motionsRes, votesRes, statsRes, platformRes] = await Promise.allSettled([
     getMotions({ limit: 1 }),
     getVotes({ limit: 1 }),
     getPromiseStats(),
+    getPlatformStats(),
   ]);
 
   const motionCount =
@@ -22,8 +23,10 @@ export default async function TransparantiePage() {
     votesRes.status === "fulfilled" ? votesRes.value.total : null;
   const promiseStats =
     statsRes.status === "fulfilled" ? statsRes.value : null;
+  const platformStats =
+    platformRes.status === "fulfilled" ? platformRes.value : null;
 
-  const fmt = (n: number | null) =>
+  const fmt = (n: number | null | undefined) =>
     n != null ? n.toLocaleString("nl-NL") : "\u2013";
 
   return (
@@ -58,7 +61,7 @@ export default async function TransparantiePage() {
           <StepCard
             step="2"
             title="Matching"
-            description="Beloften uit verkiezingsprogramma's worden automatisch gekoppeld aan moties via trefwoord- en tekstanalyse."
+            description="Beloften uit verkiezingsprogramma's worden automatisch gekoppeld aan moties via trefwoordanalyse en semantische AI-matching (Claude)."
           />
           <StepCard
             step="3"
@@ -76,13 +79,22 @@ export default async function TransparantiePage() {
           parlementaire periode (TK2023 &amp; TK2025).
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard label="Moties" value={fmt(motionCount)} />
-          <StatCard label="Stemmingen" value={fmt(voteCount)} />
-          <StatCard label="Beloften" value={fmt(promiseStats?.totalPromises ?? null)} />
-          <StatCard label="Partijen" value={fmt(promiseStats?.byParty.length ?? null)} />
+          <StatCard label="Moties" value={fmt(platformStats?.motions ?? motionCount)} />
+          <StatCard label="Stemmingen" value={fmt(platformStats?.votes ?? voteCount)} />
+          <StatCard label="Beloften" value={fmt(platformStats?.promises ?? promiseStats?.totalPromises)} />
+          <StatCard label="Koppelingen" value={fmt(platformStats?.matches)} />
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+          <StatCard label="Partijen" value={fmt(platformStats?.parties ?? promiseStats?.byParty.length)} />
+          <StatCard label="Kamerleden" value={fmt(platformStats?.members)} />
+          <StatCard label="Programma's" value={fmt(platformStats?.programs)} />
+          <StatCard label="Stemrecords" value={fmt(platformStats?.voteRecords)} />
         </div>
         <p className="text-xs text-text-tertiary mt-3">
           Data wordt elk uur automatisch bijgewerkt via de Tweede Kamer API.
+          {platformStats?.lastUpdated && (
+            <> Laatste update: {new Date(platformStats.lastUpdated).toLocaleString("nl-NL", { dateStyle: "long", timeStyle: "short" })}.</>
+          )}
         </p>
       </section>
 
@@ -258,8 +270,35 @@ export default async function TransparantiePage() {
         </div>
 
         <p className="text-sm text-text-secondary mt-4 max-w-[68ch]">
-          Het huidige algoritme is <span className="font-mono text-xs bg-surface-sub px-1.5 py-0.5 rounded text-ink">keyword-overlap-v2</span>.
+          Koppelingen worden gemaakt via drie methodes: trefwoordanalyse,
+          semantische AI-matching en handmatige validatie.
         </p>
+
+        {platformStats?.matches != null && platformStats.matches > 0 && (
+          <div className="mt-4 max-w-[68ch]">
+            <h3 className="text-sm font-semibold text-ink mb-2">Matchmethoden</h3>
+            <div className="grid grid-cols-3 gap-3">
+              <MethodCard
+                method="Trefwoord"
+                code="keyword-overlap-v2"
+                count={platformStats.matchesByMethod.keyword}
+                total={platformStats.matches}
+              />
+              <MethodCard
+                method="Semantisch"
+                code="semantic-claude"
+                count={platformStats.matchesByMethod.semantic}
+                total={platformStats.matches}
+              />
+              <MethodCard
+                method="Handmatig"
+                code="manual"
+                count={platformStats.matchesByMethod.manual}
+                total={platformStats.matches}
+              />
+            </div>
+          </div>
+        )}
       </section>
 
       {/* ─── 7. Specificiteit ──────────────────────────────────── */}
@@ -320,8 +359,8 @@ export default async function TransparantiePage() {
             imperfect.</strong>{" "}
             Versie 2 bevat een procedureel motiefilter dat foutieve matches
             vermindert, en gebruikt vooraf gedefinieerde trefwoorden per belofte
-            in plaats van automatische extractie. Semantische matching op basis
-            van embeddings is gepland als toekomstige verbetering (v3).
+            in plaats van automatische extractie. Aanvullend wordt semantische
+            matching met Claude AI ingezet voor diepere inhoudelijke beoordeling.
           </p>
           <p>
             <strong className="text-ink">Coalitiedwang.</strong>{" "}
@@ -556,6 +595,36 @@ function GlossaryItem({
       <dd className="text-[13px] text-text-secondary leading-relaxed mt-0.5">
         {definition}
       </dd>
+    </div>
+  );
+}
+
+function MethodCard({
+  method,
+  code,
+  count,
+  total,
+}: {
+  method: string;
+  code: string;
+  count: number;
+  total: number;
+}) {
+  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+  return (
+    <div className="rounded-lg bg-surface-sub border border-border-subtle p-3">
+      <div className="text-sm font-semibold text-ink">{method}</div>
+      <div className="text-[11px] font-mono text-text-tertiary mb-2">{code}</div>
+      <div className="text-[20px] font-serif text-ink">
+        {count.toLocaleString("nl-NL")}
+      </div>
+      <div className="mt-1.5 h-1.5 rounded-full bg-border-subtle overflow-hidden">
+        <div
+          className="h-full rounded-full bg-moss transition-all"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <div className="text-[11px] text-text-tertiary mt-1">{pct}% van totaal</div>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { getPartyColor } from "../../lib/utils";
 import PartyAvatar from "../../components/PartyAvatar";
 import PartySortControl from "../../components/PartySortControl";
 import { getCoalitionsForParty } from "../../lib/coalitions";
+import { getScoreConfidence } from "../../lib/scoring";
 
 export const revalidate = 3600; // ISR: re-generate at most every hour
 
@@ -204,32 +205,46 @@ export default async function PartijenPage({
 
                 {/* MCS 2023 */}
                 <div className="text-right">
-                  {has23 ? (
-                    <div className="flex items-center justify-end gap-2">
-                      <div className="flex h-1.5 rounded-full overflow-hidden gap-px w-[40px]">
-                        {sc23.consistentCount > 0 && <div className="bg-ink/25" style={{ flex: sc23.consistentCount }} />}
-                        {sc23.mixedCount > 0 && <div className="bg-ink/10" style={{ flex: sc23.mixedCount }} />}
-                        {sc23.inconsistentCount > 0 && <div className="bg-ink/4" style={{ flex: sc23.inconsistentCount }} />}
+                  {has23 ? (() => {
+                    const conf23 = getScoreConfidence(sc23.scoredPromises, sc23.totalPromises);
+                    const muted23 = conf23.level === "onvoldoende" || conf23.level === "laag";
+                    return (
+                      <div>
+                        <div className="flex items-center justify-end gap-2">
+                          <div className="flex h-1.5 rounded-full overflow-hidden gap-px w-[40px]">
+                            {sc23.consistentCount > 0 && <div className="bg-ink/25" style={{ flex: sc23.consistentCount }} />}
+                            {sc23.mixedCount > 0 && <div className="bg-ink/10" style={{ flex: sc23.mixedCount }} />}
+                            {sc23.inconsistentCount > 0 && <div className="bg-ink/4" style={{ flex: sc23.inconsistentCount }} />}
+                          </div>
+                          <span className={`text-[16px] font-serif tabular-nums ${muted23 ? "text-text-tertiary" : "text-ink"}`}>{sc23.mandateConsistencyScore}</span>
+                        </div>
+                        <div className="text-[10px] text-text-tertiary tabular-nums mt-0.5">{sc23.scoredPromises}/{sc23.totalPromises}</div>
                       </div>
-                      <span className="text-[16px] font-serif text-ink tabular-nums">{sc23.mandateConsistencyScore}</span>
-                    </div>
-                  ) : (
+                    );
+                  })() : (
                     <span className="text-[12px] text-text-tertiary">{"\u2014"}</span>
                   )}
                 </div>
 
                 {/* MCS 2025 */}
                 <div className="text-right">
-                  {has25 ? (
-                    <div className="flex items-center justify-end gap-2">
-                      <div className="flex h-1.5 rounded-full overflow-hidden gap-px w-[40px]">
-                        {sc25.consistentCount > 0 && <div className="bg-ink/25" style={{ flex: sc25.consistentCount }} />}
-                        {sc25.mixedCount > 0 && <div className="bg-ink/10" style={{ flex: sc25.mixedCount }} />}
-                        {sc25.inconsistentCount > 0 && <div className="bg-ink/4" style={{ flex: sc25.inconsistentCount }} />}
+                  {has25 ? (() => {
+                    const conf25 = getScoreConfidence(sc25.scoredPromises, sc25.totalPromises);
+                    const muted25 = conf25.level === "onvoldoende" || conf25.level === "laag";
+                    return (
+                      <div>
+                        <div className="flex items-center justify-end gap-2">
+                          <div className="flex h-1.5 rounded-full overflow-hidden gap-px w-[40px]">
+                            {sc25.consistentCount > 0 && <div className="bg-ink/25" style={{ flex: sc25.consistentCount }} />}
+                            {sc25.mixedCount > 0 && <div className="bg-ink/10" style={{ flex: sc25.mixedCount }} />}
+                            {sc25.inconsistentCount > 0 && <div className="bg-ink/4" style={{ flex: sc25.inconsistentCount }} />}
+                          </div>
+                          <span className={`text-[16px] font-serif tabular-nums ${muted25 ? "text-text-tertiary" : "text-ink"}`}>{sc25.mandateConsistencyScore}</span>
+                        </div>
+                        <div className="text-[10px] text-text-tertiary tabular-nums mt-0.5">{sc25.scoredPromises}/{sc25.totalPromises}</div>
                       </div>
-                      <span className="text-[16px] font-serif text-ink tabular-nums">{sc25.mandateConsistencyScore}</span>
-                    </div>
-                  ) : (
+                    );
+                  })() : (
                     <span className="text-[12px] text-text-tertiary">{"\u2014"}</span>
                   )}
                 </div>

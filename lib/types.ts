@@ -408,6 +408,24 @@ export interface PromiseStatsResponse {
   byTheme: { theme: string; count: number }[];
 }
 
+// ─── Platform stats ────────────────────────────────────────
+export interface PlatformStats {
+  promises: number;
+  motions: number;
+  votes: number;
+  voteRecords: number;
+  matches: number;
+  matchesByMethod: {
+    keyword: number;
+    semantic: number;
+    manual: number;
+  };
+  parties: number;
+  members: number;
+  programs: number;
+  lastUpdated: string;
+}
+
 // ─── Coalitieverwatering ────────────────────────────────────
 export interface CoalitieverwateringResponse {
   partyId: string;
