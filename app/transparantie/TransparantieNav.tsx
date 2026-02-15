@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 
 const SECTIONS = [
   { id: "datapipeline", label: "Pipeline" },
+  { id: "ai-methodologie", label: "AI" },
   { id: "huidige-data", label: "Data" },
   { id: "databronnen", label: "Bronnen" },
   { id: "scores", label: "Scores" },

@@ -71,9 +71,271 @@ export default async function TransparantiePage() {
         </div>
       </section>
 
-      {/* ─── 2. Huidige data ───────────────────────────────────── */}
+      {/* ─── 2. AI in CivicStat ─────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={2} title="Huidige data" id="huidige-data" />
+        <SectionHeading number={2} title="Hoe gebruikt CivicStat AI?" id="ai-methodologie" />
+        <p className="text-sm text-text-secondary leading-relaxed mb-5 max-w-[68ch]">
+          CivicStat gebruikt AI (Anthropic Claude) op twee plekken in de
+          analysepipeline: bij het extraheren van beloften uit
+          verkiezingsprogramma&rsquo;s, en bij het koppelen van beloften aan
+          Kamermoties. In beide gevallen werkt de AI als een gestructureerde
+          analysator &mdash; niet als beoordelaar. Het model geeft geen oordeel
+          over partijen en wordt expliciet ge&iuml;nstrueerd politiek neutraal te
+          werken.
+        </p>
+
+        {/* Subsection: Belofte-extractie */}
+        <div className="space-y-5 max-w-[68ch] mb-6">
+          <div>
+            <h3 className="text-sm font-semibold text-ink mb-1.5">Belofte-extractie</h3>
+            <p className="text-[13px] text-text-secondary leading-relaxed mb-2">
+              Verkiezingsprogramma&rsquo;s (PDF&rsquo;s van het DNPP Repository,
+              Rijksuniversiteit Groningen) worden verwerkt door Claude om
+              individuele, toetsbare beloften te extraheren.
+            </p>
+            <div className="space-y-2 text-[13px] text-text-secondary leading-relaxed">
+              <p>
+                <strong className="text-ink">Input:</strong>{" "}
+                Ruwe tekstpassages uit offici&euml;le verkiezingsprogramma&rsquo;s.
+              </p>
+              <p>
+                <strong className="text-ink">Opdracht aan het model:</strong>{" "}
+                Extraheer concrete, toetsbare toezeggingen. Classificeer elk op
+                thema (17 thema&rsquo;s), specificiteit (SPECIFIEK / GEMIDDELD / VAAG)
+                en toetsbaarheid.
+              </p>
+              <p>
+                <strong className="text-ink">Wat het model niet doet:</strong>{" "}
+                Het model beoordeelt niet of beloften wenselijk, haalbaar of
+                verstandig zijn. Het extraheert alleen wat er staat.
+              </p>
+              <p>
+                <strong className="text-ink">Kwaliteitscontrole:</strong>{" "}
+                Ge&euml;xtraheerde beloften worden opgeslagen met het label{" "}
+                <span className="font-mono text-xs bg-surface-sub px-1 py-0.5 rounded text-ink">LLM_EXTRACTED</span>.
+                Het totale aantal per partij wordt gemonitord op inflatie.
+              </p>
+            </div>
+          </div>
+
+          {/* Subsection: Semantische koppeling */}
+          <div>
+            <h3 className="text-sm font-semibold text-ink mb-1.5">Semantische koppeling</h3>
+            <p className="text-[13px] text-text-secondary leading-relaxed mb-3">
+              Voor elke verkiezingsbelofte zoekt CivicStat relevante Kamermoties.
+              Dit gebeurt in twee stappen:
+            </p>
+
+            <div className="space-y-3 mb-4">
+              <div className="rounded-lg bg-surface-sub border border-border-subtle p-3">
+                <div className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider mb-1">
+                  Stap 1 &mdash; Voorselectie
+                </div>
+                <p className="text-[13px] text-text-secondary leading-relaxed">
+                  Kandidaat-moties worden geselecteerd op basis van gedeelde
+                  trefwoorden en thema. Dit levert per belofte 30&ndash;80
+                  kandidaat-moties op uit het totaal van{" "}
+                  {fmt(platformStats?.motions ?? motionCount)}+ moties.
+                </p>
+              </div>
+              <div className="rounded-lg bg-surface-sub border border-border-subtle p-3">
+                <div className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider mb-1">
+                  Stap 2 &mdash; AI-beoordeling
+                </div>
+                <p className="text-[13px] text-text-secondary leading-relaxed">
+                  Een AI-model (Claude Sonnet) beoordeelt elke kandidaat-motie op
+                  relevantie voor de belofte. Per motie geeft het model een
+                  classificatie, betrouwbaarheidsscore, voorspelde stemrichting en
+                  een beknopte motivatie in het Nederlands.
+                </p>
+              </div>
+            </div>
+
+            {/* Example: what the model sees */}
+            <h4 className="text-[13px] font-semibold text-ink mb-2">Wat het model te zien krijgt</h4>
+            <div className="rounded-lg border border-border-subtle overflow-hidden mb-4">
+              <div className="bg-surface-sub px-4 py-3 border-b border-border-subtle">
+                <div className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-1">
+                  Belofte (VVD)
+                </div>
+                <p className="text-[13px] text-ink leading-relaxed italic">
+                  &ldquo;Defensie-uitgaven structureel naar NAVO-norm van 2% bbp&rdquo;
+                </p>
+              </div>
+              <div className="bg-surface-sub px-4 py-3 border-b border-border-subtle">
+                <div className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-1">
+                  Kandidaat-motie
+                </div>
+                <p className="text-[13px] text-ink leading-relaxed italic">
+                  &ldquo;Motie over structurele verhoging defensiebudget naar 2% bbp&rdquo;
+                </p>
+              </div>
+              <div className="px-4 py-3 bg-white">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide bg-accent-subtle text-moss">
+                    Expliciet
+                  </span>
+                  <span className="text-[12px] text-text-secondary">confidence 0.94</span>
+                  <span className="text-[12px] text-text-secondary">&middot;</span>
+                  <span className="text-[12px] text-text-secondary">VOOR</span>
+                </div>
+                <p className="text-[12px] text-text-secondary italic leading-relaxed">
+                  &ldquo;Motie roept expliciet op tot structurele verhoging naar
+                  2% bbp &mdash; identiek aan de belofte van de VVD.&rdquo;
+                </p>
+              </div>
+            </div>
+
+            {/* Classification table */}
+            <h4 className="text-[13px] font-semibold text-ink mb-2">Classificatie-uitleg</h4>
+            <div className="overflow-x-auto mb-4">
+              <table className="w-full text-[12px] border-collapse">
+                <thead>
+                  <tr className="border-b border-border-subtle">
+                    <th className="py-2 pr-3 text-left font-semibold text-ink">Type</th>
+                    <th className="py-2 pr-3 text-left font-semibold text-ink">Betekenis</th>
+                    <th className="py-2 pr-3 text-left font-semibold text-ink">Voorbeeld</th>
+                    <th className="py-2 text-left font-semibold text-ink">Gewicht</th>
+                  </tr>
+                </thead>
+                <tbody className="text-text-secondary">
+                  <tr className="border-b border-border-subtle">
+                    <td className="py-2 pr-3">
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide bg-accent-subtle text-moss">
+                        Expliciet
+                      </span>
+                    </td>
+                    <td className="py-2 pr-3">Motie gaat over exact hetzelfde punt als de belofte</td>
+                    <td className="py-2 pr-3 text-[11px] italic">&ldquo;2% bbp defensie&rdquo; &#8596; &ldquo;NAVO-norm 2% bbp&rdquo;</td>
+                    <td className="py-2 font-mono">1.0</td>
+                  </tr>
+                  <tr className="border-b border-border-subtle">
+                    <td className="py-2 pr-3">
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide bg-surface-sub text-text-secondary">
+                        Impliciet
+                      </span>
+                    </td>
+                    <td className="py-2 pr-3">Motie valt in hetzelfde thema maar niet over exact hetzelfde punt</td>
+                    <td className="py-2 pr-3 text-[11px] italic">&ldquo;F-35 onderhoud&rdquo; &#8596; &ldquo;defensie versterken&rdquo;</td>
+                    <td className="py-2 font-mono">0.5</td>
+                  </tr>
+                  <tr className="border-b border-border-subtle">
+                    <td className="py-2 pr-3">
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide bg-surface-sub text-text-tertiary">
+                        Tegengesteld
+                      </span>
+                    </td>
+                    <td className="py-2 pr-3">Motie druist in tegen de belofte</td>
+                    <td className="py-2 pr-3 text-[11px] italic">&ldquo;defensiebudget korten&rdquo; &#8596; &ldquo;defensie naar 2% bbp&rdquo;</td>
+                    <td className="py-2 font-mono">1.0 <span className="text-[10px] text-text-tertiary">(omgekeerd)</span></td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-3 text-text-tertiary text-[11px]">Geen match</td>
+                    <td className="py-2 pr-3">Geen relevante verbinding</td>
+                    <td className="py-2 pr-3 text-text-tertiary">&mdash;</td>
+                    <td className="py-2 text-text-tertiary">Niet opgeslagen</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Neutrality instruction */}
+            <h4 className="text-[13px] font-semibold text-ink mb-2">Neutraliteitsinstructie aan het model</h4>
+            <div className="bg-surface-sub border-l-2 border-moss/30 rounded-r-lg px-4 py-3 mb-4">
+              <p className="text-[12px] text-text-secondary leading-relaxed italic">
+                &ldquo;Je bent een neutrale politieke analist. Je beoordeelt of
+                moties relevant zijn voor een belofte. Je geeft geen oordeel over
+                de wenselijkheid van beloften of moties. Gebruik EXPLICIET alleen
+                als de motie echt over hetzelfde concrete punt gaat.&rdquo;
+              </p>
+            </div>
+
+            {/* Confidence indicator */}
+            <p className="text-[13px] text-text-secondary leading-relaxed">
+              <strong className="text-ink">Betrouwbaarheidsindicator:</strong>{" "}
+              Niet elke koppeling is even sterk. CivicStat toont bij elke score
+              hoeveel beloften daadwerkelijk gekoppeld konden worden aan moties.
+              Een score op basis van 35 van 210 beloften is minder betrouwbaar dan
+              een score op basis van 150 van 200 beloften. Deze informatie is
+              altijd zichtbaar naast de MCS-score.
+            </p>
+          </div>
+
+          {/* Subsection: Wat CivicStat NIET doet */}
+          <div>
+            <h3 className="text-sm font-semibold text-ink mb-1.5">Wat CivicStat niet doet</h3>
+            <div className="space-y-2 text-[13px] text-text-secondary leading-relaxed">
+              <p>
+                <strong className="text-ink">Geen ranking of oordeel</strong>{" "}
+                &mdash; CivicStat rangschikt partijen niet van
+                &ldquo;betrouwbaar&rdquo; tot &ldquo;onbetrouwbaar&rdquo;.
+                Scores zijn feitelijke consistentie-metingen, geen waardeoordelen.
+              </p>
+              <p>
+                <strong className="text-ink">Geen campagneadvies</strong>{" "}
+                &mdash; CivicStat zegt niet op welke partij je moet stemmen.
+              </p>
+              <p>
+                <strong className="text-ink">Geen AI-gegenereerde conclusies</strong>{" "}
+                &mdash; Het AI-model beoordeelt individuele belofte-motie
+                koppelingen. De MCS-score wordt berekend met een vaste formule op
+                basis van die koppelingen &mdash; niet door het AI-model.
+              </p>
+              <p>
+                <strong className="text-ink">Geen verborgen weging</strong>{" "}
+                &mdash; Elke koppeling is traceerbaar. Gebruikers kunnen
+                doorklikken van score &#8594; belofte &#8594; motie &#8594; stemuitslag
+                &#8594; bron.
+              </p>
+            </div>
+          </div>
+
+          {/* Subsection: Beperkingen en doorontwikkeling */}
+          <div>
+            <h3 className="text-sm font-semibold text-ink mb-1.5">AI-beperkingen</h3>
+            <div className="space-y-2 text-[13px] text-text-secondary leading-relaxed">
+              <p>
+                <strong className="text-ink">Trefwoord-voorselectie</strong>{" "}
+                &mdash; De voorselectie op trefwoorden kan relevante moties missen
+                als ze over hetzelfde onderwerp gaan maar andere woorden
+                gebruiken. De semantische beoordeling (stap 2) vangt dit
+                gedeeltelijk op.
+              </p>
+              <p>
+                <strong className="text-ink">Model-bias</strong>{" "}
+                &mdash; Hoewel Claude ge&iuml;nstrueerd wordt neutraal te werken,
+                kan elk AI-model subtiele bias bevatten. Daarom publiceert
+                CivicStat de exacte instructie en is elke koppeling individueel
+                controleerbaar.
+              </p>
+              <p>
+                <strong className="text-ink">Belofte-kwaliteit</strong>{" "}
+                &mdash; De kwaliteit van de MCS hangt af van de kwaliteit van de
+                ge&euml;xtraheerde beloften. Vage beloften leveren vagere
+                koppelingen op.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-xs text-text-tertiary max-w-[68ch]">
+          CivicStat gebruikt{" "}
+          <a
+            href="https://docs.anthropic.com/en/docs/about-claude/models"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-moss hover:text-ink transition-colors"
+          >
+            Claude Sonnet (Anthropic)
+          </a>{" "}
+          voor semantische analyse. Het model draait met API-toegang en verwerkt
+          uitsluitend publieke parlementaire data.
+        </p>
+      </section>
+
+      {/* ─── 3. Huidige data ───────────────────────────────────── */}
+      <section className="card p-6 mb-5">
+        <SectionHeading number={3} title="Huidige data" id="huidige-data" />
         <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
           CivicStat bevat momenteel de volgende gegevens uit de lopende
           parlementaire periode (TK2023 &amp; TK2025).
@@ -98,9 +360,9 @@ export default async function TransparantiePage() {
         </p>
       </section>
 
-      {/* ─── 3. Databronnen ────────────────────────────────────── */}
+      {/* ─── 4. Databronnen ────────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={3} title="Databronnen" id="databronnen" />
+        <SectionHeading number={4} title="Databronnen" id="databronnen" />
         <div className="space-y-3">
           <SourceItem
             name="Tweede Kamer OData API (v4.0)"
@@ -120,9 +382,9 @@ export default async function TransparantiePage() {
         </div>
       </section>
 
-      {/* ─── 4. Scores & berekeningen ──────────────────────────── */}
+      {/* ─── 5. Scores & berekeningen ──────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={4} title="Scores &amp; berekeningen" id="scores" />
+        <SectionHeading number={5} title="Scores &amp; berekeningen" id="scores" />
 
         <div className="space-y-5 max-w-[68ch]">
           <ScoreDefinition
@@ -174,9 +436,9 @@ export default async function TransparantiePage() {
         </div>
       </section>
 
-      {/* ─── 5. Periodes & koersvastheid ─────────────────────────── */}
+      {/* ─── 6. Periodes & koersvastheid ─────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={5} title="Periodes &amp; koersvastheid" id="periodes" />
+        <SectionHeading number={6} title="Periodes &amp; koersvastheid" id="periodes" />
         <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
           CivicStat vergelijkt verkiezingsbeloften over meerdere parlementaire
           periodes. Momenteel ondersteunen we TK2023 en TK2025.
@@ -213,9 +475,9 @@ export default async function TransparantiePage() {
         </div>
       </section>
 
-      {/* ─── 6. Matching-algoritme ─────────────────────────────── */}
+      {/* ─── 7. Matching-algoritme ─────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={6} title="Matching-algoritme" id="matching" />
+        <SectionHeading number={7} title="Matching-algoritme" id="matching" />
         <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
           Moties worden automatisch gekoppeld aan beloften via een
           trefwoordalgoritme in drie stappen.
@@ -301,9 +563,9 @@ export default async function TransparantiePage() {
         )}
       </section>
 
-      {/* ─── 7. Specificiteit ──────────────────────────────────── */}
+      {/* ─── 8. Specificiteit ──────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={7} title="Specificiteit van beloften" id="specificiteit" />
+        <SectionHeading number={8} title="Specificiteit van beloften" id="specificiteit" />
         <p className="text-sm text-text-secondary leading-relaxed mb-4 max-w-[68ch]">
           Elke belofte krijgt een specificiteitsclassificatie die aangeeft hoe
           concreet en toetsbaar de toezegging is.
@@ -327,9 +589,9 @@ export default async function TransparantiePage() {
         </div>
       </section>
 
-      {/* ─── 8. Neutraliteit ───────────────────────────────────── */}
+      {/* ─── 9. Neutraliteit ───────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={8} title="Neutraliteit &amp; onpartijdigheid" id="neutraliteit" />
+        <SectionHeading number={9} title="Neutraliteit &amp; onpartijdigheid" id="neutraliteit" />
         <div className="space-y-3 text-sm text-text-secondary max-w-[68ch]">
           <p>
             CivicStat is politiek onafhankelijk en ontvangt geen financiering
@@ -345,9 +607,9 @@ export default async function TransparantiePage() {
         </div>
       </section>
 
-      {/* ─── 9. Beperkingen ────────────────────────────────────── */}
+      {/* ─── 10. Beperkingen ────────────────────────────────────── */}
       <section className="card p-6 mb-5">
-        <SectionHeading number={9} title="Beperkingen" id="beperkingen" />
+        <SectionHeading number={10} title="Beperkingen" id="beperkingen" />
         <div className="space-y-3 text-sm text-text-secondary max-w-[68ch]">
           <p>
             <strong className="text-ink">Moties ≠ al het beleid.</strong>{" "}
@@ -383,9 +645,9 @@ export default async function TransparantiePage() {
         </div>
       </section>
 
-      {/* ─── 10. Begrippenlijst ────────────────────────────────── */}
+      {/* ─── 11. Begrippenlijst ────────────────────────────────── */}
       <section className="card p-6">
-        <SectionHeading number={10} title="Begrippenlijst" id="begrippenlijst" />
+        <SectionHeading number={11} title="Begrippenlijst" id="begrippenlijst" />
         <div className="space-y-3">
           <GlossaryItem
             term="Motie"
