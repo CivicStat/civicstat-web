@@ -5,6 +5,7 @@ const SORT_OPTIONS = [
   { value: "seats", label: "Zetels" },
   { value: "mcs2023", label: "MCS 2023" },
   { value: "mcs2025", label: "MCS 2025" },
+  { value: "delta", label: "\u0394" },
   { value: "name", label: "Naam" },
 ] as const;
 

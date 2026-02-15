@@ -215,27 +215,35 @@ export async function searchAll(q: string): Promise<SearchAllResults> {
 export async function getRegeerakkoordScorecard(
   id: string,
   params?: { year?: number; periodStart?: string; periodEnd?: string },
-): Promise<PartyScorecard> {
-  const sp = new URLSearchParams();
-  if (params?.year) sp.set("year", String(params.year));
-  if (params?.periodStart) sp.set("periodStart", params.periodStart);
-  if (params?.periodEnd) sp.set("periodEnd", params.periodEnd);
-  const qs = sp.toString();
-  return apiFetch<PartyScorecard>(
-    `/parties/${encodeURIComponent(id)}/regeerakkoord${qs ? `?${qs}` : ""}`,
-  );
+): Promise<PartyScorecard | null> {
+  try {
+    const sp = new URLSearchParams();
+    if (params?.year) sp.set("year", String(params.year));
+    if (params?.periodStart) sp.set("periodStart", params.periodStart);
+    if (params?.periodEnd) sp.set("periodEnd", params.periodEnd);
+    const qs = sp.toString();
+    return await apiFetch<PartyScorecard>(
+      `/parties/${encodeURIComponent(id)}/regeerakkoord${qs ? `?${qs}` : ""}`,
+    );
+  } catch {
+    return null;
+  }
 }
 
 export async function getCoalitieverwatering(
   id: string,
   params?: { year?: number },
-): Promise<CoalitieverwateringResponse> {
-  const sp = new URLSearchParams();
-  if (params?.year) sp.set("year", String(params.year));
-  const qs = sp.toString();
-  return apiFetch<CoalitieverwateringResponse>(
-    `/parties/${encodeURIComponent(id)}/coalitieverwatering${qs ? `?${qs}` : ""}`,
-  );
+): Promise<CoalitieverwateringResponse | null> {
+  try {
+    const sp = new URLSearchParams();
+    if (params?.year) sp.set("year", String(params.year));
+    const qs = sp.toString();
+    return await apiFetch<CoalitieverwateringResponse>(
+      `/parties/${encodeURIComponent(id)}/coalitieverwatering${qs ? `?${qs}` : ""}`,
+    );
+  } catch {
+    return null;
+  }
 }
 
 // ─── Admin / Status ──────────────────────────────────────────

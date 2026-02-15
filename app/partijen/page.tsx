@@ -5,7 +5,7 @@ import type { PartyScorecard } from "../../lib/types";
 import { getPartyColor } from "../../lib/utils";
 import PartyAvatar from "../../components/PartyAvatar";
 import PartySortControl from "../../components/PartySortControl";
-import { isCoalitionParty, getCoalitionsForParty } from "../../lib/coalitions";
+import { getCoalitionsForParty } from "../../lib/coalitions";
 
 export const revalidate = 3600; // ISR: re-generate at most every hour
 
@@ -49,6 +49,16 @@ export default async function PartijenPage({
   // Filter to only parties with seats
   const activeParties = parties.filter((p) => p.seats > 0);
 
+  // Helper: compute delta for a party
+  function getDelta(partyId: string): number | null {
+    const sc23 = scorecardMap2023.get(partyId);
+    const sc25 = scorecardMap2025.get(partyId);
+    if (sc23 && sc23.scoredPromises > 0 && sc25 && sc25.scoredPromises > 0) {
+      return sc25.mandateConsistencyScore - sc23.mandateConsistencyScore;
+    }
+    return null;
+  }
+
   // Sort based on selected option
   const sortedParties = [...activeParties].sort((a, b) => {
     switch (sortBy) {
@@ -61,6 +71,11 @@ export default async function PartijenPage({
         const aScore = scorecardMap2025.get(a.id)?.mandateConsistencyScore ?? -1;
         const bScore = scorecardMap2025.get(b.id)?.mandateConsistencyScore ?? -1;
         return bScore - aScore;
+      }
+      case "delta": {
+        const aDelta = getDelta(a.id) ?? -999;
+        const bDelta = getDelta(b.id) ?? -999;
+        return bDelta - aDelta; // Higher delta (improvement) first
       }
       case "name":
         return a.abbreviation.localeCompare(b.abbreviation);
@@ -130,96 +145,155 @@ export default async function PartijenPage({
         </div>
       </div>
 
-      {/* Party grid */}
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {sortedParties.map((p) => {
+      {/* Data-rich party table */}
+      <div className="card overflow-hidden">
+        {/* Table header — hidden on mobile */}
+        <div className="hidden sm:grid sm:grid-cols-[1fr_60px_80px_80px_60px] lg:grid-cols-[1fr_70px_100px_100px_70px] gap-2 px-5 py-2.5 border-b border-border bg-surface-sub/30 text-[10px] font-medium text-text-tertiary uppercase tracking-wider">
+          <span>Partij</span>
+          <span className="text-right">Zetels</span>
+          <span className="text-right">MCS 2023</span>
+          <span className="text-right">MCS 2025</span>
+          <span className="text-right">{"\u0394"}</span>
+        </div>
+
+        {/* Party rows */}
+        {sortedParties.map((p, idx) => {
           const color = getPartyColor(p.abbreviation, p.colorNeutral);
           const seats = p.seats;
           const sc23 = scorecardMap2023.get(p.id);
           const sc25 = scorecardMap2025.get(p.id);
           const has23 = sc23 && sc23.scoredPromises > 0;
           const has25 = sc25 && sc25.scoredPromises > 0;
+          const delta = getDelta(p.id);
+          const coalitions = getCoalitionsForParty(p.abbreviation);
 
           return (
-            <Link key={p.id} href={`/partijen/${encodeURIComponent(p.abbreviation)}`} className="card p-[18px] hover:border-moss/40 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
+            <Link
+              key={p.id}
+              href={`/partijen/${encodeURIComponent(p.abbreviation)}`}
+              className={`block hover:bg-surface-sub/40 transition-colors ${
+                idx < sortedParties.length - 1 ? "border-b border-border-subtle" : ""
+              }`}
+            >
+              {/* Desktop row */}
+              <div className="hidden sm:grid sm:grid-cols-[1fr_60px_80px_80px_60px] lg:grid-cols-[1fr_70px_100px_100px_70px] gap-2 items-center px-5 py-3">
+                {/* Party info */}
+                <div className="flex items-center gap-2.5 min-w-0">
                   <PartyAvatar abbreviation={p.abbreviation} color={color} size="sm" />
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[15px] font-semibold text-ink">{p.abbreviation}</span>
-                      {isCoalitionParty(p.abbreviation) && (() => {
-                        const coalitions = getCoalitionsForParty(p.abbreviation);
-                        // Only show tag for current governing coalition (Schoof)
-                        const current = coalitions.find(c => c.year === 2024);
-                        if (!current) return null;
-                        return (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded-full border border-border text-text-tertiary">
-                            coalitie
-                          </span>
-                        );
-                      })()}
+                      <span className="text-[14px] font-semibold text-ink">{p.abbreviation}</span>
+                      {coalitions.map((c) => (
+                        <span
+                          key={c.year}
+                          className="text-[8px] px-1.5 py-px rounded-full border border-border text-text-tertiary leading-tight"
+                          title={c.name}
+                        >
+                          {c.name.replace("Kabinet-", "")}
+                        </span>
+                      ))}
                     </div>
-                    <div className="text-[11px] text-text-tertiary truncate max-w-[180px]">
-                      {p.name}
-                    </div>
+                    <div className="text-[11px] text-text-tertiary truncate">{p.name}</div>
                   </div>
                 </div>
+
+                {/* Seats */}
                 <div className="text-right">
-                  <span className="text-2xl font-serif text-ink">{seats}</span>
-                  <span className="text-[11px] text-text-tertiary ml-0.5">{seats === 1 ? "zetel" : "zetels"}</span>
+                  <span className="text-[18px] font-serif text-ink">{seats}</span>
+                </div>
+
+                {/* MCS 2023 */}
+                <div className="text-right">
+                  {has23 ? (
+                    <div className="flex items-center justify-end gap-2">
+                      <div className="flex h-1.5 rounded-full overflow-hidden gap-px w-[40px]">
+                        {sc23.consistentCount > 0 && <div className="bg-ink/25" style={{ flex: sc23.consistentCount }} />}
+                        {sc23.mixedCount > 0 && <div className="bg-ink/10" style={{ flex: sc23.mixedCount }} />}
+                        {sc23.inconsistentCount > 0 && <div className="bg-ink/4" style={{ flex: sc23.inconsistentCount }} />}
+                      </div>
+                      <span className="text-[16px] font-serif text-ink tabular-nums">{sc23.mandateConsistencyScore}</span>
+                    </div>
+                  ) : (
+                    <span className="text-[12px] text-text-tertiary">{"\u2014"}</span>
+                  )}
+                </div>
+
+                {/* MCS 2025 */}
+                <div className="text-right">
+                  {has25 ? (
+                    <div className="flex items-center justify-end gap-2">
+                      <div className="flex h-1.5 rounded-full overflow-hidden gap-px w-[40px]">
+                        {sc25.consistentCount > 0 && <div className="bg-ink/25" style={{ flex: sc25.consistentCount }} />}
+                        {sc25.mixedCount > 0 && <div className="bg-ink/10" style={{ flex: sc25.mixedCount }} />}
+                        {sc25.inconsistentCount > 0 && <div className="bg-ink/4" style={{ flex: sc25.inconsistentCount }} />}
+                      </div>
+                      <span className="text-[16px] font-serif text-ink tabular-nums">{sc25.mandateConsistencyScore}</span>
+                    </div>
+                  ) : (
+                    <span className="text-[12px] text-text-tertiary">{"\u2014"}</span>
+                  )}
+                </div>
+
+                {/* Delta */}
+                <div className="text-right">
+                  {delta !== null ? (
+                    <span className={`text-[13px] font-medium tabular-nums ${
+                      delta > 0 ? "text-ink" : delta < 0 ? "text-text-tertiary" : "text-text-secondary"
+                    }`}>
+                      {delta > 0 ? "+" : ""}{delta}
+                    </span>
+                  ) : (
+                    <span className="text-[12px] text-text-tertiary">{"\u2014"}</span>
+                  )}
                 </div>
               </div>
 
-              {/* Dual-period MCS scores */}
-              {!has23 && !has25 ? (
-                <div className="flex items-center gap-1.5 mt-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-text-tertiary/40" />
-                  <span className="text-[11px] text-text-tertiary">
-                    {(sc23 || sc25) ? "Onvoldoende data" : "Geen analyse"}
-                  </span>
+              {/* Mobile card layout */}
+              <div className="sm:hidden px-4 py-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <PartyAvatar abbreviation={p.abbreviation} color={color} size="sm" />
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[15px] font-semibold text-ink">{p.abbreviation}</span>
+                        {coalitions.length > 0 && (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-full border border-border text-text-tertiary">
+                            coalitie
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-text-tertiary truncate max-w-[180px]">
+                        {p.name}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-2xl font-serif text-ink">{seats}</span>
+                    <span className="text-[11px] text-text-tertiary ml-0.5">{seats === 1 ? "zetel" : "zetels"}</span>
+                  </div>
                 </div>
-              ) : (
-                <div className="mt-3 pt-3 border-t border-border-subtle">
-                  <div className="flex items-center gap-4">
-                    {/* TK2023 score */}
-                    <div className="flex-1">
-                      <div className="text-[10px] text-text-tertiary mb-1">TK2023</div>
-                      {has23 ? (
-                        <div className="flex items-center gap-2">
+
+                {/* Mobile MCS row */}
+                {(has23 || has25) && (
+                  <div className="mt-3 pt-3 border-t border-border-subtle">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <div className="text-[10px] text-text-tertiary mb-1">TK2023</div>
+                        {has23 ? (
                           <span className="text-lg font-serif text-ink">{sc23.mandateConsistencyScore}</span>
-                          <div className="flex-1 flex h-1.5 rounded-full overflow-hidden gap-px max-w-[60px]">
-                            {sc23.consistentCount > 0 && <div className="bg-ink/20" style={{ flex: sc23.consistentCount }} />}
-                            {sc23.mixedCount > 0 && <div className="bg-ink/8" style={{ flex: sc23.mixedCount }} />}
-                            {sc23.inconsistentCount > 0 && <div className="bg-ink/4" style={{ flex: sc23.inconsistentCount }} />}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-[11px] text-text-tertiary">{"\u2014"}</span>
-                      )}
-                    </div>
-
-                    {/* TK2025 score */}
-                    <div className="flex-1">
-                      <div className="text-[10px] text-text-tertiary mb-1">TK2025</div>
-                      {has25 ? (
-                        <div className="flex items-center gap-2">
+                        ) : (
+                          <span className="text-[11px] text-text-tertiary">{"\u2014"}</span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-[10px] text-text-tertiary mb-1">TK2025</div>
+                        {has25 ? (
                           <span className="text-lg font-serif text-ink">{sc25.mandateConsistencyScore}</span>
-                          <div className="flex-1 flex h-1.5 rounded-full overflow-hidden gap-px max-w-[60px]">
-                            {sc25.consistentCount > 0 && <div className="bg-ink/20" style={{ flex: sc25.consistentCount }} />}
-                            {sc25.mixedCount > 0 && <div className="bg-ink/8" style={{ flex: sc25.mixedCount }} />}
-                            {sc25.inconsistentCount > 0 && <div className="bg-ink/4" style={{ flex: sc25.inconsistentCount }} />}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-[11px] text-text-tertiary">{"\u2014"}</span>
-                      )}
-                    </div>
-
-                    {/* Delta indicator */}
-                    {has23 && has25 && (() => {
-                      const delta = sc25.mandateConsistencyScore - sc23.mandateConsistencyScore;
-                      return (
+                        ) : (
+                          <span className="text-[11px] text-text-tertiary">{"\u2014"}</span>
+                        )}
+                      </div>
+                      {delta !== null && (
                         <div className="text-right shrink-0">
                           <div className="text-[10px] text-text-tertiary mb-1">{"\u0394"}</div>
                           <span className={`text-[13px] font-medium ${
@@ -228,11 +302,20 @@ export default async function PartijenPage({
                             {delta > 0 ? "+" : ""}{delta}
                           </span>
                         </div>
-                      );
-                    })()}
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+
+                {!has23 && !has25 && (
+                  <div className="flex items-center gap-1.5 mt-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-text-tertiary/40" />
+                    <span className="text-[11px] text-text-tertiary">
+                      {(sc23 || sc25) ? "Onvoldoende data" : "Geen analyse"}
+                    </span>
+                  </div>
+                )}
+              </div>
             </Link>
           );
         })}

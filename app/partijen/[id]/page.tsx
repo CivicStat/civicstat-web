@@ -9,7 +9,9 @@ import PeriodSelector from "../../../components/PeriodSelector";
 import Term from "../../../components/Term";
 import PartyAvatar from "../../../components/PartyAvatar";
 import MemberPhoto from "../../../components/MemberPhoto";
-import { getCoalitionsForParty } from "../../../lib/coalitions";
+import { getCoalitionsForParty, COALITIONS } from "../../../lib/coalitions";
+import type { Coalition } from "../../../lib/coalitions";
+import PartyBadge from "../../../components/PartyBadge";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   try {
@@ -71,33 +73,18 @@ export default async function PartyDetailPage({
 
   // Fetch regeerakkoord data for coalition parties
   const coalitions = getCoalitionsForParty(party.abbreviation);
-  let regeerakkoordScorecards: { year: number; name: string; scorecard: PartyScorecard | null }[] = [];
-  let coalitieverwateringen: { year: number; data: CoalitieverwateringResponse | null }[] = [];
+  let coalitionData: { coalition: Coalition; regeerakkoord: PartyScorecard | null; verwatering: CoalitieverwateringResponse | null }[] = [];
 
   if (coalitions.length > 0) {
-    const [regResults, cvResults] = await Promise.all([
-      Promise.allSettled(
-        coalitions.map(async (c) => ({
-          year: c.year,
-          name: c.name,
-          scorecard: await getRegeerakkoordScorecard(params.id, { year: c.year }).catch(() => null),
-        })),
-      ),
-      Promise.allSettled(
-        coalitions.map(async (c) => ({
-          year: c.year,
-          data: await getCoalitieverwatering(params.id, { year: c.year }).catch(() => null),
-        })),
-      ),
-    ]);
-
-    regeerakkoordScorecards = regResults
-      .filter((r): r is PromiseFulfilledResult<{ year: number; name: string; scorecard: PartyScorecard | null }> => r.status === "fulfilled")
-      .map((r) => r.value);
-
-    coalitieverwateringen = cvResults
-      .filter((r): r is PromiseFulfilledResult<{ year: number; data: CoalitieverwateringResponse | null }> => r.status === "fulfilled")
-      .map((r) => r.value);
+    coalitionData = await Promise.all(
+      coalitions.map(async (c) => {
+        const [regeerakkoord, verwatering] = await Promise.all([
+          getRegeerakkoordScorecard(params.id, { year: c.year }),
+          getCoalitieverwatering(params.id, { year: c.year }),
+        ]);
+        return { coalition: c, regeerakkoord, verwatering };
+      }),
+    );
   }
 
   const color = getPartyColor(party.abbreviation, party.colorNeutral);
@@ -513,112 +500,145 @@ export default async function PartyDetailPage({
         </section>
       )}
 
-      {/* Regeerakkoord scorecard — only for coalition parties */}
-      {regeerakkoordScorecards.map(({ year, name, scorecard: regSc }) =>
-        regSc && regSc.scoredPromises > 0 ? (
-          <section key={`reg-${year}`} className="mb-8">
-            <h2 className="font-serif text-xl text-ink mb-4">
-              Regeerakkoord — {name}
-            </h2>
-            <div className="card p-5">
-              <div className="flex items-start gap-6 mb-4">
-                <div className="text-center shrink-0">
-                  <div className="text-[42px] font-serif text-ink leading-none">
-                    {regSc.mandateConsistencyScore}
-                  </div>
-                  <div className="text-[11px] text-text-tertiary mt-1">van 100</div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-text-secondary mb-3">
-                    Score van {party.abbreviation} op de afspraken uit het regeerakkoord.
-                    Gebaseerd op {regSc.scoredPromises} van {regSc.totalPromises} coalitieafspraken
-                    met voldoende stemdata.
-                  </p>
-                  <div className="flex h-3 rounded-md overflow-hidden gap-px">
-                    {regSc.consistentCount > 0 && (
-                      <div className="bg-ink/30" style={{ flex: regSc.consistentCount }} title={`Consistent: ${regSc.consistentCount}`} />
-                    )}
-                    {regSc.mixedCount > 0 && (
-                      <div className="bg-ink/12" style={{ flex: regSc.mixedCount }} title={`Wisselend: ${regSc.mixedCount}`} />
-                    )}
-                    {regSc.inconsistentCount > 0 && (
-                      <div className="bg-ink/4 border border-border/50" style={{ flex: regSc.inconsistentCount }} title={`Afwijkend: ${regSc.inconsistentCount}`} />
-                    )}
-                  </div>
-                  <div className="flex gap-4 mt-2 text-[11px] text-text-tertiary">
-                    <span>Consistent ({regSc.consistentCount})</span>
-                    <span>Wisselend ({regSc.mixedCount})</span>
-                    <span>Afwijkend ({regSc.inconsistentCount})</span>
-                  </div>
-                </div>
+      {/* Regeerakkoord + Coalitieverwatering — per coalition */}
+      {coalitionData.map(({ coalition, regeerakkoord: regSc, verwatering: cv }) => {
+        if (!regSc && !cv) return null;
+        const coalitionParties = COALITIONS.find(c => c.year === coalition.year)?.parties ?? [];
+        return (
+          <section key={`coalition-${coalition.year}`} className="mb-8">
+            {/* Section header */}
+            <div className="mb-4">
+              <h2 className="font-serif text-xl text-ink">
+                Regeerakkoord {"\u00B7"} {coalition.name}
+              </h2>
+              <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                <span className="text-[12px] text-text-tertiary italic">{coalition.subtitle}</span>
+                <span className="text-text-tertiary text-[10px]">{"\u00B7"}</span>
+                {coalitionParties.map((abbr) => (
+                  <PartyBadge key={abbr} abbreviation={abbr} colorNeutral={null} size="sm" />
+                ))}
               </div>
-              <div className="border-t border-border pt-3">
-                <p className="text-[11px] text-text-tertiary">
-                  Het regeerakkoord bevat afspraken tussen coalitiepartijen.
-                  Deze score meet of {party.abbreviation} stemt in lijn met die afspraken.
-                </p>
-              </div>
+              <p className="text-[13px] text-text-secondary mt-1.5">
+                Hoe consistent stemt {party.abbreviation} met het regeerakkoord?
+              </p>
             </div>
-          </section>
-        ) : null,
-      )}
 
-      {/* Coalitieverwatering — only for coalition parties */}
-      {coalitieverwateringen.map(({ year, data: cv }) =>
-        cv && cv.totalPartyPromises > 0 ? (
-          <section key={`cv-${year}`} className="mb-8">
-            <h2 className="font-serif text-xl text-ink mb-4">
-              <Term definition="Coalitieverwatering meet welk percentage van de eigen verkiezingsbeloften is teruggekomen in het regeerakkoord. Een hoog percentage betekent dat de partij veel heeft ingeleverd.">
-                Coalitieverwatering
-              </Term>
-              {" "} — {year}
-            </h2>
-            <div className="card p-5">
-              <div className="flex items-start gap-6 mb-4">
-                <div className="text-center shrink-0">
-                  <div className="text-[42px] font-serif text-ink leading-none">
-                    {Math.round(cv.dilutionRate)}%
+            {/* Regeerakkoord-consistentie card */}
+            {regSc && regSc.scoredPromises > 0 ? (
+              <div className="card p-5 mb-4">
+                <div className="section-label mb-3">Regeerakkoord-consistentie</div>
+                <div className="flex items-start gap-6 mb-4">
+                  <div className="text-center shrink-0">
+                    <div className="text-[42px] font-serif text-ink leading-none">
+                      {regSc.mandateConsistencyScore}
+                    </div>
+                    <div className="text-[11px] text-text-tertiary mt-1">van 100</div>
                   </div>
-                  <div className="text-[11px] text-text-tertiary mt-1">verwatering</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-text-secondary mb-3">
+                      {regSc.scoredPromises} van {regSc.totalPromises} akkoordpunten consistent vertaald in stemgedrag.
+                      {(regSc.insufficientDataPromises ?? 0) > 0 && (
+                        <span className="text-text-tertiary">
+                          {" "}({regSc.insufficientDataPromises} met onvoldoende data)
+                        </span>
+                      )}
+                    </p>
+                    <div className="flex h-3 rounded-md overflow-hidden gap-px">
+                      {regSc.consistentCount > 0 && (
+                        <div className="bg-ink/30" style={{ flex: regSc.consistentCount }} title={`Consistent: ${regSc.consistentCount}`} />
+                      )}
+                      {regSc.mixedCount > 0 && (
+                        <div className="bg-ink/12" style={{ flex: regSc.mixedCount }} title={`Wisselend: ${regSc.mixedCount}`} />
+                      )}
+                      {regSc.inconsistentCount > 0 && (
+                        <div className="bg-ink/4 border border-border/50" style={{ flex: regSc.inconsistentCount }} title={`Afwijkend: ${regSc.inconsistentCount}`} />
+                      )}
+                    </div>
+                    <div className="flex gap-4 mt-2 text-[11px] text-text-tertiary">
+                      <span className="flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-sm bg-ink/30" />
+                        Consistent ({regSc.consistentCount})
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-sm bg-ink/12" />
+                        Wisselend ({regSc.mixedCount})
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-sm bg-ink/4 border border-border/50" />
+                        Afwijkend ({regSc.inconsistentCount})
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-text-secondary mb-3">
-                    Van de {cv.totalPartyPromises} verkiezingsbeloften van {party.abbreviation} zijn
-                    er {cv.survivedPromises} herkenbaar terug te vinden in het regeerakkoord.
-                    {cv.dilutedPromises > 0 && ` ${cv.dilutedPromises} beloften zijn niet overgenomen.`}
-                  </p>
-                  <div className="flex h-3 rounded-md overflow-hidden gap-px">
-                    {cv.survivedPromises > 0 && (
-                      <div className="bg-ink/30" style={{ flex: cv.survivedPromises }} title={`Overgenomen: ${cv.survivedPromises}`} />
-                    )}
-                    {cv.dilutedPromises > 0 && (
-                      <div className="bg-ink/4 border border-border/50" style={{ flex: cv.dilutedPromises }} title={`Niet overgenomen: ${cv.dilutedPromises}`} />
-                    )}
-                  </div>
-                  <div className="flex gap-4 mt-2 text-[11px] text-text-tertiary">
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-sm bg-ink/30" />
-                      Overgenomen ({cv.survivedPromises})
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-sm bg-ink/4 border border-border/50" />
-                      Niet overgenomen ({cv.dilutedPromises})
-                    </span>
-                  </div>
-                </div>
-              </div>
-              {cv.coalitionPartners && cv.coalitionPartners.length > 0 && (
                 <div className="border-t border-border pt-3">
                   <p className="text-[11px] text-text-tertiary">
-                    Coalitiepartners: {cv.coalitionPartners.join(", ")}.
-                    {" "}De verwateringsscore is gebaseerd op trefwoordoverlap — semantische matching volgt.
+                    Het regeerakkoord bevat afspraken tussen coalitiepartijen.
+                    Deze score meet of {party.abbreviation} stemt in lijn met die afspraken.
                   </p>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : regSc ? (
+              <div className="card px-5 py-4 mb-4">
+                <div className="flex items-center gap-2 text-[13px] text-text-tertiary italic">
+                  <svg width={14} height={14} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  Akkoordpunten worden momenteel gekoppeld aan moties. Data volgt binnenkort.
+                </div>
+              </div>
+            ) : null}
+
+            {/* Coalitieverwatering card */}
+            {cv && cv.totalPartyPromises > 0 && (
+              <div className="card p-5">
+                <div className="section-label mb-3">
+                  <Term definition="Welk deel van de partijbeloften overleefde de coalitieonderhandelingen?">
+                    Coalitieverwatering
+                  </Term>
+                </div>
+                <div className="flex items-start gap-6 mb-4">
+                  <div className="text-center shrink-0">
+                    <div className="text-[42px] font-serif text-ink leading-none">
+                      {Math.round(cv.dilutionRate)}%
+                    </div>
+                    <div className="text-[11px] text-text-tertiary mt-1">verwatering</div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-text-secondary mb-3">
+                      Van de {cv.totalPartyPromises} verkiezingsbeloften van {party.abbreviation} zijn
+                      er {cv.survivedCount} herkenbaar terug te vinden in het regeerakkoord.
+                      {cv.dilutedCount > 0 && ` ${cv.dilutedCount} beloften zijn niet overgenomen.`}
+                    </p>
+                    <div className="flex h-3 rounded-md overflow-hidden gap-px">
+                      {cv.survivedCount > 0 && (
+                        <div className="bg-ink/30" style={{ flex: cv.survivedCount }} title={`Overgenomen: ${cv.survivedCount}`} />
+                      )}
+                      {cv.dilutedCount > 0 && (
+                        <div className="bg-ink/4 border border-border/50" style={{ flex: cv.dilutedCount }} title={`Niet overgenomen: ${cv.dilutedCount}`} />
+                      )}
+                    </div>
+                    <div className="flex gap-4 mt-2 text-[11px] text-text-tertiary">
+                      <span className="flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-sm bg-ink/30" />
+                        Overgenomen ({cv.survivedCount})
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-sm bg-ink/4 border border-border/50" />
+                        Niet overgenomen ({cv.dilutedCount})
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="border-t border-border pt-3">
+                  <p className="text-[11px] text-text-tertiary">
+                    De verwateringsscore is gebaseerd op trefwoordoverlap tussen partijprogramma en regeerakkoord.
+                  </p>
+                </div>
+              </div>
+            )}
           </section>
-        ) : null,
-      )}
+        );
+      })}
 
       {/* Fractieleden photo grid */}
       {activeMps.length > 0 && (

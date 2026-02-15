@@ -1,14 +1,30 @@
-export const COALITIONS: Record<number, { name: string; parties: string[] }> = {
-  2024: { name: "Kabinet-Schoof", parties: ["PVV", "VVD", "NSC", "BBB"] },
-  2026: { name: "Kabinet-Jetten", parties: ["D66", "VVD", "CDA"] },
-};
+export interface Coalition {
+  name: string;
+  subtitle: string;
+  year: number;
+  parties: readonly string[];
+}
 
-export function getCoalitionsForParty(abbreviation: string): { year: number; name: string }[] {
-  return Object.entries(COALITIONS)
-    .filter(([, c]) => c.parties.includes(abbreviation))
-    .map(([year, c]) => ({ year: parseInt(year), name: c.name }));
+export const COALITIONS: Coalition[] = [
+  {
+    name: "Kabinet-Schoof",
+    subtitle: "Hoop, lef en trots",
+    year: 2024,
+    parties: ["PVV", "VVD", "NSC", "BBB"],
+  },
+  {
+    name: "Kabinet-Jetten",
+    subtitle: "Aan de slag",
+    year: 2026,
+    parties: ["D66", "VVD", "CDA"],
+  },
+];
+
+/** Given a party abbreviation, return its coalition(s) or empty array */
+export function getCoalitionsForParty(abbreviation: string): Coalition[] {
+  return COALITIONS.filter((c) => c.parties.includes(abbreviation));
 }
 
 export function isCoalitionParty(abbreviation: string): boolean {
-  return Object.values(COALITIONS).some((c) => c.parties.includes(abbreviation));
+  return COALITIONS.some((c) => c.parties.includes(abbreviation));
 }

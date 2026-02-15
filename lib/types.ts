@@ -413,15 +413,23 @@ export interface CoalitieverwateringResponse {
   partyId: string;
   abbreviation: string;
   electionYear: number;
-  regeerakkoordYear: number;
+  regeerakkoordTitle: string;
   totalPartyPromises: number;
-  survivedPromises: number;
-  dilutedPromises: number;
+  survivedCount: number;
+  dilutedCount: number;
   dilutionRate: number;
-  coalitionPartners: string[];
-  survivedDetails?: {
-    partyPromise: string;
-    regeerakkoordCommitment: string;
-    overlapScore: number;
+  matches?: {
+    partyPromise: {
+      code: string;
+      summary: string;
+      keywords: string[];
+    };
+    regeerakkoordPromise: {
+      code: string;
+      summary: string;
+      keywords: string[];
+    } | null;
+    sharedKeywords: string[];
+    survived: boolean;
   }[];
 }
