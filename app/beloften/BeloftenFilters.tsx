@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { TK_SEATS } from "../../lib/seats";
 
 const THEMES = [
   { value: "", label: "Alle thema\u2019s" },
@@ -29,7 +28,7 @@ interface Props {
   currentParty?: string;
   currentTheme?: string;
   currentSort?: string;
-  parties: { abbreviation: string; id: string }[];
+  parties: { abbreviation: string; id: string; seats?: number }[];
 }
 
 export default function BeloftenFilters({ currentParty, currentTheme, currentSort, parties }: Props) {
@@ -48,8 +47,8 @@ export default function BeloftenFilters({ currentParty, currentTheme, currentSor
   }
 
   // Split parties into active (with seats) and other
-  const activeParties = parties.filter((p) => TK_SEATS[p.abbreviation]);
-  const otherParties = parties.filter((p) => !TK_SEATS[p.abbreviation]);
+  const activeParties = parties.filter((p) => (p.seats ?? 0) > 0);
+  const otherParties = parties.filter((p) => !((p.seats ?? 0) > 0));
 
   return (
     <div className="flex flex-wrap items-center gap-2 mb-5">

@@ -148,6 +148,8 @@ export interface PartyListItem {
   abbreviation: string;
   colorNeutral: string | null;
   website: string | null;
+  seats: number;
+  seatsUpdatedAt: string | null;
   startDate: string | null;
   endDate: string | null;
   _count: { mps: number };
@@ -209,6 +211,8 @@ export interface PartyDetail {
   abbreviation: string;
   colorNeutral: string | null;
   website: string | null;
+  seats: number;
+  seatsUpdatedAt: string | null;
   startDate: string | null;
   endDate: string | null;
   mps: {

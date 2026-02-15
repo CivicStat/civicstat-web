@@ -7,7 +7,6 @@ import VoteBar from "../../../components/VoteBar";
 import MethodologyLink from "../../../components/MethodologyLink";
 import Term from "../../../components/Term";
 import type { VoteRecord, RawStemming, PartyPredictionItem } from "../../../lib/types";
-import { TK_SEATS } from "../../../lib/seats";
 
 interface Props {
   params: { id: string };
@@ -60,6 +59,14 @@ export default async function MotieDetailPage({ params }: Props) {
     ? aggregateByPartyFromRaw(rawStemmingen)
     : null;
 
+  // Build seat lookup from rawStemmingen (FractieGrootte reflects current TK composition)
+  const seatsByParty = new Map<string, number>();
+  for (const s of rawStemmingen) {
+    if (s.FractieGrootte > 0) {
+      seatsByParty.set(s.ActorNaam.toLowerCase(), s.FractieGrootte);
+    }
+  }
+
   // Belofte-kloof: compute predicted vote totals
   const prediction = m.prediction;
   let predictedVoor = 0;
@@ -69,7 +76,7 @@ export default async function MotieDetailPage({ params }: Props) {
 
   if (prediction?.partyPredictions) {
     for (const pp of prediction.partyPredictions) {
-      const seats = TK_SEATS[pp.party.abbreviation] || 0;
+      const seats = seatsByParty.get(pp.party.abbreviation.toLowerCase()) || 0;
       if (pp.predictedVote === 'FOR') predictedVoor += seats;
       else if (pp.predictedVote === 'AGAINST') predictedTegen += seats;
 

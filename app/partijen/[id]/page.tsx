@@ -7,7 +7,6 @@ import VoteBar from "../../../components/VoteBar";
 import MethodologyLink from "../../../components/MethodologyLink";
 import PeriodSelector from "../../../components/PeriodSelector";
 import Term from "../../../components/Term";
-import { TK_SEATS } from "../../../lib/seats";
 import PartyAvatar from "../../../components/PartyAvatar";
 import MemberPhoto from "../../../components/MemberPhoto";
 import { getCoalitionsForParty } from "../../../lib/coalitions";
@@ -102,7 +101,7 @@ export default async function PartyDetailPage({
   }
 
   const color = getPartyColor(party.abbreviation, party.colorNeutral);
-  const seats = TK_SEATS[party.abbreviation] || 0;
+  const seats = party.seats ?? 0;
   const activeMps = party.mps?.filter((m: any) => !m.endDate) || [];
   const vs = party.voteStats;
 

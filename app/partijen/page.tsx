@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import { getParties, getAllScorecards } from "../../lib/api";
 import type { PartyScorecard } from "../../lib/types";
 import { getPartyColor } from "../../lib/utils";
-import { TK_SEATS } from "../../lib/seats";
 import PartyAvatar from "../../components/PartyAvatar";
 import PartySortControl from "../../components/PartySortControl";
 import { isCoalitionParty, getCoalitionsForParty } from "../../lib/coalitions";
@@ -47,8 +46,8 @@ export default async function PartijenPage({
     // Scorecards unavailable — continue without them
   }
 
-  // Filter to only parties with known seats
-  const activeParties = parties.filter((p) => TK_SEATS[p.abbreviation]);
+  // Filter to only parties with seats
+  const activeParties = parties.filter((p) => p.seats > 0);
 
   // Sort based on selected option
   const sortedParties = [...activeParties].sort((a, b) => {
@@ -66,7 +65,7 @@ export default async function PartijenPage({
       case "name":
         return a.abbreviation.localeCompare(b.abbreviation);
       default: // seats
-        return (TK_SEATS[b.abbreviation] || 0) - (TK_SEATS[a.abbreviation] || 0);
+        return b.seats - a.seats;
     }
   });
 
@@ -91,20 +90,19 @@ export default async function PartijenPage({
         <div className="section-label">Zetelverdeling (150 zetels)</div>
         <div className="flex h-7 rounded-md overflow-hidden gap-px">
           {activeParties
-            .sort((a, b) => (TK_SEATS[b.abbreviation] || 0) - (TK_SEATS[a.abbreviation] || 0))
+            .sort((a, b) => b.seats - a.seats)
             .map((p) => {
-              const seats = TK_SEATS[p.abbreviation] || 0;
               const color = getPartyColor(p.abbreviation, p.colorNeutral);
               return (
                 <div
                   key={p.id}
-                  title={`${p.abbreviation}: ${seats} ${seats === 1 ? "zetel" : "zetels"}`}
+                  title={`${p.abbreviation}: ${p.seats} ${p.seats === 1 ? "zetel" : "zetels"}`}
                   className="cursor-pointer transition-opacity hover:opacity-100"
                   style={{
-                    width: `${(seats / 150) * 100}%`,
+                    width: `${(p.seats / 150) * 100}%`,
                     backgroundColor: color,
                     opacity: 0.8,
-                    minWidth: seats > 1 ? 4 : 2,
+                    minWidth: p.seats > 1 ? 4 : 2,
                   }}
                 />
               );
@@ -112,7 +110,7 @@ export default async function PartijenPage({
         </div>
         <div className="flex flex-wrap gap-2 mt-3">
           {activeParties
-            .sort((a, b) => (TK_SEATS[b.abbreviation] || 0) - (TK_SEATS[a.abbreviation] || 0))
+            .sort((a, b) => b.seats - a.seats)
             .slice(0, 7)
             .map((p) => (
               <div
@@ -126,7 +124,7 @@ export default async function PartijenPage({
                     opacity: 0.8,
                   }}
                 />
-                {p.abbreviation} ({TK_SEATS[p.abbreviation]})
+                {p.abbreviation} ({p.seats})
               </div>
             ))}
         </div>
@@ -136,7 +134,7 @@ export default async function PartijenPage({
       <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {sortedParties.map((p) => {
           const color = getPartyColor(p.abbreviation, p.colorNeutral);
-          const seats = TK_SEATS[p.abbreviation] || 0;
+          const seats = p.seats;
           const sc23 = scorecardMap2023.get(p.id);
           const sc25 = scorecardMap2025.get(p.id);
           const has23 = sc23 && sc23.scoredPromises > 0;
