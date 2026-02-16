@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getMotions, getVotes, getPromiseStats, getPlatformStats } from "../../lib/api";
+import { getMotions, getVotes, getPromiseStats, getPlatformStats, getLangfuseMetrics, getLangfuseTraces } from "../../lib/api";
 import TransparantieNav from "./TransparantieNav";
 
 export const metadata: Metadata = {
@@ -10,11 +10,13 @@ export const metadata: Metadata = {
 
 export default async function TransparantiePage() {
   // Fetch live stats — gracefully fall back to "–" if API is unreachable
-  const [motionsRes, votesRes, statsRes, platformRes] = await Promise.allSettled([
+  const [motionsRes, votesRes, statsRes, platformRes, langfuseMetricsRes, langfuseTracesRes] = await Promise.allSettled([
     getMotions({ limit: 1 }),
     getVotes({ limit: 1 }),
     getPromiseStats(),
     getPlatformStats(),
+    getLangfuseMetrics(),
+    getLangfuseTraces({ limit: 20 }),
   ]);
 
   const motionCount =
@@ -25,6 +27,10 @@ export default async function TransparantiePage() {
     statsRes.status === "fulfilled" ? statsRes.value : null;
   const platformStats =
     platformRes.status === "fulfilled" ? platformRes.value : null;
+  const langfuseMetrics =
+    langfuseMetricsRes.status === "fulfilled" ? langfuseMetricsRes.value : null;
+  const langfuseTraces =
+    langfuseTracesRes.status === "fulfilled" ? langfuseTracesRes.value : null;
 
   const fmt = (n: number | null | undefined) =>
     n != null ? n.toLocaleString("nl-NL") : "\u2013";
@@ -645,9 +651,139 @@ export default async function TransparantiePage() {
         </div>
       </section>
 
-      {/* ─── 11. Begrippenlijst ────────────────────────────────── */}
+      {/* ─── 11. AI-logboek ────────────────────────────────────── */}
+      <section className="card p-6 mb-5">
+        <SectionHeading number={11} title="AI-logboek" id="ai-logboek" />
+        <p className="text-sm text-text-secondary leading-relaxed mb-5 max-w-[68ch]">
+          Elke AI-aanroep die CivicStat doet wordt gelogd in{" "}
+          <a
+            href="https://langfuse.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-moss hover:text-ink transition-colors"
+          >
+            Langfuse
+          </a>
+          , een open-source observability-platform. Alle traces zijn publiek
+          toegankelijk zodat journalisten, onderzoekers en ge&iuml;nteresseerden
+          exact kunnen zien welke AI-modellen worden gebruikt, wat ze te zien
+          krijgen, en wat ze terugsturen.
+        </p>
+
+        {/* Metric cards */}
+        {langfuseMetrics && langfuseMetrics.totalTraces > 0 ? (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+              <StatCard label="AI-aanroepen" value={fmt(langfuseMetrics.totalTraces)} />
+              <StatCard
+                label="Totale kosten"
+                value={langfuseMetrics.totalCost != null
+                  ? `\u20AC${langfuseMetrics.totalCost.toFixed(2)}`
+                  : "\u2013"}
+              />
+              <StatCard
+                label="Input tokens"
+                value={langfuseMetrics.totalInputTokens != null
+                  ? (langfuseMetrics.totalInputTokens / 1_000_000).toFixed(1) + "M"
+                  : "\u2013"}
+              />
+              <StatCard
+                label="Output tokens"
+                value={langfuseMetrics.totalOutputTokens != null
+                  ? (langfuseMetrics.totalOutputTokens / 1_000_000).toFixed(1) + "M"
+                  : "\u2013"}
+              />
+            </div>
+
+            {/* Trace table */}
+            {langfuseTraces && langfuseTraces.traces.length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold text-ink mb-2">
+                  Recente AI-aanroepen
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[12px] border-collapse">
+                    <thead>
+                      <tr className="border-b border-border-subtle">
+                        <th className="py-2 pr-3 text-left font-semibold text-ink">Datum</th>
+                        <th className="py-2 pr-3 text-left font-semibold text-ink">Taak</th>
+                        <th className="py-2 pr-3 text-left font-semibold text-ink">Tags</th>
+                        <th className="py-2 pr-3 text-right font-semibold text-ink">Tokens</th>
+                        <th className="py-2 pr-3 text-right font-semibold text-ink">Kosten</th>
+                        <th className="py-2 text-right font-semibold text-ink"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-text-secondary">
+                      {langfuseTraces.traces.map((trace) => (
+                        <tr key={trace.id} className="border-b border-border-subtle last:border-0">
+                          <td className="py-2 pr-3 whitespace-nowrap">
+                            {new Date(trace.timestamp).toLocaleDateString("nl-NL", {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </td>
+                          <td className="py-2 pr-3 font-medium text-ink">
+                            {trace.name}
+                          </td>
+                          <td className="py-2 pr-3">
+                            <div className="flex gap-1 flex-wrap">
+                              {trace.tags.map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="text-[10px] px-1.5 py-0.5 rounded bg-surface-sub text-text-tertiary"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="py-2 pr-3 text-right font-mono">
+                            {(trace.inputTokens + trace.outputTokens).toLocaleString("nl-NL")}
+                          </td>
+                          <td className="py-2 pr-3 text-right font-mono">
+                            {trace.totalCost > 0
+                              ? `$${trace.totalCost.toFixed(4)}`
+                              : "\u2013"}
+                          </td>
+                          <td className="py-2 text-right">
+                            <a
+                              href={trace.publicUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-moss hover:text-ink transition-colors text-[11px] whitespace-nowrap"
+                            >
+                              Bekijk trace &rarr;
+                            </a>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            <a
+              href="https://cloud.langfuse.com/project/cmlnvh26d0220ad077c82ujek"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-[12px] text-moss hover:text-ink transition-colors"
+            >
+              Alle traces bekijken in Langfuse &rarr;
+            </a>
+          </>
+        ) : (
+          <p className="text-xs text-text-tertiary">
+            AI-logboekgegevens worden geladen zodra de eerste traces zijn verwerkt.
+          </p>
+        )}
+      </section>
+
+      {/* ─── 12. Begrippenlijst ────────────────────────────────── */}
       <section className="card p-6">
-        <SectionHeading number={11} title="Begrippenlijst" id="begrippenlijst" />
+        <SectionHeading number={12} title="Begrippenlijst" id="begrippenlijst" />
         <div className="space-y-3">
           <GlossaryItem
             term="Motie"

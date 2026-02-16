@@ -13,6 +13,7 @@ const SECTIONS = [
   { id: "specificiteit", label: "Specificiteit" },
   { id: "neutraliteit", label: "Neutraliteit" },
   { id: "beperkingen", label: "Beperkingen" },
+  { id: "ai-logboek", label: "AI-logboek" },
   { id: "begrippenlijst", label: "Begrippen" },
 ];
 

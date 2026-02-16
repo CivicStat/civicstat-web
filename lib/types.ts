@@ -426,6 +426,42 @@ export interface PlatformStats {
   lastUpdated: string;
 }
 
+// ─── Langfuse AI Observability ──────────────────────────────
+export interface LangfuseMetrics {
+  totalTraces: number;
+  totalCost: number;
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  avgLatencyMs: number;
+  dailyMetrics: {
+    date: string;
+    traces: number;
+    cost: number;
+    inputTokens: number;
+    outputTokens: number;
+  }[];
+}
+
+export interface LangfuseTrace {
+  id: string;
+  name: string;
+  timestamp: string;
+  latencyMs: number | null;
+  tags: string[];
+  totalCost: number;
+  inputTokens: number;
+  outputTokens: number;
+  publicUrl: string;
+  metadata: Record<string, any> | null;
+}
+
+export interface LangfuseTracesResponse {
+  traces: LangfuseTrace[];
+  totalItems: number;
+  page: number;
+  limit: number;
+}
+
 // ─── Coalitieverwatering ────────────────────────────────────
 export interface CoalitieverwateringResponse {
   partyId: string;

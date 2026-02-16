@@ -247,6 +247,33 @@ export async function getCoalitieverwatering(
   }
 }
 
+// ─── Langfuse AI Observability ────────────────────────────────
+
+export async function getLangfuseMetrics(): Promise<import("./types").LangfuseMetrics | null> {
+  try {
+    return await apiFetch<import("./types").LangfuseMetrics>("/langfuse/metrics");
+  } catch {
+    return null;
+  }
+}
+
+export async function getLangfuseTraces(params?: {
+  limit?: number;
+  page?: number;
+}): Promise<import("./types").LangfuseTracesResponse | null> {
+  try {
+    const sp = new URLSearchParams();
+    if (params?.limit) sp.set("limit", String(params.limit));
+    if (params?.page) sp.set("page", String(params.page));
+    const qs = sp.toString();
+    return await apiFetch<import("./types").LangfuseTracesResponse>(
+      `/langfuse/traces${qs ? `?${qs}` : ""}`,
+    );
+  } catch {
+    return null;
+  }
+}
+
 // ─── Platform Stats ─────────────────────────────────────────
 
 export async function getPlatformStats(): Promise<PlatformStats | null> {
