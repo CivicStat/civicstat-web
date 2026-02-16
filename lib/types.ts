@@ -451,8 +451,8 @@ export interface LangfuseTrace {
   totalCost: number;
   inputTokens: number;
   outputTokens: number;
+  model: string | null;
   publicUrl: string;
-  metadata: Record<string, any> | null;
 }
 
 export interface LangfuseTracesResponse {

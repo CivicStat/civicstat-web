@@ -709,6 +709,7 @@ export default async function TransparantiePage() {
                         <th className="py-2 pr-3 text-left font-semibold text-ink">Taak</th>
                         <th className="py-2 pr-3 text-left font-semibold text-ink">Tags</th>
                         <th className="py-2 pr-3 text-right font-semibold text-ink">Tokens</th>
+                        <th className="py-2 pr-3 text-right font-semibold text-ink">Latentie</th>
                         <th className="py-2 pr-3 text-right font-semibold text-ink">Kosten</th>
                         <th className="py-2 text-right font-semibold text-ink"></th>
                       </tr>
@@ -740,7 +741,14 @@ export default async function TransparantiePage() {
                             </div>
                           </td>
                           <td className="py-2 pr-3 text-right font-mono">
-                            {(trace.inputTokens + trace.outputTokens).toLocaleString("nl-NL")}
+                            {(trace.inputTokens + trace.outputTokens) > 0
+                              ? (trace.inputTokens + trace.outputTokens).toLocaleString("nl-NL")
+                              : "\u2013"}
+                          </td>
+                          <td className="py-2 pr-3 text-right font-mono">
+                            {trace.latencyMs != null
+                              ? `${(trace.latencyMs / 1000).toFixed(1)}s`
+                              : "\u2013"}
                           </td>
                           <td className="py-2 pr-3 text-right font-mono">
                             {trace.totalCost > 0
