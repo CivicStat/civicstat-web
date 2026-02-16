@@ -9,6 +9,7 @@ import type {
   KoersvastheidResponse,
   MemberListItem,
   MemberDetail,
+  MpScorecard,
   VoteDetail,
   PromiseListResponse,
   PromiseListItem,
@@ -90,6 +91,15 @@ export async function getMembers(params?: {
 
 export async function getMember(id: string): Promise<MemberDetail> {
   return apiFetch<MemberDetail>(`/members/${encodeURIComponent(id)}`);
+}
+
+export async function getMemberScorecard(
+  id: string,
+  electionYear = 2023,
+): Promise<MpScorecard> {
+  return apiFetch<MpScorecard>(
+    `/members/${encodeURIComponent(id)}/scorecard?electionYear=${electionYear}`
+  );
 }
 
 // ─── Party Detail ───────────────────────────────────────────

@@ -9,7 +9,7 @@ import MethodologyLink from "../../../../../components/MethodologyLink";
 import Term from "../../../../../components/Term";
 import { isCoalitionParty } from "../../../../../lib/coalitions";
 import { routes } from "../../../../../lib/routes";
-import type { PromiseMotionMatch, PromiseListItem, PartyScorecard } from "../../../../../lib/types";
+import type { PromiseMotionMatch, PromiseListItem, PartyScorecard, PromiseDetail } from "../../../../../lib/types";
 
 interface Props {
   params: { id: string };
@@ -104,42 +104,70 @@ function matchStats(matches: PromiseMotionMatch[]) {
 }
 
 /**
- * Compute a consistency badge for a promise based on its motion matches.
- * Compares adopted/rejected counts against expectedVoteDirection and matchType.
+ * Get status label and styling from server-computed promiseStatus.
+ */
+function statusBadge(
+  status: PromiseDetail["promiseStatus"],
+  scoringSummary: PromiseDetail["scoringSummary"],
+): { label: string; icon: "check" | "mixed" | "cross" | "none"; className: string; description: string } {
+  const scored = scoringSummary?.scoredMatches ?? 0;
+  switch (status) {
+    case "CONSISTENT":
+      return {
+        label: "Consistent",
+        icon: "check",
+        className: "bg-accent-subtle text-moss",
+        description: `${scoringSummary?.alignedCount ?? 0} van ${scored} beoordeelde moties zijn in lijn met de belofte.`,
+      };
+    case "BROKEN":
+      return {
+        label: "Inconsistent",
+        icon: "cross",
+        className: "bg-red-500/10 text-red-400",
+        description: `${scoringSummary?.opposedCount ?? 0} van ${scored} beoordeelde moties wijken af van de belofte.`,
+      };
+    case "MIXED":
+      return {
+        label: "Gemengd",
+        icon: "mixed",
+        className: "bg-amber-500/10 text-amber-600",
+        description: `Stemgedrag is deels in lijn (${scoringSummary?.alignedCount ?? 0}/${scored}) en deels afwijkend (${scoringSummary?.opposedCount ?? 0}/${scored}).`,
+      };
+    default:
+      return {
+        label: "Onvoldoende data",
+        icon: "none",
+        className: "bg-surface-sub text-text-tertiary",
+        description: "Er zijn onvoldoende stemmingen om de consistentie te bepalen.",
+      };
+  }
+}
+
+/**
+ * Legacy client-side consistency for cross-party items (no server enrichment).
  */
 function computeConsistency(
   matches: PromiseMotionMatch[],
   expectedDirection: string
-): { label: string; icon: "check" | "mixed" | "cross" | "none"; className: string } {
-  // Only consider matches that have a vote
+): { label: string; className: string } {
   let aligned = 0;
   let opposed = 0;
 
   for (const m of matches) {
     const vote = m.motion.votes?.[0];
     if (!vote) continue;
-
     const isAdopted = vote.result === "Aangenomen";
     const isContra = m.matchType === "CONTRA_MATCH";
-
-    // For VOOR expected direction:
-    //   - EXPLICIT/IMPLICIT match + Aangenomen = aligned
-    //   - EXPLICIT/IMPLICIT match + Verworpen = opposed
-    //   - CONTRA match inverts: Aangenomen = opposed, Verworpen = aligned
-    // For TEGEN expected direction: logic inverts
     const expectsFor = expectedDirection === "VOOR";
 
     if (isContra) {
-      // Contra match: adopted means opposed to promise, rejected means aligned
       if (isAdopted) opposed++;
       else aligned++;
     } else {
-      // Direct/implicit match
       if (expectsFor) {
         if (isAdopted) aligned++;
         else opposed++;
       } else {
-        // Expected TEGEN: adoption of a direct match is actually opposed
         if (isAdopted) opposed++;
         else aligned++;
       }
@@ -147,24 +175,17 @@ function computeConsistency(
   }
 
   const scored = aligned + opposed;
-  if (scored === 0) {
-    return { label: "Onvoldoende data", icon: "none", className: "bg-surface-sub text-text-tertiary" };
-  }
-
+  if (scored === 0) return { label: "Onvoldoende data", className: "bg-surface-sub text-text-tertiary" };
   const ratio = aligned / scored;
-  if (ratio >= 0.7) {
-    return { label: "Consistent", icon: "check", className: "bg-accent-subtle text-moss" };
-  }
-  if (ratio <= 0.3) {
-    return { label: "Inconsistent", icon: "cross", className: "bg-red-500/10 text-red-400" };
-  }
-  return { label: "Gemengd", icon: "mixed", className: "bg-amber-500/10 text-amber-600" };
+  if (ratio >= 0.7) return { label: "Consistent", className: "bg-accent-subtle text-moss" };
+  if (ratio <= 0.3) return { label: "Inconsistent", className: "bg-red-500/10 text-red-400" };
+  return { label: "Gemengd", className: "bg-amber-500/10 text-amber-600" };
 }
 
 // ─── Page ─────────────────────────────────────────────────────
 
 export default async function BelofteDetailPage({ params }: Props) {
-  let promise;
+  let promise: PromiseDetail;
   try {
     promise = await getPromise(params.id);
   } catch {
@@ -185,7 +206,7 @@ export default async function BelofteDetailPage({ params }: Props) {
 
   const p = promise;
   const stats = matchStats(p.motionMatches);
-  const consistency = computeConsistency(p.motionMatches, p.expectedVoteDirection);
+  const badge = statusBadge(p.promiseStatus, p.scoringSummary);
 
   // Fetch same-theme promises from other parties for cross-party comparison
   let crossPartyPromises: PromiseListItem[] = [];
@@ -272,40 +293,34 @@ export default async function BelofteDetailPage({ params }: Props) {
         </blockquote>
       </div>
 
-      {/* ─── CONSISTENCY BADGE ─────────────────────────────────── */}
+      {/* ─── CONSISTENCY BADGE (server-computed) ─────────────────── */}
       {stats.total > 0 && (
         <div className="card px-5 py-4 mb-8 flex items-center gap-3">
-          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${consistency.className}`}>
-            {consistency.icon === "check" && (
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${badge.className}`}>
+            {badge.icon === "check" && (
               <svg width={13} height={13} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             )}
-            {consistency.icon === "cross" && (
+            {badge.icon === "cross" && (
               <svg width={13} height={13} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24">
                 <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             )}
-            {consistency.icon === "mixed" && (
+            {badge.icon === "mixed" && (
               <svg width={13} height={13} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24">
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
             )}
-            {consistency.label}
+            {badge.label}
           </span>
           <div className="flex flex-col gap-0.5">
             <span className="text-[12px] text-text-secondary">
-              {consistency.icon === "check"
-                ? "Het stemgedrag in de Kamer komt overeen met deze belofte."
-                : consistency.icon === "cross"
-                ? "Het stemgedrag in de Kamer wijkt af van deze belofte."
-                : consistency.icon === "mixed"
-                ? "Het stemgedrag in de Kamer is deels in lijn met deze belofte."
-                : "Er zijn onvoldoende stemmingen om de consistentie te bepalen."}
+              {badge.description}
             </span>
             <span className="text-[11px] text-text-tertiary">
-              {consistency.icon === "none"
-                ? `Minder dan 3 moties \u2014 onvoldoende data`
+              {p.scoringSummary
+                ? `${p.scoringSummary.alignedCount} in lijn · ${p.scoringSummary.opposedCount} afwijkend · van ${p.scoringSummary.totalMatches} koppelingen`
                 : `Gebaseerd op ${stats.adopted + stats.rejected} moties`}
             </span>
           </div>
@@ -346,17 +361,18 @@ export default async function BelofteDetailPage({ params }: Props) {
           </summary>
           <div className="mt-3 space-y-2 text-[12px] text-text-secondary leading-relaxed max-w-[68ch]">
             <p>
-              De consistentiebadge vergelijkt het stemgedrag van de Kamer bij gerelateerde moties
+              De consistentiebadge vergelijkt het stemgedrag van {p.program.party.abbreviation} bij gerelateerde moties
               met de verwachte stemrichting van deze belofte ({p.expectedVoteDirection === "VOOR" ? "voor" : "tegen"}).
+              De partijstem wordt bepaald via de stemresultaten van de Tweede Kamer.
             </p>
             <div className="grid grid-cols-3 gap-2 my-2">
               <div className="bg-surface-sub rounded-lg p-2.5 text-center">
-                <div className="text-lg font-serif text-ink">{stats.adopted}</div>
-                <div className="text-[10px] text-text-tertiary uppercase tracking-wider">Aangenomen</div>
+                <div className="text-lg font-serif text-ink">{p.scoringSummary?.alignedCount ?? stats.adopted}</div>
+                <div className="text-[10px] text-text-tertiary uppercase tracking-wider">In lijn</div>
               </div>
               <div className="bg-surface-sub rounded-lg p-2.5 text-center">
-                <div className="text-lg font-serif text-ink">{stats.rejected}</div>
-                <div className="text-[10px] text-text-tertiary uppercase tracking-wider">Verworpen</div>
+                <div className="text-lg font-serif text-ink">{p.scoringSummary?.opposedCount ?? stats.rejected}</div>
+                <div className="text-[10px] text-text-tertiary uppercase tracking-wider">Afwijkend</div>
               </div>
               <div className="bg-surface-sub rounded-lg p-2.5 text-center">
                 <div className="text-lg font-serif text-ink">{stats.noVote}</div>
@@ -372,8 +388,8 @@ export default async function BelofteDetailPage({ params }: Props) {
             </p>
             <p className="text-text-tertiary">
               Moties zonder stemresultaat tellen niet mee. Het matchtype (direct, impliciet, contra)
-              bepaalt of een aangenomen motie als &ldquo;in lijn&rdquo; of &ldquo;afwijkend&rdquo; wordt
-              geteld.{" "}
+              bepaalt of een stem als &ldquo;in lijn&rdquo; of &ldquo;afwijkend&rdquo; wordt
+              geteld. Zwakke matches (&lt;30% betrouwbaarheid) worden overgeslagen.{" "}
               <em>Deze analyse is indicatief, niet definitief.</em>
             </p>
           </div>
@@ -444,7 +460,7 @@ export default async function BelofteDetailPage({ params }: Props) {
         )}
       </div>
 
-      {/* ─── MOTION MATCHES SECTION ──────────────────────────── */}
+      {/* ─── MOTION MATCHES SECTION (with party vote indicators) ── */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-serif text-[22px] font-normal text-ink">
@@ -454,16 +470,7 @@ export default async function BelofteDetailPage({ params }: Props) {
             <div className="flex items-center gap-3 text-[12px] text-text-secondary">
               {stats.adopted > 0 && (
                 <span className="flex items-center gap-1">
-                  <svg
-                    width={11}
-                    height={11}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg width={11} height={11} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                   {stats.adopted} aangenomen
@@ -471,15 +478,7 @@ export default async function BelofteDetailPage({ params }: Props) {
               )}
               {stats.rejected > 0 && (
                 <span className="flex items-center gap-1">
-                  <svg
-                    width={11}
-                    height={11}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg width={11} height={11} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24">
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
@@ -501,6 +500,8 @@ export default async function BelofteDetailPage({ params }: Props) {
           <div className="card overflow-hidden">
             {p.motionMatches.map((match, i) => {
               const vote = match.motion.votes?.[0];
+              const pvd = match.partyVoteDirection;
+              const cons = match.isConsistent;
               return (
                 <Link
                   key={match.id}
@@ -511,6 +512,26 @@ export default async function BelofteDetailPage({ params }: Props) {
                       : ""
                   }`}
                 >
+                  {/* Party vote consistency indicator */}
+                  <div className="flex-shrink-0 w-5 flex items-center justify-center">
+                    {cons === true && (
+                      <svg width={14} height={14} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="text-moss">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                    {cons === false && (
+                      <svg width={14} height={14} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24" className="text-red-400">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    )}
+                    {cons === null && vote && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-border" title="Partijstem onbekend" />
+                    )}
+                    {!vote && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-border-subtle" />
+                    )}
+                  </div>
+
                   <div className="min-w-0 flex-1">
                     <div className="text-[13px] text-ink leading-snug group-hover:text-moss transition-colors">
                       {match.motion.text || match.motion.title}
@@ -532,6 +553,14 @@ export default async function BelofteDetailPage({ params }: Props) {
                       <span className="text-[10px] font-mono text-text-tertiary">
                         {Math.round(match.confidence * 100)}%
                       </span>
+                      {/* Party vote direction badge */}
+                      {pvd && (
+                        <span className={`rounded-full px-1.5 py-0 text-[10px] font-medium ${
+                          pvd === "VOOR" ? "bg-bar-voor/10 text-ink" : "bg-bar-tegen/10 text-text-secondary"
+                        }`}>
+                          {p.program.party.abbreviation} {pvd === "VOOR" ? "voor" : "tegen"}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -630,6 +659,7 @@ export default async function BelofteDetailPage({ params }: Props) {
           <Term definition="De motie valt binnen hetzelfde thema als de belofte, maar er is geen directe tekstuele overeenkomst. Weegt mee met factor 0.5.">impliciet</Term> of{" "}
           <Term definition="De motie druist in tegen de belofte. De voorspelde stemrichting wordt omgekeerd. Weegt mee met factor 1.0.">tegenstrijdig</Term> gerelateerd is. De
           betrouwbaarheidsscore (%) weerspiegelt de sterkte van de match.
+          De partijstem wordt bepaald via de ruwe stemming-data van de Tweede Kamer.
         </p>
         {p.motionMatches.length > 0 && (
           <div className="mt-2 text-[11px] text-text-tertiary font-mono">
@@ -641,4 +671,3 @@ export default async function BelofteDetailPage({ params }: Props) {
     </div>
   );
 }
-

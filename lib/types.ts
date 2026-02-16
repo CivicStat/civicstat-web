@@ -225,6 +225,49 @@ export interface MemberDetail extends MemberListItem {
   voteStats: VoteStats;
 }
 
+// MP Scorecard types
+export interface MpPromiseScore {
+  promiseId: string;
+  promiseCode: string;
+  summary: string;
+  theme: string;
+  expectedDirection: string;
+  totalMotionsWithVotes: number;
+  alignedVotes: number;
+  opposedVotes: number;
+  weightedAligned: number;
+  weightedOpposed: number;
+  noVoteData: number;
+  status: "consistent" | "inconsistent" | "mixed" | "insufficient_data";
+  voteSource: "individual" | "party-level" | "mixed";
+}
+
+export interface MpScorecard {
+  mpId: string;
+  mpName: string;
+  partyId: string;
+  abbreviation: string;
+  electionYear: number;
+  periodStart: string;
+  periodEnd: string;
+  totalPromises: number;
+  scoredPromises: number;
+  insufficientDataPromises: number;
+  consistentCount: number;
+  inconsistentCount: number;
+  mixedCount: number;
+  mandateConsistencyScore: number;
+  byTheme: Record<string, {
+    consistent: number;
+    inconsistent: number;
+    mixed: number;
+    total: number;
+    insufficientData: number;
+  }>;
+  promises?: MpPromiseScore[];
+  note: string;
+}
+
 // Party detail
 export interface PartyDetail {
   id: string;
@@ -256,6 +299,8 @@ export interface PromiseMotionMatch {
   confidence: number;
   rationale: string;
   matchMethod: string;
+  partyVoteDirection?: string | null;
+  isConsistent?: boolean | null;
   motion: {
     id: string;
     tkId: string;
@@ -328,6 +373,13 @@ export interface PromiseDetail {
     passageText: string;
   } | null;
   motionMatches: PromiseMotionMatch[];
+  promiseStatus?: "CONSISTENT" | "MIXED" | "BROKEN" | "UNSCORED";
+  scoringSummary?: {
+    totalMatches: number;
+    scoredMatches: number;
+    alignedCount: number;
+    opposedCount: number;
+  };
 }
 
 // ─── Scorecard types ──────────────────────────────────────
