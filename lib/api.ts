@@ -44,6 +44,7 @@ async function apiFetch<T>(path: string, opts?: RequestInit): Promise<T> {
 export async function getMotions(params?: {
   q?: string;
   status?: string;
+  result?: string;
   party?: string;
   hasVotes?: boolean;
   limit?: number;
@@ -52,6 +53,7 @@ export async function getMotions(params?: {
   const sp = new URLSearchParams();
   if (params?.q) sp.set("q", params.q);
   if (params?.status) sp.set("status", params.status);
+  if (params?.result) sp.set("result", params.result);
   if (params?.party) sp.set("party", params.party);
   if (params?.hasVotes) sp.set("hasVotes", "true");
   if (params?.limit) sp.set("limit", String(params.limit));

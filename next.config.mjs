@@ -24,6 +24,8 @@ const nextConfig = {
       { source: "/partijen/:id", destination: "/nl/tweede-kamer/partijen/:id", permanent: true },
       { source: "/verbinding", destination: "/nl/tweede-kamer/verbinding", permanent: true },
       { source: "/zoeken", destination: "/nl/tweede-kamer/zoeken", permanent: true },
+      // ── Status → Transparantie ──
+      { source: "/status", destination: "/transparantie", permanent: true },
     ];
   },
 };
