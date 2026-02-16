@@ -25,14 +25,21 @@ const SORT_OPTIONS = [
   { value: "thema", label: "Thema" },
 ];
 
+const PERIOD_OPTIONS = [
+  { value: "", label: "Alle periodes" },
+  { value: "2023", label: "TK2023" },
+  { value: "2025", label: "TK2025" },
+];
+
 interface Props {
   currentParty?: string;
   currentTheme?: string;
   currentSort?: string;
+  currentPeriod?: string;
   parties: { abbreviation: string; id: string; seats?: number }[];
 }
 
-export default function BeloftenFilters({ currentParty, currentTheme, currentSort, parties }: Props) {
+export default function BeloftenFilters({ currentParty, currentTheme, currentSort, currentPeriod, parties }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -53,6 +60,23 @@ export default function BeloftenFilters({ currentParty, currentTheme, currentSor
 
   return (
     <div className="flex flex-wrap items-center gap-2 mb-5">
+      {/* Period filter */}
+      <div className="flex rounded-lg border border-border overflow-hidden">
+        {PERIOD_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => navigate("periode", opt.value)}
+            className={`px-3 py-1.5 text-[13px] font-medium transition-colors ${
+              (currentPeriod || "") === opt.value
+                ? "bg-moss text-white"
+                : "bg-surface text-text-secondary hover:bg-surface-sub"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
       {/* Party filter */}
       <select
         value={currentParty || ""}

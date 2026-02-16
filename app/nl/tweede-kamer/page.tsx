@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getMotions, getAllScorecards, getPromiseStats, getPlatformStats } from "../../../lib/api";
+import { getMotions, getAllScorecards, getPromiseStats, getPlatformStats, getInsights } from "../../../lib/api";
 import { formatDate, getPartyColor } from "../../../lib/utils";
 import PartyBadge from "../../../components/PartyBadge";
 import StatusBadge from "../../../components/StatusBadge";
@@ -53,19 +53,18 @@ function ArrowIcon() {
 }
 
 export default async function TKDashboardPage() {
-  const [motionsResult, scorecardsResult, statsResult, platformResult] =
+  const [motionsResult, scorecardsResult, statsResult, platformResult, insightsResult] =
     await Promise.allSettled([
       getMotions({ limit: 8 }),
       getAllScorecards(),
       getPromiseStats(),
       getPlatformStats(),
+      getInsights(),
     ]);
 
   const recentMotions =
     motionsResult.status === "fulfilled"
-      ? motionsResult.value.items
-          .filter((m) => m.vote || (m.votes && m.votes.length > 0))
-          .slice(0, 5)
+      ? motionsResult.value.items.slice(0, 5)
       : null;
   const scorecards =
     scorecardsResult.status === "fulfilled" ? scorecardsResult.value : null;
@@ -73,6 +72,8 @@ export default async function TKDashboardPage() {
     statsResult.status === "fulfilled" ? statsResult.value : null;
   const platform =
     platformResult.status === "fulfilled" ? platformResult.value : null;
+  const insights =
+    insightsResult.status === "fulfilled" ? insightsResult.value : null;
 
   // Quick-access cards
   const quickCards = [
@@ -218,12 +219,16 @@ export default async function TKDashboardPage() {
                         </div>
                       </div>
                       <div className="flex-shrink-0 flex items-center gap-2">
-                        {vote && (
+                        {vote && (vote.totalFor > 0 || vote.totalAgainst > 0) ? (
                           <div className="w-16 hidden sm:block">
                             <VoteBar voor={vote.totalFor} tegen={vote.totalAgainst} height={5} />
                           </div>
+                        ) : null}
+                        {vote?.result ? (
+                          <StatusBadge status={vote.result} size="sm" />
+                        ) : (
+                          <span className="text-[10px] text-text-tertiary whitespace-nowrap">Geen stemming</span>
                         )}
-                        <StatusBadge status={m.status} size="sm" />
                       </div>
                     </Link>
                   );
@@ -253,6 +258,57 @@ export default async function TKDashboardPage() {
                     </div>
                     <div className="text-[10px] text-text-tertiary mt-1">{s.l}</div>
                   </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Inzichten teaser */}
+          {insights && (insights.bedgenoten.length > 0 || insights.scheuren.length > 0) && (
+            <section className="mt-6">
+              <div className="flex items-baseline justify-between mb-3">
+                <div className="section-label">Verborgen patronen</div>
+                <Link
+                  href={routes.tk.inzichten}
+                  className="text-[11px] font-medium text-moss hover:underline inline-flex items-center gap-1"
+                >
+                  Alle inzichten <ArrowIcon />
+                </Link>
+              </div>
+              <div className="space-y-2">
+                {insights.bedgenoten.slice(0, 2).map((pair) => (
+                  <Link
+                    key={`${pair.partyA}-${pair.partyB}`}
+                    href={routes.tk.inzichten}
+                    className="card px-4 py-3 flex items-center gap-3 hover:border-moss/40 transition-colors"
+                  >
+                    <span className="text-[14px]" aria-hidden>🤝</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[12px] font-semibold text-ink">
+                        {pair.partyA} & {pair.partyB}
+                      </div>
+                      <div className="text-[10px] text-text-tertiary">
+                        {pair.agreementPct}% overeenstemming
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+                {insights.scheuren.slice(0, 1).map((s, idx) => (
+                  <Link
+                    key={`scheur-${idx}`}
+                    href={routes.tk.inzichten}
+                    className="card px-4 py-3 flex items-center gap-3 hover:border-moss/40 transition-colors"
+                  >
+                    <span className="text-[14px]" aria-hidden>⚡</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[12px] font-semibold text-ink truncate">
+                        {s.motionTitle}
+                      </div>
+                      <div className="text-[10px] text-text-tertiary">
+                        {s.dissenters.map((d) => d.abbreviation).join(", ")} week af
+                      </div>
+                    </div>
+                  </Link>
                 ))}
               </div>
             </section>

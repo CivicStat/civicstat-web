@@ -111,10 +111,11 @@ export default async function PartijenPage({
             .map((p) => {
               const color = getPartyColor(p.abbreviation, p.colorNeutral);
               return (
-                <div
+                <Link
                   key={p.id}
+                  href={routes.tk.partij(p.abbreviation)}
                   title={`${p.abbreviation}: ${p.seats} ${p.seats === 1 ? "zetel" : "zetels"}`}
-                  className="cursor-pointer transition-opacity hover:opacity-100"
+                  className="block transition-opacity hover:opacity-100"
                   style={{
                     width: `${(p.seats / 150) * 100}%`,
                     backgroundColor: color,
@@ -125,24 +126,24 @@ export default async function PartijenPage({
               );
             })}
         </div>
-        <div className="flex flex-wrap gap-2 mt-3">
+        <div className="flex flex-wrap gap-x-3 gap-y-1.5 mt-3">
           {activeParties
             .sort((a, b) => b.seats - a.seats)
-            .slice(0, 7)
             .map((p) => (
-              <div
+              <Link
                 key={p.id}
-                className="flex items-center gap-1 text-[11px] text-text-secondary"
+                href={routes.tk.partij(p.abbreviation)}
+                className="flex items-center gap-1 text-[11px] text-text-secondary hover:text-ink transition-colors"
               >
                 <span
-                  className="w-2 h-2 rounded-sm"
+                  className="w-2 h-2 rounded-sm flex-shrink-0"
                   style={{
                     backgroundColor: getPartyColor(p.abbreviation, p.colorNeutral),
                     opacity: 0.8,
                   }}
                 />
                 {p.abbreviation} ({p.seats})
-              </div>
+              </Link>
             ))}
         </div>
       </div>
@@ -188,8 +189,8 @@ export default async function PartijenPage({
                       {coalitions.map((c) => (
                         <span
                           key={c.year}
-                          className="text-[8px] px-1.5 py-px rounded-full border border-border text-text-tertiary leading-tight"
-                          title={c.name}
+                          className="text-[8px] px-1.5 py-px rounded-full border border-border text-text-tertiary leading-tight cursor-help"
+                          title={`${c.name} (${c.year}) — ${c.subtitle}\nCoalitiepartijen: ${c.parties.join(", ")}`}
                         >
                           {c.name.replace("Kabinet-", "")}
                         </span>
@@ -272,11 +273,15 @@ export default async function PartijenPage({
                     <div>
                       <div className="flex items-center gap-1.5">
                         <span className="text-[15px] font-semibold text-ink">{p.abbreviation}</span>
-                        {coalitions.length > 0 && (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded-full border border-border text-text-tertiary">
-                            coalitie
+                        {coalitions.map((c) => (
+                          <span
+                            key={c.year}
+                            className="text-[9px] px-1.5 py-0.5 rounded-full border border-border text-text-tertiary cursor-help"
+                            title={`${c.name} (${c.year}) — ${c.subtitle}\nCoalitiepartijen: ${c.parties.join(", ")}`}
+                          >
+                            {c.name.replace("Kabinet-", "")}
                           </span>
-                        )}
+                        ))}
                       </div>
                       <div className="text-[11px] text-text-tertiary truncate max-w-[180px]">
                         {p.name}

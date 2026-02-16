@@ -270,10 +270,12 @@ export default async function MotieDetailPage({ params }: Props) {
                     : ""
                 }`}
               >
-                <PartyBadge
-                  abbreviation={row.abbreviation}
-                  colorNeutral={row.colorNeutral}
-                />
+                <Link href={routes.tk.partij(row.abbreviation)} className="hover:opacity-80 transition-opacity">
+                  <PartyBadge
+                    abbreviation={row.abbreviation}
+                    colorNeutral={row.colorNeutral}
+                  />
+                </Link>
                 <div className="pr-4 hidden sm:block">
                   <VoteBar
                     voor={row.voor}

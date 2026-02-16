@@ -12,6 +12,7 @@ interface Props {
     thema?: string;
     page?: string;
     sort?: string;
+    periode?: string;
   };
 }
 
@@ -89,10 +90,12 @@ export default async function BeloftenPage({ searchParams }: Props) {
   let parties: { abbreviation: string; id: string }[] = [];
 
   try {
+    const yearFilter = searchParams.periode ? parseInt(searchParams.periode) : undefined;
     const [promiseData, partyData] = await Promise.all([
       getPromises({
         party: searchParams.partij,
         theme: searchParams.thema,
+        year: yearFilter,
         limit: PAGE_SIZE,
         offset,
       }),
@@ -147,6 +150,7 @@ export default async function BeloftenPage({ searchParams }: Props) {
         currentParty={searchParams.partij}
         currentTheme={searchParams.thema}
         currentSort={searchParams.sort}
+        currentPeriod={searchParams.periode}
         parties={parties}
       />
 
@@ -167,14 +171,23 @@ export default async function BeloftenPage({ searchParams }: Props) {
               <div className="px-5 pt-4 pb-3">
                 {/* Meta row */}
                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <PartyBadge
-                    abbreviation={promise.program.party.abbreviation}
-                    colorNeutral={promise.program.party.colorNeutral}
-                    size="sm"
-                  />
-                  <span className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-semibold text-text-secondary">
+                  <Link
+                    href={`${routes.tk.beloften}?partij=${encodeURIComponent(promise.program.party.abbreviation)}`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <PartyBadge
+                      abbreviation={promise.program.party.abbreviation}
+                      colorNeutral={promise.program.party.colorNeutral}
+                      size="sm"
+                    />
+                  </Link>
+                  <Link
+                    href={`${routes.tk.beloften}?thema=${encodeURIComponent(promise.theme)}`}
+                    className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-semibold text-text-secondary hover:border-moss/40 hover:text-moss transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     {themeLabel(promise.theme)}
-                  </span>
+                  </Link>
                   <span className="hidden sm:inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
                     {specificityLabel(promise.specificity)}
                   </span>

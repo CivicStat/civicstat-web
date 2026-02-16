@@ -18,9 +18,23 @@ function cellColor(pct: number, isDiagonal: boolean): string {
 
 export default function ConsensusMatrix({ parties, matrix }: Props) {
   const [hovered, setHovered] = useState<{ row: string; col: string } | null>(null);
+  const [selected, setSelected] = useState<{ row: string; col: string } | null>(null);
 
   // Show all parties
   const shown = parties;
+
+  function handleCellClick(row: string, col: string) {
+    if (row === col) return;
+    // Toggle selection
+    if (selected?.row === row && selected?.col === col) {
+      setSelected(null);
+    } else {
+      setSelected({ row, col });
+    }
+  }
+
+  const selectedPct = selected ? (matrix[selected.row]?.[selected.col] ?? 0) : 0;
+  const disagreePct = selected ? 100 - selectedPct : 0;
 
   return (
     <div className="relative">
@@ -54,6 +68,8 @@ export default function ConsensusMatrix({ parties, matrix }: Props) {
                 const isDiag = row === col;
                 const isHovered =
                   hovered?.row === row && hovered?.col === col;
+                const isSelected =
+                  selected?.row === row && selected?.col === col;
 
                 return (
                   <td
@@ -61,22 +77,25 @@ export default function ConsensusMatrix({ parties, matrix }: Props) {
                     className={`relative p-0.5`}
                     onMouseEnter={() => setHovered({ row, col })}
                     onMouseLeave={() => setHovered(null)}
+                    onClick={() => handleCellClick(row, col)}
                   >
                     <div
                       className={`flex items-center justify-center rounded-[4px] h-[32px] min-w-[32px] text-[10px] font-mono transition-all ${cellColor(
                         pct,
                         isDiag
                       )} ${
-                        isHovered && !isDiag
-                          ? "ring-2 ring-moss/40 scale-110 z-10"
-                          : ""
-                      } ${isDiag ? "text-text-tertiary" : "text-ink"}`}
+                        isSelected
+                          ? "ring-2 ring-moss scale-110 z-20"
+                          : isHovered && !isDiag
+                            ? "ring-2 ring-moss/40 scale-110 z-10"
+                            : ""
+                      } ${isDiag ? "text-text-tertiary" : "text-ink cursor-pointer"}`}
                     >
                       {isDiag ? "—" : `${pct}`}
                     </div>
 
                     {/* Tooltip */}
-                    {isHovered && !isDiag && (
+                    {isHovered && !isDiag && !isSelected && (
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 rounded-lg bg-surface border border-border shadow-md z-50 whitespace-nowrap pointer-events-none">
                         <div className="text-[11px] font-semibold text-ink">
                           {row} &amp; {col}
@@ -115,6 +134,56 @@ export default function ConsensusMatrix({ parties, matrix }: Props) {
           </div>
         ))}
       </div>
+
+      {/* ─── Selected cell detail panel ────────────────────────── */}
+      {selected && (
+        <div className="mt-5 p-5 rounded-xl border border-moss/30 bg-surface">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <span className="text-[15px] font-serif text-ink">{selected.row}</span>
+              <span className="text-text-tertiary text-[13px]">&amp;</span>
+              <span className="text-[15px] font-serif text-ink">{selected.col}</span>
+            </div>
+            <button
+              onClick={() => setSelected(null)}
+              className="text-text-tertiary hover:text-ink transition-colors p-1"
+              aria-label="Sluiten"
+            >
+              <svg width={16} height={16} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <div className="text-[11px] text-text-tertiary mb-1">Stemmen hetzelfde</div>
+              <div className="text-[28px] font-serif text-ink leading-none">{selectedPct}%</div>
+            </div>
+            <div>
+              <div className="text-[11px] text-text-tertiary mb-1">Stemmen anders</div>
+              <div className="text-[28px] font-serif text-text-secondary leading-none">{disagreePct}%</div>
+            </div>
+          </div>
+
+          {/* Visual bar */}
+          <div className="flex h-3 rounded-full overflow-hidden gap-px">
+            <div
+              className="bg-moss/30 dark:bg-moss/25 transition-all"
+              style={{ width: `${selectedPct}%` }}
+            />
+            <div
+              className="bg-ink/10 dark:bg-ink/15 transition-all"
+              style={{ width: `${disagreePct}%` }}
+            />
+          </div>
+
+          <p className="text-[12px] text-text-tertiary mt-3">
+            Van alle stemmingen waar zowel {selected.row} als {selected.col} deelnam,
+            stemden zij in {selectedPct}% van de gevallen hetzelfde (beiden voor of beiden tegen).
+          </p>
+        </div>
+      )}
     </div>
   );
 }

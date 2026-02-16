@@ -15,11 +15,11 @@ const tkNavItems = [
   { href: routes.tk.kamerleden, label: "Kamerleden" },
   { href: routes.tk.partijen, label: "Partijen" },
   { href: routes.tk.verbinding, label: "Verbinding" },
+  { href: routes.tk.inzichten, label: "Inzichten" },
 ];
 
 const globalItems = [
   { href: routes.transparantie, label: "Transparantie" },
-  { href: routes.status, label: "Status" },
 ];
 
 /* Mobile bottom bar items */

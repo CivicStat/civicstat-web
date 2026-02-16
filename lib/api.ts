@@ -146,6 +146,7 @@ export async function getPromises(params?: {
   q?: string;
   party?: string;
   theme?: string;
+  year?: number;
   limit?: number;
   offset?: number;
 }): Promise<PromiseListResponse> {
@@ -153,6 +154,7 @@ export async function getPromises(params?: {
   if (params?.q) sp.set("q", params.q);
   if (params?.party) sp.set("party", params.party);
   if (params?.theme) sp.set("theme", params.theme);
+  if (params?.year) sp.set("year", String(params.year));
   if (params?.limit) sp.set("limit", String(params.limit));
   if (params?.offset) sp.set("offset", String(params.offset));
 
@@ -269,6 +271,16 @@ export async function getLangfuseTraces(params?: {
     return await apiFetch<import("./types").LangfuseTracesResponse>(
       `/langfuse/traces${qs ? `?${qs}` : ""}`,
     );
+  } catch {
+    return null;
+  }
+}
+
+// ─── Inzichten (Insights) ──────────────────────────────────
+
+export async function getInsights(): Promise<import("./types").InsightsResponse | null> {
+  try {
+    return await apiFetch<import("./types").InsightsResponse>("/insights");
   } catch {
     return null;
   }

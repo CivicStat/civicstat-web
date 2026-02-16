@@ -24,6 +24,7 @@ export const routes = {
     partijen: `${TK}/partijen`,
     partij: (id: string) => `${TK}/partijen/${encodeURIComponent(id)}`,
     verbinding: `${TK}/verbinding`,
+    inzichten: `${TK}/inzichten`,
     zoeken: `${TK}/zoeken`,
   },
 

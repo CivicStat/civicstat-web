@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { getParty, getPartyScorecard, getScorecardYears, getKoersvastheid, getRegeerakkoordScorecard, getCoalitieverwatering } from "../../../../../lib/api";
-import type { PartyScorecard, KoersvastheidResponse, PromiseScore, CoalitieverwateringResponse } from "../../../../../lib/types";
+import { getParty, getParties, getPartyScorecard, getScorecardYears, getKoersvastheid, getRegeerakkoordScorecard, getCoalitieverwatering } from "../../../../../lib/api";
+import type { PartyScorecard, KoersvastheidResponse, CoalitieverwateringResponse } from "../../../../../lib/types";
 import { getPartyColor } from "../../../../../lib/utils";
 import VoteBar from "../../../../../components/VoteBar";
 import { routes } from "../../../../../lib/routes";
@@ -14,6 +14,7 @@ import { getCoalitionsForParty, COALITIONS } from "../../../../../lib/coalitions
 import type { Coalition } from "../../../../../lib/coalitions";
 import PartyBadge from "../../../../../components/PartyBadge";
 import ConfidenceBadge from "../../../../../components/ConfidenceBadge";
+import PromiseSearchList from "../../../../../components/PromiseSearchList";
 import { getScoreConfidence } from "../../../../../lib/scoring";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
@@ -90,6 +91,21 @@ export default async function PartyDetailPage({
     );
   }
 
+  // Fetch all parties for prev/next navigation
+  let allParties: { abbreviation: string; id: string; seats: number }[] = [];
+  try {
+    const pList = await getParties();
+    allParties = pList
+      .filter((p) => p.seats > 0)
+      .sort((a, b) => b.seats - a.seats);
+  } catch {}
+
+  const currentIdx = allParties.findIndex(
+    (p) => p.abbreviation.toLowerCase() === params.id.toLowerCase() || p.id === params.id
+  );
+  const prevParty = currentIdx > 0 ? allParties[currentIdx - 1] : null;
+  const nextParty = currentIdx >= 0 && currentIdx < allParties.length - 1 ? allParties[currentIdx + 1] : null;
+
   const color = getPartyColor(party.abbreviation, party.colorNeutral);
   const seats = party.seats ?? 0;
   const activeMps = party.mps?.filter((m: any) => !m.endDate) || [];
@@ -97,11 +113,41 @@ export default async function PartyDetailPage({
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
-      {/* Back link */}
-      <Link href={routes.tk.partijen} className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink mb-6">
-        <svg width={15} height={15} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
-        Terug naar partijen
-      </Link>
+      {/* Back link + prev/next */}
+      <div className="flex items-center justify-between mb-6">
+        <Link href={routes.tk.partijen} className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink">
+          <svg width={15} height={15} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+          Terug naar partijen
+        </Link>
+        <div className="flex items-center gap-2">
+          {prevParty ? (
+            <Link
+              href={routes.tk.partij(prevParty.abbreviation)}
+              className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-surface-sub transition-colors"
+            >
+              <svg width={14} height={14} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
+              {prevParty.abbreviation}
+            </Link>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-lg border border-border/50 px-3 py-1.5 text-[12px] text-text-tertiary opacity-40">
+              <svg width={14} height={14} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
+            </span>
+          )}
+          {nextParty ? (
+            <Link
+              href={routes.tk.partij(nextParty.abbreviation)}
+              className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-surface-sub transition-colors"
+            >
+              {nextParty.abbreviation}
+              <svg width={14} height={14} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
+            </Link>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-lg border border-border/50 px-3 py-1.5 text-[12px] text-text-tertiary opacity-40">
+              <svg width={14} height={14} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* Header */}
       <div className="flex items-start gap-4 mb-8">
@@ -352,38 +398,9 @@ export default async function PartyDetailPage({
               </div>
             )}
 
-            {/* Promise list */}
+            {/* Promise list — searchable */}
             {scorecard.promises && scorecard.promises.length > 0 && (
-              <div className="border-t border-border pt-4">
-                <div className="section-label mb-3">Individuele beloften</div>
-                <div className="space-y-1">
-                  {scorecard.promises.map((ps) => (
-                    <Link
-                      key={ps.promiseId}
-                      href={routes.tk.belofte(ps.promiseCode)}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-surface-sub/60 transition-colors"
-                    >
-                      <span className="text-sm shrink-0">{statusIcon(ps.status)}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[13px] text-ink truncate">{ps.summary}</div>
-                        <div className="flex items-center gap-2 text-[11px] text-text-tertiary mt-0.5">
-                          <span className="font-mono">{ps.promiseCode}</span>
-                          <span>·</span>
-                          <span>{themeLabel(ps.theme)}</span>
-                        </div>
-                      </div>
-                      {ps.totalMotionsWithVotes > 0 && (
-                        <span className="text-[11px] text-text-tertiary shrink-0">
-                          {ps.alignedVotes}/{ps.totalMotionsWithVotes}
-                        </span>
-                      )}
-                      <span className={`text-[10px] rounded-full px-2 py-0.5 border shrink-0 ${statusBadgeClass(ps.status)}`}>
-                        {statusLabel(ps.status)}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
+              <PromiseSearchList promises={scorecard.promises} />
             )}
 
             {/* Methodology */}
@@ -682,29 +699,3 @@ function themeLabel(theme: string): string {
   return map[theme] || theme;
 }
 
-function statusIcon(status: PromiseScore["status"]): string {
-  switch (status) {
-    case "consistent": return "●";
-    case "mixed": return "◐";
-    case "inconsistent": return "○";
-    default: return "·";
-  }
-}
-
-function statusLabel(status: PromiseScore["status"]): string {
-  switch (status) {
-    case "consistent": return "Consistent";
-    case "mixed": return "Wisselend";
-    case "inconsistent": return "Afwijkend";
-    default: return "Onvoldoende data";
-  }
-}
-
-function statusBadgeClass(status: PromiseScore["status"]): string {
-  switch (status) {
-    case "consistent": return "text-ink border-ink/20 bg-ink/5";
-    case "mixed": return "text-text-secondary border-border bg-surface-sub";
-    case "inconsistent": return "text-text-tertiary border-border bg-surface-sub/50";
-    default: return "text-text-tertiary border-border-subtle bg-transparent";
-  }
-}

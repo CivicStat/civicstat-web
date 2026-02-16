@@ -1,32 +1,15 @@
 import Link from "next/link";
-import { getMotions, getAllScorecards, getPromiseStats } from "../lib/api";
-import { formatDate, getPartyColor } from "../lib/utils";
-import PartyBadge from "../components/PartyBadge";
-import StatusBadge from "../components/StatusBadge";
-import VoteBar from "../components/VoteBar";
+import { getPlatformStats, getInsights } from "../lib/api";
 import SearchBar from "../components/SearchBar";
-import PartyAvatar from "../components/PartyAvatar";
 import { routes } from "../lib/routes";
 
 export const revalidate = 3600; // ISR: re-generate at most every hour
 
 export default async function HomePage() {
-  let recentMotions;
-  let scorecards;
-  const [motionsResult, scorecardsResult, statsResult] = await Promise.allSettled([
-    getMotions({ limit: 20 }),
-    getAllScorecards(),
-    getPromiseStats(),
+  const [stats, insights] = await Promise.all([
+    getPlatformStats().catch(() => null),
+    getInsights().catch(() => null),
   ]);
-  recentMotions =
-    motionsResult.status === "fulfilled"
-      ? motionsResult.value.items
-          .filter((m) => m.vote || (m.votes && m.votes.length > 0))
-          .slice(0, 5)
-      : null;
-  scorecards =
-    scorecardsResult.status === "fulfilled" ? scorecardsResult.value : null;
-  const promiseStats = statsResult.status === "fulfilled" ? statsResult.value : null;
 
   return (
     <div>
@@ -46,7 +29,7 @@ export default async function HomePage() {
             Onafhankelijke transparantie over politiek handelen
           </p>
           <h1 className="font-serif text-[clamp(30px,5vw,48px)] font-normal text-ink leading-[1.18] tracking-tight max-w-[640px] mb-5">
-            Wat beloven partijen vóór verkiezingen — en hoe stemmen zij{" "}
+            Wat beloven partijen v&oacute;&oacute;r verkiezingen — en hoe stemmen zij{" "}
             <span className="italic">daarna?</span>
           </h1>
           <p className="text-base leading-relaxed text-text-secondary max-w-[500px] mb-8">
@@ -56,16 +39,16 @@ export default async function HomePage() {
           </p>
           <div className="flex gap-2.5 flex-wrap mb-8">
             <Link
-              href={routes.tk.partijen}
+              href={routes.tk.root}
               className="inline-flex items-center gap-2 rounded-[9px] bg-moss px-5 py-2.5 text-sm font-medium text-white hover:bg-moss-hover transition-colors"
             >
-              Bekijk partijen
+              Bekijk Tweede Kamer
             </Link>
             <Link
-              href={routes.tk.moties}
+              href={routes.transparantie}
               className="inline-flex items-center gap-2 rounded-[9px] border border-border px-5 py-2.5 text-sm font-medium text-text-secondary hover:bg-surface-sub transition-colors"
             >
-              Vergelijk stemgedrag
+              Over onze methode
             </Link>
           </div>
           <SearchBar />
@@ -73,26 +56,26 @@ export default async function HomePage() {
       </div>
 
       {/* Platform stats banner */}
-      {promiseStats && (
+      {stats && (
         <div className="border-b border-border-subtle">
           <div className="mx-auto max-w-[1200px] px-6 py-5">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-serif text-ink">{promiseStats.totalPromises.toLocaleString("nl-NL")}</div>
+              <Link href={routes.tk.beloften} className="text-center group">
+                <div className="text-2xl font-serif text-ink group-hover:text-moss transition-colors">{stats.promises.toLocaleString("nl-NL")}</div>
                 <div className="text-[11px] text-text-tertiary mt-0.5">Beloften geanalyseerd</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-serif text-ink">{promiseStats.totalMatches.toLocaleString("nl-NL")}</div>
-                <div className="text-[11px] text-text-tertiary mt-0.5">Belofte-motie koppelingen</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-serif text-ink">{promiseStats.byParty.length}</div>
+              </Link>
+              <Link href={routes.tk.moties} className="text-center group">
+                <div className="text-2xl font-serif text-ink group-hover:text-moss transition-colors">{stats.motions.toLocaleString("nl-NL")}</div>
+                <div className="text-[11px] text-text-tertiary mt-0.5">Moties verwerkt</div>
+              </Link>
+              <Link href={routes.tk.partijen} className="text-center group">
+                <div className="text-2xl font-serif text-ink group-hover:text-moss transition-colors">{stats.parties}</div>
                 <div className="text-[11px] text-text-tertiary mt-0.5">Partijen</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-serif text-ink">{promiseStats.byTheme.length}</div>
-                <div className="text-[11px] text-text-tertiary mt-0.5">Thema&apos;s</div>
-              </div>
+              </Link>
+              <Link href={routes.tk.kamerleden} className="text-center group">
+                <div className="text-2xl font-serif text-ink group-hover:text-moss transition-colors">{stats.members}</div>
+                <div className="text-[11px] text-text-tertiary mt-0.5">Kamerleden</div>
+              </Link>
             </div>
           </div>
         </div>
@@ -120,159 +103,177 @@ export default async function HomePage() {
           </p>
         </section>
 
-        {/* Features */}
+        {/* Features — now clickable */}
         <section className="py-12 border-b border-border-subtle">
           <div className="section-label">Wat CivicStat laat zien</div>
           <div className="grid gap-4 sm:grid-cols-3 mt-4">
             {[
               {
-                title: "Belofte → Stemgedrag",
+                title: "Belofte \u2192 Stemgedrag",
                 desc: "Per partij, per thema: wat is beloofd? Wat is gesteund, verworpen of genegeerd?",
+                href: routes.tk.beloften,
               },
               {
                 title: "Scores zonder oordeel",
                 desc: "Consistentiescores, afwijkingspercentages en stemfrequenties. Geen moreel oordeel.",
+                href: routes.tk.partijen,
               },
               {
                 title: "Individuele volksvertegenwoordigers",
                 desc: "Niet alleen partijen, maar ook individuele Kamerleden. Wie stemt consequent?",
+                href: routes.tk.kamerleden,
               },
-            ].map((f, i) => (
-              <div key={i} className="card p-6">
-                <h3 className="font-serif text-lg text-ink mb-2">
+            ].map((f) => (
+              <Link key={f.title} href={f.href} className="card p-6 group hover:border-moss/40 transition-colors">
+                <h3 className="font-serif text-lg text-ink mb-2 group-hover:text-moss transition-colors">
                   {f.title}
                 </h3>
                 <p className="text-sm leading-relaxed text-text-secondary">
                   {f.desc}
                 </p>
-              </div>
+                <span className="inline-block mt-3 text-[13px] font-medium text-moss opacity-0 group-hover:opacity-100 transition-opacity">
+                  Bekijk &rarr;
+                </span>
+              </Link>
             ))}
           </div>
         </section>
 
-        {/* Belofteconsistentie teaser */}
-        {scorecards && scorecards.length > 0 && (
-          <section className="py-12 border-b border-border-subtle">
-            <div className="flex items-baseline justify-between mb-5">
-              <div>
-                <div className="section-label">Belofteconsistentie</div>
-                <h2 className="font-serif text-[22px] font-normal text-ink mt-1.5">
-                  Hoe consistent zijn partijen?
-                </h2>
+        {/* Beschikbare analyses */}
+        <section className="py-12 border-b border-border-subtle">
+          <h2 className="font-serif text-[clamp(22px,3vw,28px)] font-normal text-ink mb-6">
+            Beschikbare analyses
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Active: Tweede Kamer */}
+            <Link href={routes.tk.root} className="block p-6 rounded-xl border border-border bg-card hover:border-moss/30 transition-colors group">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-2xl" aria-hidden>&#x1F1F3;&#x1F1F1;</span>
+                <h3 className="font-serif text-xl group-hover:text-moss transition-colors">Tweede Kamer</h3>
               </div>
-              <Link
-                href={routes.tk.partijen}
-                className="text-[13px] font-medium text-moss hover:underline"
-              >
-                Alle partijen →
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {scorecards
-                .sort((a, b) => b.mandateConsistencyScore - a.mandateConsistencyScore)
-                .map((sc) => {
-                  const color = getPartyColor(sc.abbreviation);
-                  return (
-                    <Link
-                      key={sc.partyId}
-                      href={routes.tk.partij(sc.partyId)}
-                      className="card p-4 hover:border-moss/40 transition-colors"
-                    >
-                      <div className="flex items-center gap-3 mb-3">
-                        <PartyAvatar abbreviation={sc.abbreviation} color={color} size="sm" />
-                        <div className="min-w-0">
-                          <div className="text-[13px] font-semibold text-ink">{sc.abbreviation}</div>
-                          <div className="text-[11px] text-text-tertiary">{sc.scoredPromises} beloften</div>
-                        </div>
-                      </div>
-                      <div className="flex items-end gap-2">
-                        <div className="text-[28px] font-serif text-ink leading-none">{sc.mandateConsistencyScore}</div>
-                        <div className="text-[10px] text-text-tertiary mb-1">van 100</div>
-                      </div>
-                      <div className="flex h-1.5 rounded-full overflow-hidden gap-px mt-2">
-                        {sc.consistentCount > 0 && <div className="bg-ink/25" style={{ flex: sc.consistentCount }} />}
-                        {sc.mixedCount > 0 && <div className="bg-ink/10" style={{ flex: sc.mixedCount }} />}
-                        {sc.inconsistentCount > 0 && <div className="bg-ink/4" style={{ flex: sc.inconsistentCount }} />}
-                      </div>
-                    </Link>
-                  );
-                })}
-            </div>
-          </section>
-        )}
-      </div>
+              <p className="text-sm text-text-secondary mb-3">150 zetels &middot; {stats?.parties ?? 16} partijen</p>
+              {stats && (
+                <p className="text-sm text-text-secondary">
+                  {stats.motions.toLocaleString("nl-NL")} moties &middot; {stats.promises.toLocaleString("nl-NL")} beloften &middot; {stats.matches.toLocaleString("nl-NL")} koppelingen
+                </p>
+              )}
+              <span className="inline-block mt-4 text-sm text-moss font-medium">
+                Bekijk dashboard &rarr;
+              </span>
+            </Link>
 
-      {/* Recent motions */}
-      <div className="bg-surface-sub border-t border-border mt-12 px-6 py-12 pb-24">
-        <div className="mx-auto max-w-[1200px]">
-          <div className="flex items-baseline justify-between mb-4 flex-wrap gap-2">
-            <h2 className="font-serif text-[22px] font-normal text-ink">
-              Laatste stemmingen
-            </h2>
+            {/* Coming soon */}
+            <div className="p-6 rounded-xl border border-dashed border-border/60 opacity-60">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl" aria-hidden>&#x1F1F3;&#x1F1F1;</span>
+                  <span className="text-text-secondary">Eerste Kamer</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-surface-sub text-text-tertiary">binnenkort</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl" aria-hidden>&#x1F1EA;&#x1F1FA;</span>
+                  <span className="text-text-secondary">Europees Parlement</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-surface-sub text-text-tertiary">binnenkort</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Verborgen patronen — teaser from insights */}
+        <section className="py-12 pb-24">
+          <div className="flex items-baseline justify-between mb-6">
+            <div>
+              <h2 className="font-serif text-[clamp(22px,3vw,28px)] font-normal text-ink mb-2">
+                Verborgen patronen
+              </h2>
+              <p className="text-text-secondary">
+                CivicStat ontdekt automatisch verrassende stempatronen.
+              </p>
+            </div>
             <Link
-              href={routes.tk.moties}
-              className="text-[13px] font-medium text-moss hover:text-moss-hover transition-colors inline-flex items-center gap-1"
+              href={routes.tk.inzichten}
+              className="text-[12px] font-medium text-moss hover:underline hidden sm:inline-flex items-center gap-1"
             >
-              Alle moties →
+              Alle inzichten →
             </Link>
           </div>
 
-          {recentMotions ? (
-            <div className="card overflow-hidden">
-              {recentMotions.map((m, i) => {
-                const vote = m.vote || m.votes?.[0];
-                const party = m.sponsors?.[0]?.mp?.party;
+          {insights && (insights.bedgenoten.length > 0 || insights.scheuren.length > 0 || insights.consensus.length > 0) ? (
+            <div className="grid sm:grid-cols-3 gap-3">
+              {/* Teaser: top unlikely bedfellow */}
+              {insights.bedgenoten[0] && (
+                <Link
+                  href={routes.tk.inzichten}
+                  className="card p-5 group hover:border-moss/40 transition-colors"
+                >
+                  <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-wider mb-2">
+                    🤝 Bondgenoten
+                  </div>
+                  <div className="text-[18px] font-serif text-ink leading-tight mb-1">
+                    {insights.bedgenoten[0].partyA} &amp; {insights.bedgenoten[0].partyB}
+                  </div>
+                  <p className="text-[12px] text-text-secondary">
+                    Stemmen in {insights.bedgenoten[0].agreementPct}% van de gevallen hetzelfde
+                  </p>
+                </Link>
+              )}
 
-                return (
-                  <Link
-                    key={m.id}
-                    href={routes.tk.motie(m.id)}
-                    className={`flex items-center gap-4 px-5 py-3.5 table-row-hover ${
-                      i < recentMotions.length - 1
-                        ? "border-b border-border-subtle"
-                        : ""
-                    }`}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-ink truncate">
-                        {m.title}
-                      </div>
-                      <div className="mt-1 flex items-center gap-2 text-xs text-text-tertiary">
-                        <span>{formatDate(m.dateIntroduced)}</span>
-                        {party && (
-                          <>
-                            <span>·</span>
-                            <PartyBadge
-                              abbreviation={party.abbreviation}
-                              colorNeutral={party.colorNeutral}
-                              size="sm"
-                            />
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex-shrink-0 flex items-center gap-3">
-                      {vote && (
-                        <div className="w-20 hidden sm:block">
-                          <VoteBar
-                            voor={vote.totalFor}
-                            tegen={vote.totalAgainst}
-                            height={6}
-                          />
-                        </div>
-                      )}
-                      <StatusBadge status={m.status} size="sm" />
-                    </div>
-                  </Link>
-                );
-              })}
+              {/* Teaser: latest coalition crack */}
+              {insights.scheuren[0] && (
+                <Link
+                  href={routes.tk.inzichten}
+                  className="card p-5 group hover:border-moss/40 transition-colors"
+                >
+                  <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-wider mb-2">
+                    ⚡ Coalitiescheur
+                  </div>
+                  <div className="text-[14px] font-medium text-ink leading-snug mb-1 line-clamp-2">
+                    {insights.scheuren[0].motionTitle}
+                  </div>
+                  <p className="text-[12px] text-text-secondary">
+                    {insights.scheuren[0].dissenters.map((d) => d.abbreviation).join(", ")}{" "}
+                    stemde{insights.scheuren[0].dissenters.length === 1 ? "" : "n"} anders
+                  </p>
+                </Link>
+              )}
+
+              {/* Teaser: top consensus motion */}
+              {insights.consensus[0] && (
+                <Link
+                  href={routes.tk.inzichten}
+                  className="card p-5 group hover:border-moss/40 transition-colors"
+                >
+                  <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-wider mb-2">
+                    🕊️ Consensus
+                  </div>
+                  <div className="text-[18px] font-serif text-ink leading-tight mb-1">
+                    {insights.consensus[0].unanimousPct}%
+                  </div>
+                  <p className="text-[12px] text-text-secondary line-clamp-2">
+                    {insights.consensus[0].title}
+                  </p>
+                </Link>
+              )}
             </div>
           ) : (
-            <div className="card p-6 text-sm text-text-tertiary">
-              Kon de laatste stemmingen niet laden.
+            <div className="p-6 rounded-xl border border-border bg-card">
+              <p className="text-sm text-text-tertiary">
+                Bekijk hoe partijen stemmen.{" "}
+                <Link href={routes.tk.verbinding} className="text-moss hover:underline">
+                  Consensusmatrix →
+                </Link>
+              </p>
             </div>
           )}
-        </div>
+
+          <Link
+            href={routes.tk.inzichten}
+            className="sm:hidden mt-3 inline-flex items-center gap-1 text-[12px] font-medium text-moss hover:underline"
+          >
+            Alle inzichten →
+          </Link>
+        </section>
       </div>
     </div>
   );

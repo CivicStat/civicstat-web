@@ -462,6 +462,54 @@ export interface LangfuseTracesResponse {
   limit: number;
 }
 
+// ─── Inzichten (Insights) ──────────────────────────────────
+
+export interface BedgenotenPair {
+  partyA: string;
+  partyB: string;
+  agreementPct: number;
+  sharedVotes: number;
+  exampleMotion: { id: string; title: string; date: string } | null;
+  note: string;
+}
+
+export interface CoalitieScheur {
+  motionId: string;
+  motionTitle: string;
+  date: string;
+  coalitionName: string;
+  dissenters: { abbreviation: string; vote: string }[];
+  loyalists: { abbreviation: string; vote: string }[];
+  note: string;
+}
+
+export interface StijgerDaler {
+  partyId: string;
+  abbreviation: string;
+  mcs2023: number;
+  mcs2025: number;
+  delta: number;
+  note: string;
+}
+
+export interface StilleConsensusMotion {
+  motionId: string;
+  title: string;
+  date: string;
+  result: string;
+  unanimousPct: number;
+  totalParties: number;
+  note: string;
+}
+
+export interface InsightsResponse {
+  bedgenoten: BedgenotenPair[];
+  scheuren: CoalitieScheur[];
+  beweging: StijgerDaler[];
+  consensus: StilleConsensusMotion[];
+  generatedAt: string;
+}
+
 // ─── Coalitieverwatering ────────────────────────────────────
 export interface CoalitieverwateringResponse {
   partyId: string;
