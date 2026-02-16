@@ -40,11 +40,13 @@ export interface MotionListItem {
   status: string;
   statusDetail?: string | null;
   soort?: string | null;
+  result?: string | null;
   sourceUrl: string;
   sponsors: SponsorRef[];
   votes: VoteSummary[];
   // Legacy: single vote (API may return this or votes array)
   vote?: VoteSummary | null;
+  hasPromiseMatches?: boolean;
 }
 
 export interface MotionListResponse {
@@ -113,31 +115,51 @@ export interface MotionPromiseMatch {
   };
 }
 
-// Vote prediction types
+// Vote prediction types (on-the-fly computation from promise matches)
 export interface PartyPredictionItem {
-  id: string;
   partyId: string;
-  predictedVote: "FOR" | "AGAINST" | "UNKNOWN";
+  abbreviation: string;
+  name: string;
+  seats: number;
+  predictedDirection: "FOR" | "AGAINST" | "UNKNOWN";
   confidence: number;
-  rationale: string | null;
-  party: {
-    id: string;
-    abbreviation: string;
-    colorNeutral: string | null;
-  };
+  matchCount: number;
+  explicitCount: number;
 }
 
+export interface MotionPrediction {
+  motionId: string;
+  predictedVoor: number;
+  predictedTegen: number;
+  predictedOnbekend: number;
+  reliability: number;
+  partyPredictions: PartyPredictionItem[];
+  algorithm: string;
+}
+
+/** @deprecated Legacy stored prediction type — kept for backwards compat */
 export interface VotePrediction {
   id: string;
   motionId: string;
   algorithmVersion: string;
-  partyPredictions: PartyPredictionItem[];
+  partyPredictions: {
+    id: string;
+    partyId: string;
+    predictedVote: "FOR" | "AGAINST" | "UNKNOWN";
+    confidence: number;
+    rationale: string | null;
+    party: {
+      id: string;
+      abbreviation: string;
+      colorNeutral: string | null;
+    };
+  }[];
 }
 
 export interface MotionDetail extends MotionListItem {
   vote: VoteDetail | null;
   promiseMatches?: MotionPromiseMatch[];
-  prediction?: VotePrediction | null;
+  prediction?: MotionPrediction | null;
 }
 
 // Party types
