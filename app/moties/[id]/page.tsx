@@ -311,12 +311,40 @@ export default async function MotieDetailPage({ params }: Props) {
       )}
 
       {/* ─── PREDICTION SECTION ──────────────────────────────── */}
-      {prediction && prediction.partyPredictions.length > 0 && (
+      {prediction && prediction.partyPredictions.length > 0 ? (
         <PredictionSection
           prediction={prediction}
           vote={vote}
           partyAggregates={partyAggregates}
         />
+      ) : (
+        <div className="mb-8">
+          <h2 className="font-serif text-[22px] font-normal text-ink mb-3">
+            Verwachte uitkomst
+          </h2>
+          <div className="card px-5 py-4 bg-surface-sub/50 border-dashed">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex-shrink-0">
+                <svg width={18} height={18} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="text-text-tertiary">
+                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm text-text-secondary leading-relaxed">
+                  <span className="font-semibold text-ink">Geen voorspelling beschikbaar</span>{" "}
+                  — er zijn (nog) geen beloften uit verkiezingsprogramma&apos;s gevonden die direct aansluiten bij deze motie.
+                </p>
+                <p className="text-[13px] text-text-tertiary mt-1.5 leading-relaxed">
+                  Onze AI koppelt verkiezingsbeloften aan moties via{" "}
+                  <Link href="/transparantie#methodologie" className="text-moss hover:underline underline-offset-2">
+                    semantische matching
+                  </Link>
+                  . Niet elke motie is te koppelen aan een verkiezingsbelofte — veel moties zijn procedureel, technisch of gaan over onderwerpen die partijen niet expliciet in hun programma benoemen.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Individual MP votes (Hoofdelijk only) */}

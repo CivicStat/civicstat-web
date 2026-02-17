@@ -8,19 +8,21 @@ interface Props {
   currentQ?: string;
   currentSort?: string;
   currentHasVotes?: boolean;
+  currentHasPredictions?: boolean;
 }
 
-export default function MotiesFilters({ currentStatus, currentQ, currentSort, currentHasVotes }: Props) {
+export default function MotiesFilters({ currentStatus, currentQ, currentSort, currentHasVotes, currentHasPredictions }: Props) {
   const router = useRouter();
   const [q, setQ] = useState(currentQ ?? "");
   const [isPending, startTransition] = useTransition();
 
-  function navigate(params: { status?: string; q?: string; sort?: string; hasVotes?: boolean }) {
+  function navigate(params: { status?: string; q?: string; sort?: string; hasVotes?: boolean; hasPredictions?: boolean }) {
     const sp = new URLSearchParams();
     if (params.status) sp.set("status", params.status);
     if (params.q) sp.set("q", params.q);
     if (params.sort) sp.set("sort", params.sort);
     if (params.hasVotes === false) sp.set("hasVotes", "false");
+    if (params.hasPredictions) sp.set("hasPredictions", "true");
     startTransition(() => {
       router.push(`/moties${sp.toString() ? `?${sp.toString()}` : ""}` as any);
     });
@@ -28,7 +30,7 @@ export default function MotiesFilters({ currentStatus, currentQ, currentSort, cu
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    navigate({ status: currentStatus, q: q || undefined, sort: currentSort, hasVotes: currentHasVotes });
+    navigate({ status: currentStatus, q: q || undefined, sort: currentSort, hasVotes: currentHasVotes, hasPredictions: currentHasPredictions });
   }
 
   return (
@@ -44,7 +46,7 @@ export default function MotiesFilters({ currentStatus, currentQ, currentSort, cu
           return (
             <button
               key={f.label}
-              onClick={() => navigate({ status: f.value, q: currentQ, sort: currentSort, hasVotes: currentHasVotes })}
+              onClick={() => navigate({ status: f.value, q: currentQ, sort: currentSort, hasVotes: currentHasVotes, hasPredictions: currentHasPredictions })}
               className={`rounded-lg px-3.5 py-1.5 text-[13px] font-medium border transition-colors ${
                 active
                   ? "border-moss bg-accent-subtle text-moss"
@@ -74,7 +76,7 @@ export default function MotiesFilters({ currentStatus, currentQ, currentSort, cu
         </button>
       </form>
 
-      {/* Voted toggle */}
+      {/* Toggle filters */}
       <div className="flex gap-1.5">
         <button
           onClick={() =>
@@ -83,6 +85,7 @@ export default function MotiesFilters({ currentStatus, currentQ, currentSort, cu
               q: currentQ,
               sort: currentSort,
               hasVotes: currentHasVotes ? false : undefined,
+              hasPredictions: currentHasPredictions,
             })
           }
           className={`rounded-lg px-3 py-1.5 text-[13px] font-medium border transition-colors ${
@@ -92,6 +95,24 @@ export default function MotiesFilters({ currentStatus, currentQ, currentSort, cu
           }`}
         >
           Met stemuitslag
+        </button>
+        <button
+          onClick={() =>
+            navigate({
+              status: currentStatus,
+              q: currentQ,
+              sort: currentSort,
+              hasVotes: currentHasVotes,
+              hasPredictions: currentHasPredictions ? undefined : true,
+            })
+          }
+          className={`rounded-lg px-3 py-1.5 text-[13px] font-medium border transition-colors ${
+            currentHasPredictions
+              ? "border-moss bg-accent-subtle text-moss"
+              : "border-border text-text-secondary hover:bg-surface-sub"
+          }`}
+        >
+          Met voorspelling
         </button>
       </div>
 
@@ -111,6 +132,7 @@ export default function MotiesFilters({ currentStatus, currentQ, currentSort, cu
                   q: currentQ,
                   sort: s.value,
                   hasVotes: currentHasVotes,
+                  hasPredictions: currentHasPredictions,
                 })
               }
               className={`rounded-lg px-3 py-1.5 text-[13px] font-medium border transition-colors ${

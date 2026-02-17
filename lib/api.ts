@@ -48,6 +48,7 @@ export async function getMotions(params?: {
   result?: string;
   party?: string;
   hasVotes?: boolean;
+  hasPromiseMatches?: boolean;
   limit?: number;
   offset?: number;
 }): Promise<MotionListResponse> {
@@ -57,6 +58,7 @@ export async function getMotions(params?: {
   if (params?.result) sp.set("result", params.result);
   if (params?.party) sp.set("party", params.party);
   if (params?.hasVotes) sp.set("hasVotes", "true");
+  if (params?.hasPromiseMatches !== undefined) sp.set("hasPromiseMatches", String(params.hasPromiseMatches));
   if (params?.limit) sp.set("limit", String(params.limit));
   if (params?.offset) sp.set("offset", String(params.offset));
 

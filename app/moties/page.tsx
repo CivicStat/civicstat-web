@@ -14,6 +14,7 @@ interface Props {
     page?: string;
     sort?: string;
     hasVotes?: string;
+    hasPredictions?: string;
   };
 }
 
@@ -31,6 +32,7 @@ export default async function MotiesPage({ searchParams }: Props) {
 
   // Default to showing only motions with votes, unless explicitly disabled or when searching/filtering by status
   const hasVotes = searchParams.hasVotes === "false" ? false : !searchParams.q && !searchParams.status;
+  const hasPredictions = searchParams.hasPredictions === "true";
 
   let data;
   try {
@@ -38,6 +40,7 @@ export default async function MotiesPage({ searchParams }: Props) {
       status: searchParams.status,
       q: searchParams.q,
       hasVotes: hasVotes || undefined,
+      hasPromiseMatches: hasPredictions || undefined,
       limit: PAGE_SIZE,
       offset,
     });
@@ -96,6 +99,7 @@ export default async function MotiesPage({ searchParams }: Props) {
         currentQ={searchParams.q}
         currentSort={searchParams.sort}
         currentHasVotes={hasVotes}
+        currentHasPredictions={hasPredictions}
       />
 
       {/* Table */}
@@ -161,6 +165,15 @@ export default async function MotiesPage({ searchParams }: Props) {
                       {sponsorName}
                     </span>
                   )}
+                  {m.hasPromiseMatches && (
+                    <>
+                      <span>·</span>
+                      <span className="inline-flex items-center gap-0.5 text-moss" title="Voorspelling beschikbaar">
+                        <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                        <span className="text-[11px]">Voorspelling</span>
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -223,6 +236,8 @@ export default async function MotiesPage({ searchParams }: Props) {
                 status={searchParams.status}
                 q={searchParams.q}
                 sort={searchParams.sort}
+                hasVotes={hasVotes}
+                hasPredictions={hasPredictions}
                 label="← Vorige"
               />
             )}
@@ -232,6 +247,8 @@ export default async function MotiesPage({ searchParams }: Props) {
                 status={searchParams.status}
                 q={searchParams.q}
                 sort={searchParams.sort}
+                hasVotes={hasVotes}
+                hasPredictions={hasPredictions}
                 label="Volgende →"
               />
             )}
@@ -247,12 +264,16 @@ function PaginationLink({
   status,
   q,
   sort,
+  hasVotes,
+  hasPredictions,
   label,
 }: {
   page: number;
   status?: string;
   q?: string;
   sort?: string;
+  hasVotes?: boolean;
+  hasPredictions?: boolean;
   label: string;
 }) {
   const sp = new URLSearchParams();
@@ -260,6 +281,8 @@ function PaginationLink({
   if (status) sp.set("status", status);
   if (q) sp.set("q", q);
   if (sort) sp.set("sort", sort);
+  if (hasVotes === false) sp.set("hasVotes", "false");
+  if (hasPredictions) sp.set("hasPredictions", "true");
 
   return (
     <Link
