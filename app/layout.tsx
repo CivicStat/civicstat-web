@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 import { Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
 import Nav from "../components/Nav";
 import Footer from "../components/Footer";
+import { PostHogProvider } from "./providers";
+import PostHogPageView from "../components/PostHogPageView";
+import UsersnapWidget from "../components/UsersnapWidget";
 
 const serif = Instrument_Serif({
   subsets: ["latin"],
@@ -47,11 +50,15 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="flex min-h-screen flex-col antialiased font-sans">
-        <Nav />
-        <div className="flex-1">
-          {children}
-        </div>
-        <Footer />
+        <PostHogProvider>
+          <PostHogPageView />
+          <Nav />
+          <div className="flex-1">
+            {children}
+          </div>
+          <Footer />
+          <UsersnapWidget />
+        </PostHogProvider>
       </body>
     </html>
   );
