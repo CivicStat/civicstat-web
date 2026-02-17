@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getMotion } from "../../../../../lib/api";
-import { formatDate, getInitials, getPartyColor } from "../../../../../lib/utils";
+import { formatDate, getInitials, getPartyColor, themeLabel } from "../../../../../lib/utils";
 import PartyBadge from "../../../../../components/PartyBadge";
 import { routes } from "../../../../../lib/routes";
 import StatusBadge from "../../../../../components/StatusBadge";
@@ -9,6 +9,7 @@ import MethodologyLink from "../../../../../components/MethodologyLink";
 import Term from "../../../../../components/Term";
 import type { VoteRecord, RawStemming } from "../../../../../lib/types";
 import PredictionSection from "../../../../../components/PredictionSection";
+import Breadcrumbs from "../../../../../components/Breadcrumbs";
 
 interface Props {
   params: { id: string };
@@ -73,16 +74,11 @@ export default async function MotieDetailPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-6 pb-24">
-      {/* Back */}
-      <Link
-        href={routes.tk.moties}
-        className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink transition-colors mb-6"
-      >
-        <svg width={15} height={15} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-          <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
-        </svg>
-        Terug naar moties
-      </Link>
+      <Breadcrumbs items={[
+        { label: "Tweede Kamer", href: routes.tk.root },
+        { label: "Moties", href: routes.tk.moties },
+        { label: m.tkNumber || m.title.slice(0, 40) },
+      ]} />
 
       {/* Header */}
       <div className="mb-7">
@@ -114,7 +110,7 @@ export default async function MotieDetailPage({ params }: Props) {
         </div>
 
         {/* Uitslag */}
-        {vote && (
+        {vote ? (
           <div className="card p-[18px]">
             <div className="section-label">Uitslag</div>
             <div className="flex items-baseline gap-2 mb-2.5">
@@ -132,6 +128,13 @@ export default async function MotieDetailPage({ params }: Props) {
               tegen={vote.totalAgainst}
               height={10}
             />
+          </div>
+        ) : (
+          <div className="card p-[18px]">
+            <div className="section-label">Uitslag</div>
+            <p className="text-sm text-text-tertiary italic">
+              Nog niet gestemd
+            </p>
           </div>
         )}
 
@@ -494,16 +497,6 @@ function voteValueLabel(value: string): string {
     case "ABSENT": return "Afwezig";
     default: return value;
   }
-}
-
-function themeLabel(theme: string): string {
-  const map: Record<string, string> = {
-    BESTUUR: "Bestuur", BUITENLAND: "Buitenland", DEFENSIE: "Defensie",
-    ECONOMIE: "Economie", KLIMAAT: "Klimaat", LANDBOUW: "Landbouw",
-    MIGRATIE: "Migratie", ONDERWIJS: "Onderwijs", SOCIAAL: "Sociaal",
-    VEILIGHEID: "Veiligheid", WONEN: "Wonen", ZORG: "Zorg",
-  };
-  return map[theme] || theme;
 }
 
 function SourceRow({

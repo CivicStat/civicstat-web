@@ -78,6 +78,67 @@ export function mpDisplayName(mp: { name: string; surname: string; prefix?: stri
   return mp.name;
 }
 
+// ─── Specificity formatting ─────────────────────────────────
+
+const SPECIFICITY_MAP: Record<string, { label: string; description: string }> = {
+  CONCRETE: { label: "Concreet", description: "Meetbaar en specifiek — bevat een duidelijk doel of maatstaf" },
+  HIGH: { label: "Concreet", description: "Meetbaar en specifiek" },
+  DIRECTIONAL: { label: "Richtinggevend", description: "Duidelijke richting, maar geen exact doel" },
+  MEDIUM: { label: "Richtinggevend", description: "Duidelijke richting, maar geen exact doel" },
+  MODERATE: { label: "Richtinggevend", description: "Duidelijke richting, maar geen exact doel" },
+  VAGUE: { label: "Algemeen", description: "Brede ambitie zonder concrete invulling" },
+  LOW: { label: "Algemeen", description: "Brede ambitie zonder concrete invulling" },
+};
+
+export function formatSpecificity(value: string): { label: string; description: string } {
+  return SPECIFICITY_MAP[value] || { label: value, description: "" };
+}
+
+// ─── Theme labels ───────────────────────────────────────────
+
+const THEME_MAP: Record<string, string> = {
+  BESTUUR: "Bestuur",
+  BUITENLAND: "Buitenland",
+  DEFENSIE: "Defensie",
+  ECONOMIE: "Economie",
+  KLIMAAT: "Klimaat",
+  LANDBOUW: "Landbouw",
+  MIGRATIE: "Migratie",
+  ONDERWIJS: "Onderwijs",
+  SOCIAAL: "Sociaal",
+  VEILIGHEID: "Veiligheid",
+  WONEN: "Wonen",
+  ZORG: "Zorg",
+};
+
+export function themeLabel(theme: string): string {
+  return THEME_MAP[theme] || theme;
+}
+
+// ─── Vote direction formatting ──────────────────────────────
+
+export function directionLabel(d: string): string {
+  return d === "VOOR" ? "Verwacht: voor" : d === "TEGEN" ? "Verwacht: tegen" : d;
+}
+
+// ─── Match type formatting ──────────────────────────────────
+
+export function matchTypeLabel(t: string): string {
+  switch (t) {
+    case "EXPLICIT_MATCH": return "direct";
+    case "CONTRA_MATCH": return "contra";
+    default: return "impliciet";
+  }
+}
+
+export function matchTypeBadgeClass(t: string): string {
+  switch (t) {
+    case "EXPLICIT_MATCH": return "bg-accent-subtle text-moss";
+    case "CONTRA_MATCH": return "bg-red-500/10 text-red-400";
+    default: return "bg-surface-sub text-text-secondary";
+  }
+}
+
 // ─── clsx (tiny) ────────────────────────────────────────────
 
 export function cn(...classes: (string | false | null | undefined)[]): string {

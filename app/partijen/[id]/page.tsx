@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getParty, getPartyScorecard, getScorecardYears, getKoersvastheid, getRegeerakkoordScorecard, getCoalitieverwatering } from "../../../lib/api";
 import type { PartyScorecard, KoersvastheidResponse, PromiseScore, CoalitieverwateringResponse } from "../../../lib/types";
-import { getPartyColor } from "../../../lib/utils";
+import { getPartyColor, themeLabel } from "../../../lib/utils";
 import VoteBar from "../../../components/VoteBar";
 import MethodologyLink from "../../../components/MethodologyLink";
 import PeriodSelector from "../../../components/PeriodSelector";
@@ -665,16 +665,6 @@ export default async function PartyDetailPage({
 }
 
 // ─── Helpers ────────────────────────────────────────────────
-
-function themeLabel(theme: string): string {
-  const map: Record<string, string> = {
-    BESTUUR: "Bestuur", BUITENLAND: "Buitenland", DEFENSIE: "Defensie",
-    ECONOMIE: "Economie", KLIMAAT: "Klimaat", LANDBOUW: "Landbouw",
-    MIGRATIE: "Migratie", ONDERWIJS: "Onderwijs", SOCIAAL: "Sociaal",
-    VEILIGHEID: "Veiligheid", WONEN: "Wonen", ZORG: "Zorg",
-  };
-  return map[theme] || theme;
-}
 
 function statusIcon(status: PromiseScore["status"]): string {
   switch (status) {

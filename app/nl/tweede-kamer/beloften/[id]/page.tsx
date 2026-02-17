@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getPromise, getPromises, getPartyScorecard } from "../../../../../lib/api";
-import { formatDate, getPartyColor } from "../../../../../lib/utils";
+import { formatDate, getPartyColor, themeLabel, formatSpecificity, directionLabel, matchTypeLabel, matchTypeBadgeClass } from "../../../../../lib/utils";
 import PartyBadge from "../../../../../components/PartyBadge";
 import PartyAvatar from "../../../../../components/PartyAvatar";
 import VoteBar from "../../../../../components/VoteBar";
@@ -10,6 +10,7 @@ import Term from "../../../../../components/Term";
 import { isCoalitionParty } from "../../../../../lib/coalitions";
 import { routes } from "../../../../../lib/routes";
 import type { PromiseMotionMatch, PromiseListItem, PartyScorecard, PromiseDetail } from "../../../../../lib/types";
+import Breadcrumbs from "../../../../../components/Breadcrumbs";
 
 interface Props {
   params: { id: string };
@@ -25,64 +26,6 @@ export async function generateMetadata({ params }: Props) {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────
-
-function themeLabel(theme: string): string {
-  const map: Record<string, string> = {
-    BESTUUR: "Bestuur",
-    BUITENLAND: "Buitenland",
-    DEFENSIE: "Defensie",
-    ECONOMIE: "Economie",
-    KLIMAAT: "Klimaat",
-    LANDBOUW: "Landbouw",
-    MIGRATIE: "Migratie",
-    ONDERWIJS: "Onderwijs",
-    SOCIAAL: "Sociaal",
-    VEILIGHEID: "Veiligheid",
-    WONEN: "Wonen",
-    ZORG: "Zorg",
-  };
-  return map[theme] || theme;
-}
-
-function specificityLabel(s: string): string {
-  const map: Record<string, string> = {
-    CONCRETE: "Concreet",
-    DIRECTIONAL: "Directioneel",
-    MODERATE: "Matig",
-    VAGUE: "Vaag",
-  };
-  return map[s] || s;
-}
-
-function directionLabel(d: string): string {
-  return d === "VOOR"
-    ? "Verwacht: voor"
-    : d === "TEGEN"
-    ? "Verwacht: tegen"
-    : d;
-}
-
-function matchTypeLabel(t: string) {
-  switch (t) {
-    case "EXPLICIT_MATCH":
-      return "direct";
-    case "CONTRA_MATCH":
-      return "contra";
-    default:
-      return "impliciet";
-  }
-}
-
-function matchTypeBadgeClass(t: string) {
-  switch (t) {
-    case "EXPLICIT_MATCH":
-      return "bg-accent-subtle text-moss";
-    case "CONTRA_MATCH":
-      return "bg-red-500/10 text-red-400";
-    default:
-      return "bg-surface-sub text-text-secondary";
-  }
-}
 
 function matchStats(matches: PromiseMotionMatch[]) {
   let adopted = 0;
@@ -231,26 +174,11 @@ export default async function BelofteDetailPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-6 pb-24">
-      {/* Back */}
-      <Link
-        href={routes.tk.beloften}
-        className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink transition-colors mb-6"
-      >
-        <svg
-          width={15}
-          height={15}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          viewBox="0 0 24 24"
-        >
-          <line x1="19" y1="12" x2="5" y2="12" />
-          <polyline points="12 19 5 12 12 5" />
-        </svg>
-        Alle beloften
-      </Link>
+      <Breadcrumbs items={[
+        { label: "Tweede Kamer", href: routes.tk.root },
+        { label: "Beloften", href: routes.tk.beloften },
+        { label: p.promiseCode },
+      ]} />
 
       {/* ─── HEADER SECTION ──────────────────────────────────── */}
       <div className="mb-7">
@@ -265,7 +193,7 @@ export default async function BelofteDetailPage({ params }: Props) {
             {themeLabel(p.theme)}
           </span>
           <span className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
-            {specificityLabel(p.specificity)}
+            {formatSpecificity(p.specificity).label}
           </span>
           {p.expectedVoteDirection && (
             <span className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">

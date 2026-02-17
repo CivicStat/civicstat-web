@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getPromises, getParties } from "../../../../lib/api";
 import type { PromiseListItem } from "../../../../lib/types";
+import { themeLabel, formatSpecificity, directionLabel } from "../../../../lib/utils";
 import PartyBadge from "../../../../components/PartyBadge";
 import BeloftenFilters from "./BeloftenFilters";
 import MotionMatchList from "./MotionMatchList";
@@ -27,38 +28,6 @@ export const metadata = {
 };
 
 // ─── Helpers ──────────────────────────────────────────────────
-
-function themeLabel(theme: string): string {
-  const map: Record<string, string> = {
-    BESTUUR: "Bestuur",
-    BUITENLAND: "Buitenland",
-    DEFENSIE: "Defensie",
-    ECONOMIE: "Economie",
-    KLIMAAT: "Klimaat",
-    LANDBOUW: "Landbouw",
-    MIGRATIE: "Migratie",
-    ONDERWIJS: "Onderwijs",
-    SOCIAAL: "Sociaal",
-    VEILIGHEID: "Veiligheid",
-    WONEN: "Wonen",
-    ZORG: "Zorg",
-  };
-  return map[theme] || theme;
-}
-
-function specificityLabel(s: string): string {
-  const map: Record<string, string> = {
-    CONCRETE: "Concreet",
-    DIRECTIONAL: "Directioneel",
-    MODERATE: "Matig",
-    VAGUE: "Vaag",
-  };
-  return map[s] || s;
-}
-
-function directionLabel(d: string): string {
-  return d === "VOOR" ? "Verwacht: voor" : d === "TEGEN" ? "Verwacht: tegen" : d;
-}
 
 /** Count how many matched motions were adopted / rejected */
 function matchStats(promise: PromiseListItem) {
@@ -189,7 +158,7 @@ export default async function BeloftenPage({ searchParams }: Props) {
                     {themeLabel(promise.theme)}
                   </Link>
                   <span className="hidden sm:inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
-                    {specificityLabel(promise.specificity)}
+                    {formatSpecificity(promise.specificity).label}
                   </span>
                   {promise.expectedVoteDirection && (
                     <span className="hidden sm:inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
@@ -277,8 +246,31 @@ export default async function BeloftenPage({ searchParams }: Props) {
         </div>
       )}
 
+      {/* Promise inflation note */}
+      {total > 500 && (
+        <div className="mt-6 card px-5 py-4 border-l-[3px] border-amber-400/50">
+          <div className="flex items-start gap-2">
+            <svg width={16} height={16} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" className="shrink-0 mt-0.5 text-amber-500">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <div>
+              <h3 className="text-[12px] font-semibold text-ink mb-0.5">
+                Opmerking over beloftenaantal
+              </h3>
+              <p className="text-[11px] text-text-secondary leading-relaxed">
+                Sommige partijprogramma&apos;s bevatten zeer veel geëxtraheerde beloften. Dit kan
+                komen doordat het AI-extractieproces brede ambities als afzonderlijke beloften
+                telt. Partijen met meer beloften zijn niet per se ambitieuzer — de vergelijking
+                is het meest betrouwbaar binnen dezelfde partij of binnen hetzelfde thema.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Methodology note */}
-      <div className="mt-6 card px-5 py-4">
+      <div className="mt-4 card px-5 py-4">
         <h3 className="text-[13px] font-semibold text-ink mb-1">
           Over deze data
         </h3>

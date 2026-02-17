@@ -6,6 +6,7 @@ import PartyBadge from "../../../../../components/PartyBadge";
 import { routes } from "../../../../../lib/routes";
 import VoteBar from "../../../../../components/VoteBar";
 import MemberPhoto from "../../../../../components/MemberPhoto";
+import Breadcrumbs from "../../../../../components/Breadcrumbs";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   try {
@@ -54,11 +55,11 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
-      {/* Back link */}
-      <Link href={routes.tk.kamerleden} className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink mb-6">
-        <svg width={15} height={15} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
-        Terug naar kamerleden
-      </Link>
+      <Breadcrumbs items={[
+        { label: "Tweede Kamer", href: routes.tk.root },
+        { label: "Kamerleden", href: routes.tk.kamerleden },
+        { label: member.surname },
+      ]} />
 
       {/* Header */}
       <div className="flex items-start gap-4 mb-8">

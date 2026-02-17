@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getMotion } from "../../../lib/api";
-import { formatDate, getInitials, getPartyColor } from "../../../lib/utils";
+import { formatDate, getInitials, getPartyColor, themeLabel } from "../../../lib/utils";
 import PartyBadge from "../../../components/PartyBadge";
 import StatusBadge from "../../../components/StatusBadge";
 import VoteBar from "../../../components/VoteBar";
@@ -491,16 +491,6 @@ function voteValueLabel(value: string): string {
     case "ABSENT": return "Afwezig";
     default: return value;
   }
-}
-
-function themeLabel(theme: string): string {
-  const map: Record<string, string> = {
-    BESTUUR: "Bestuur", BUITENLAND: "Buitenland", DEFENSIE: "Defensie",
-    ECONOMIE: "Economie", KLIMAAT: "Klimaat", LANDBOUW: "Landbouw",
-    MIGRATIE: "Migratie", ONDERWIJS: "Onderwijs", SOCIAAL: "Sociaal",
-    VEILIGHEID: "Veiligheid", WONEN: "Wonen", ZORG: "Zorg",
-  };
-  return map[theme] || theme;
 }
 
 function SourceRow({

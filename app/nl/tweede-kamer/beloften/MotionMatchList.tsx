@@ -3,31 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import VoteBar from "../../../../components/VoteBar";
-import { formatDate } from "../../../../lib/utils";
+import { formatDate, matchTypeLabel, matchTypeBadgeClass } from "../../../../lib/utils";
 import type { PromiseMotionMatch } from "../../../../lib/types";
 import { routes } from "../../../../lib/routes";
-
-function matchTypeLabel(t: string) {
-  switch (t) {
-    case "EXPLICIT_MATCH":
-      return "direct";
-    case "CONTRA_MATCH":
-      return "contra";
-    default:
-      return "impliciet";
-  }
-}
-
-function matchTypeBadgeClass(t: string) {
-  switch (t) {
-    case "EXPLICIT_MATCH":
-      return "bg-accent-subtle text-moss";
-    case "CONTRA_MATCH":
-      return "bg-red-500/10 text-red-400";
-    default:
-      return "bg-surface-sub text-text-secondary";
-  }
-}
 
 interface Props {
   matches: PromiseMotionMatch[];

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { searchAll } from "../../lib/api";
 import type { MotionListItem, PromiseListItem, MemberListItem } from "../../lib/types";
+import { themeLabel } from "../../lib/utils";
 import PartyBadge from "../../components/PartyBadge";
 import SearchForm from "./SearchForm";
 
@@ -14,24 +15,6 @@ export const metadata = {
 };
 
 // ─── Helpers ──────────────────────────────────────────────────
-
-function themeLabel(theme: string): string {
-  const map: Record<string, string> = {
-    BESTUUR: "Bestuur",
-    BUITENLAND: "Buitenland",
-    DEFENSIE: "Defensie",
-    ECONOMIE: "Economie",
-    KLIMAAT: "Klimaat",
-    LANDBOUW: "Landbouw",
-    MIGRATIE: "Migratie",
-    ONDERWIJS: "Onderwijs",
-    SOCIAAL: "Sociaal",
-    VEILIGHEID: "Veiligheid",
-    WONEN: "Wonen",
-    ZORG: "Zorg",
-  };
-  return map[theme] || theme;
-}
 
 function formatDate(iso: string): string {
   try {

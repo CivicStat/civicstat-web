@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getParty, getParties, getPartyScorecard, getScorecardYears, getKoersvastheid, getRegeerakkoordScorecard, getCoalitieverwatering } from "../../../../../lib/api";
 import type { PartyScorecard, KoersvastheidResponse, CoalitieverwateringResponse } from "../../../../../lib/types";
-import { getPartyColor } from "../../../../../lib/utils";
+import { getPartyColor, themeLabel } from "../../../../../lib/utils";
+import Breadcrumbs from "../../../../../components/Breadcrumbs";
 import VoteBar from "../../../../../components/VoteBar";
 import { routes } from "../../../../../lib/routes";
 import MethodologyLink from "../../../../../components/MethodologyLink";
@@ -113,12 +114,13 @@ export default async function PartyDetailPage({
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
-      {/* Back link + prev/next */}
+      {/* Breadcrumbs + prev/next */}
       <div className="flex items-center justify-between mb-6">
-        <Link href={routes.tk.partijen} className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink">
-          <svg width={15} height={15} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
-          Terug naar partijen
-        </Link>
+        <Breadcrumbs items={[
+          { label: "Tweede Kamer", href: routes.tk.root },
+          { label: "Partijen", href: routes.tk.partijen },
+          { label: party.abbreviation },
+        ]} />
         <div className="flex items-center gap-2">
           {prevParty ? (
             <Link
@@ -687,15 +689,4 @@ export default async function PartyDetailPage({
   );
 }
 
-// ─── Helpers ────────────────────────────────────────────────
-
-function themeLabel(theme: string): string {
-  const map: Record<string, string> = {
-    BESTUUR: "Bestuur", BUITENLAND: "Buitenland", DEFENSIE: "Defensie",
-    ECONOMIE: "Economie", KLIMAAT: "Klimaat", LANDBOUW: "Landbouw",
-    MIGRATIE: "Migratie", ONDERWIJS: "Onderwijs", SOCIAAL: "Sociaal",
-    VEILIGHEID: "Veiligheid", WONEN: "Wonen", ZORG: "Zorg",
-  };
-  return map[theme] || theme;
-}
 

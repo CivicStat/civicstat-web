@@ -176,7 +176,7 @@ export default async function TransparantiePage() {
                   &ldquo;Motie over structurele verhoging defensiebudget naar 2% bbp&rdquo;
                 </p>
               </div>
-              <div className="px-4 py-3 bg-white">
+              <div className="px-4 py-3 bg-surface">
                 <div className="flex items-center gap-2 mb-1.5">
                   <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide bg-accent-subtle text-moss">
                     Expliciet

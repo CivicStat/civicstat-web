@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getPromises, getParties } from "../../lib/api";
 import type { PromiseListItem } from "../../lib/types";
+import { themeLabel, formatSpecificity, directionLabel } from "../../lib/utils";
 import PartyBadge from "../../components/PartyBadge";
 import BeloftenFilters from "./BeloftenFilters";
 import MotionMatchList from "./MotionMatchList";
@@ -25,38 +26,6 @@ export const metadata = {
 };
 
 // ─── Helpers ──────────────────────────────────────────────────
-
-function themeLabel(theme: string): string {
-  const map: Record<string, string> = {
-    BESTUUR: "Bestuur",
-    BUITENLAND: "Buitenland",
-    DEFENSIE: "Defensie",
-    ECONOMIE: "Economie",
-    KLIMAAT: "Klimaat",
-    LANDBOUW: "Landbouw",
-    MIGRATIE: "Migratie",
-    ONDERWIJS: "Onderwijs",
-    SOCIAAL: "Sociaal",
-    VEILIGHEID: "Veiligheid",
-    WONEN: "Wonen",
-    ZORG: "Zorg",
-  };
-  return map[theme] || theme;
-}
-
-function specificityLabel(s: string): string {
-  const map: Record<string, string> = {
-    CONCRETE: "Concreet",
-    DIRECTIONAL: "Directioneel",
-    MODERATE: "Matig",
-    VAGUE: "Vaag",
-  };
-  return map[s] || s;
-}
-
-function directionLabel(d: string): string {
-  return d === "VOOR" ? "Verwacht: voor" : d === "TEGEN" ? "Verwacht: tegen" : d;
-}
 
 /** Count how many matched motions were adopted / rejected */
 function matchStats(promise: PromiseListItem) {
@@ -175,7 +144,7 @@ export default async function BeloftenPage({ searchParams }: Props) {
                     {themeLabel(promise.theme)}
                   </span>
                   <span className="hidden sm:inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
-                    {specificityLabel(promise.specificity)}
+                    {formatSpecificity(promise.specificity).label}
                   </span>
                   {promise.expectedVoteDirection && (
                     <span className="hidden sm:inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
