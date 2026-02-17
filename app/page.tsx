@@ -15,15 +15,20 @@ export default async function HomePage() {
     <div>
       {/* Hero */}
       <div className="relative overflow-hidden">
-        {/* Gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-moss/[0.04] via-mist to-surface-sub dark:from-moss/[0.06] dark:via-[#0E1623] dark:to-[#0E1623]" />
-        {/* Subtle geometric pattern */}
+        {/* Background image — Binnenhof, The Hague */}
         <div
-          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.04]"
+          className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23374151' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundImage:
+              "url(https://images.unsplash.com/photo-1621944190310-e3cca1564bd7?w=1600&q=80&auto=format&fit=crop)",
+            filter: "saturate(0.6) contrast(1.05)",
+            backgroundPosition: "center 35%",
           }}
         />
+        {/* Light gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-mist/30 via-mist/75 to-mist dark:from-[#0E1623]/30 dark:via-[#0E1623]/75 dark:to-[#0E1623]" />
+        {/* Extra dark overlay for dark mode contrast */}
+        <div className="absolute inset-0 hidden dark:block bg-[#0E1623]/50" />
         <div className="relative z-10 mx-auto max-w-[1200px] px-6 pt-[72px] pb-16">
           <p className="text-[13px] font-medium text-moss tracking-wide mb-4">
             Onafhankelijke transparantie over politiek handelen
