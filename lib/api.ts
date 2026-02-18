@@ -17,6 +17,8 @@ import type {
   PromiseStatsResponse,
   CoalitieverwateringResponse,
   PlatformStats,
+  ParliamentListItem,
+  ParliamentDetail,
 } from "./types";
 
 const API_URL =
@@ -305,6 +307,92 @@ export async function getInsights(): Promise<import("./types").InsightsResponse 
 export async function getPlatformStats(): Promise<PlatformStats | null> {
   try {
     return await apiFetch<PlatformStats>("/stats");
+  } catch {
+    return null;
+  }
+}
+
+// ─── Parliaments ─────────────────────────────────────────────
+
+export async function getParliaments(): Promise<ParliamentListItem[]> {
+  return apiFetch<ParliamentListItem[]>("/parliaments");
+}
+
+export async function getParliament(slug: string): Promise<ParliamentDetail> {
+  return apiFetch<ParliamentDetail>(`/parliaments/${encodeURIComponent(slug)}`);
+}
+
+// ─── Parliament-scoped (municipal) endpoints ─────────────────
+
+export async function getScopedMotions(
+  slug: string,
+  params?: {
+    q?: string;
+    status?: string;
+    result?: string;
+    party?: string;
+    limit?: number;
+    offset?: number;
+  },
+): Promise<MotionListResponse> {
+  const sp = new URLSearchParams();
+  if (params?.q) sp.set("q", params.q);
+  if (params?.status) sp.set("status", params.status);
+  if (params?.result) sp.set("result", params.result);
+  if (params?.party) sp.set("party", params.party);
+  if (params?.limit) sp.set("limit", String(params.limit));
+  if (params?.offset) sp.set("offset", String(params.offset));
+  const qs = sp.toString();
+  return apiFetch<MotionListResponse>(
+    `/parliament/${encodeURIComponent(slug)}/motions${qs ? `?${qs}` : ""}`,
+  );
+}
+
+export async function getScopedMotion(slug: string, id: string): Promise<MotionDetail> {
+  return apiFetch<MotionDetail>(
+    `/parliament/${encodeURIComponent(slug)}/motions/${encodeURIComponent(id)}`,
+  );
+}
+
+export async function getScopedParties(slug: string): Promise<PartyListItem[]> {
+  return apiFetch<PartyListItem[]>(
+    `/parliament/${encodeURIComponent(slug)}/parties`,
+  );
+}
+
+export async function getScopedMembers(
+  slug: string,
+  params?: { q?: string; party?: string; limit?: number; offset?: number },
+): Promise<MemberListItem[]> {
+  const sp = new URLSearchParams();
+  if (params?.q) sp.set("q", params.q);
+  if (params?.party) sp.set("party", params.party);
+  if (params?.limit) sp.set("limit", String(params.limit));
+  if (params?.offset) sp.set("offset", String(params.offset));
+  const qs = sp.toString();
+  return apiFetch<MemberListItem[]>(
+    `/parliament/${encodeURIComponent(slug)}/members${qs ? `?${qs}` : ""}`,
+  );
+}
+
+export async function getScopedVotes(
+  slug: string,
+  params?: { limit?: number; offset?: number },
+): Promise<{ items: VoteDetail[]; total: number; limit: number; offset: number }> {
+  const sp = new URLSearchParams();
+  if (params?.limit) sp.set("limit", String(params.limit));
+  if (params?.offset) sp.set("offset", String(params.offset));
+  const qs = sp.toString();
+  return apiFetch(
+    `/parliament/${encodeURIComponent(slug)}/votes${qs ? `?${qs}` : ""}`,
+  );
+}
+
+export async function getScopedStats(slug: string): Promise<PlatformStats | null> {
+  try {
+    return await apiFetch<PlatformStats>(
+      `/parliament/${encodeURIComponent(slug)}/stats`,
+    );
   } catch {
     return null;
   }

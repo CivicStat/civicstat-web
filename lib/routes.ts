@@ -2,11 +2,28 @@
  * Centralized route definitions for CivicStat.
  *
  * Every internal `href` should use these helpers so a single change here
- * propagates everywhere. Currently scoped to NL / Tweede Kamer; the
- * prefix constants make it trivial to add other scopes later.
+ * propagates everywhere. Scoped to NL / Tweede Kamer and NL / Gemeenten.
  */
 
 const TK = "/nl/tweede-kamer";
+const GEMEENTE_BASE = "/nl/gemeenten";
+
+/**
+ * Build routes for a specific gemeente (municipality).
+ * Usage: gemeente("amsterdam").moties → "/nl/gemeenten/amsterdam/moties"
+ */
+export function gemeente(slug: string) {
+  const base = `${GEMEENTE_BASE}/${slug}`;
+  return {
+    root: base,
+    moties: `${base}/moties`,
+    motie: (id: string) => `${base}/moties/${id}`,
+    raadsleden: `${base}/raadsleden`,
+    raadslid: (id: string) => `${base}/raadsleden/${id}`,
+    partijen: `${base}/partijen`,
+    partij: (id: string) => `${base}/partijen/${encodeURIComponent(id)}`,
+  } as const;
+}
 
 // ── List pages ──────────────────────────────────────────────
 export const routes = {
@@ -26,6 +43,11 @@ export const routes = {
     verbinding: `${TK}/verbinding`,
     inzichten: `${TK}/inzichten`,
     zoeken: `${TK}/zoeken`,
+  },
+
+  // Gemeenten (municipalities) listing
+  gemeenten: {
+    root: GEMEENTE_BASE,
   },
 
   // Global / non-scoped

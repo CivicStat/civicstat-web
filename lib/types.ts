@@ -1,3 +1,35 @@
+// ─── Parliament types ───────────────────────────────────────
+
+export type ParliamentLevel = "NATIONAL" | "MUNICIPAL";
+
+export interface ParliamentListItem {
+  id: string;
+  slug: string;
+  name: string;
+  shortName: string;
+  level: ParliamentLevel;
+  country: string;
+  municipality: string | null;
+  seats: number;
+  active: boolean;
+  _count: {
+    motions: number;
+    parties: number;
+    mps: number;
+    votes: number;
+  };
+}
+
+export interface ParliamentDetail extends ParliamentListItem {
+  _count: {
+    motions: number;
+    parties: number;
+    mps: number;
+    votes: number;
+    programs: number;
+  };
+}
+
 // ─── API Response Types ─────────────────────────────────────
 
 export interface PartyRef {

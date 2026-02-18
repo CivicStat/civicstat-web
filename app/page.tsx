@@ -1,15 +1,17 @@
 import Link from "next/link";
-import { getPlatformStats, getInsights } from "../lib/api";
+import { getPlatformStats, getInsights, getParliaments } from "../lib/api";
 import SearchBar from "../components/SearchBar";
-import { routes } from "../lib/routes";
+import { routes, gemeente } from "../lib/routes";
 
 export const revalidate = 3600; // ISR: re-generate at most every hour
 
 export default async function HomePage() {
-  const [stats, insights] = await Promise.all([
+  const [stats, insights, parliamentsResult] = await Promise.all([
     getPlatformStats().catch(() => null),
     getInsights().catch(() => null),
+    getParliaments().catch(() => []),
   ]);
+  const municipalities = parliamentsResult.filter((p) => p.level === "MUNICIPAL");
 
   return (
     <div>
@@ -49,6 +51,14 @@ export default async function HomePage() {
             >
               Bekijk Tweede Kamer
             </Link>
+            {municipalities.length > 0 && (
+              <Link
+                href={routes.gemeenten.root}
+                className="inline-flex items-center gap-2 rounded-[9px] bg-moss/10 px-5 py-2.5 text-sm font-medium text-moss hover:bg-moss/20 transition-colors"
+              >
+                Gemeenteraden
+              </Link>
+            )}
             <Link
               href={routes.transparantie}
               className="inline-flex items-center gap-2 rounded-[9px] border border-border px-5 py-2.5 text-sm font-medium text-text-secondary hover:bg-surface-sub transition-colors"
@@ -167,6 +177,37 @@ export default async function HomePage() {
               </span>
             </Link>
 
+            {/* Active municipalities */}
+            {municipalities.map((m) => {
+              const mr = gemeente(m.slug);
+              return (
+                <Link
+                  key={m.id}
+                  href={mr.root}
+                  className="block p-6 rounded-xl border border-border bg-card hover:border-moss/30 transition-colors group"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-2xl" aria-hidden>&#x1F3DB;&#xFE0F;</span>
+                    <h3 className="font-serif text-xl group-hover:text-moss transition-colors">
+                      {m.shortName}
+                    </h3>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-moss/10 text-moss font-medium">
+                      gemeenteraad
+                    </span>
+                  </div>
+                  <p className="text-sm text-text-secondary mb-3">
+                    {m.seats} zetels &middot; {m._count.parties} partijen
+                  </p>
+                  <p className="text-sm text-text-secondary">
+                    {m._count.motions.toLocaleString("nl-NL")} moties &middot; {m._count.mps} raadsleden
+                  </p>
+                  <span className="inline-block mt-4 text-sm text-moss font-medium">
+                    Bekijk dashboard &rarr;
+                  </span>
+                </Link>
+              );
+            })}
+
             {/* Coming soon */}
             <div className="p-6 rounded-xl border border-dashed border-border/60 opacity-60">
               <div className="space-y-3">
@@ -178,6 +219,11 @@ export default async function HomePage() {
                 <div className="flex items-center gap-3">
                   <span className="text-2xl" aria-hidden>&#x1F1EA;&#x1F1FA;</span>
                   <span className="text-text-secondary">Europees Parlement</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-surface-sub text-text-tertiary">binnenkort</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl" aria-hidden>&#x1F3DB;&#xFE0F;</span>
+                  <span className="text-text-secondary">Meer gemeenten</span>
                   <span className="text-xs px-2 py-0.5 rounded-full bg-surface-sub text-text-tertiary">binnenkort</span>
                 </div>
               </div>
