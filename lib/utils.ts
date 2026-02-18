@@ -97,6 +97,7 @@ export function formatSpecificity(value: string): { label: string; description: 
 // ─── Theme labels ───────────────────────────────────────────
 
 const THEME_MAP: Record<string, string> = {
+  // National themes
   BESTUUR: "Bestuur",
   BUITENLAND: "Buitenland",
   DEFENSIE: "Defensie",
@@ -109,6 +110,14 @@ const THEME_MAP: Record<string, string> = {
   VEILIGHEID: "Veiligheid",
   WONEN: "Wonen",
   ZORG: "Zorg",
+  // Municipal themes
+  VERKEER: "Verkeer & mobiliteit",
+  GROEN_KLIMAAT: "Groen & klimaat",
+  CULTUUR_SPORT: "Cultuur & sport",
+  JEUGD: "Jeugd",
+  OPENBARE_RUIMTE: "Openbare ruimte",
+  FINANCIEN: "Financiën",
+  DIVERSITEIT: "Diversiteit & inclusie",
 };
 
 export function themeLabel(theme: string): string {

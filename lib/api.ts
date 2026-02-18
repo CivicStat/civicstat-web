@@ -398,6 +398,47 @@ export async function getScopedStats(slug: string): Promise<PlatformStats | null
   }
 }
 
+// ─── Parliament-scoped promises ─────────────────────────────
+
+export async function getScopedPromises(
+  slug: string,
+  params?: {
+    q?: string;
+    party?: string;
+    theme?: string;
+    limit?: number;
+    offset?: number;
+  },
+): Promise<PromiseListResponse> {
+  const sp = new URLSearchParams();
+  if (params?.q) sp.set("q", params.q);
+  if (params?.party) sp.set("party", params.party);
+  if (params?.theme) sp.set("theme", params.theme);
+  if (params?.limit) sp.set("limit", String(params.limit));
+  if (params?.offset) sp.set("offset", String(params.offset));
+  const qs = sp.toString();
+  return apiFetch<PromiseListResponse>(
+    `/parliament/${encodeURIComponent(slug)}/promises${qs ? `?${qs}` : ""}`,
+  );
+}
+
+export async function getScopedPromise(
+  slug: string,
+  id: string,
+): Promise<PromiseDetail> {
+  return apiFetch<PromiseDetail>(
+    `/parliament/${encodeURIComponent(slug)}/promises/${encodeURIComponent(id)}`,
+  );
+}
+
+export async function getScopedPromiseStats(
+  slug: string,
+): Promise<PromiseStatsResponse> {
+  return apiFetch<PromiseStatsResponse>(
+    `/parliament/${encodeURIComponent(slug)}/promises/stats`,
+  );
+}
+
 // ─── Admin / Status ──────────────────────────────────────────
 
 export async function getSystemStatus() {

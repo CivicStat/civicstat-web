@@ -5,6 +5,7 @@ import {
   getScopedMotions,
   getScopedParties,
   getScopedStats,
+  getScopedPromiseStats,
 } from "../../../../lib/api";
 import { formatDate, getPartyColor } from "../../../../lib/utils";
 import PartyBadge from "../../../../components/PartyBadge";
@@ -61,6 +62,13 @@ function VoteIcon() {
     </svg>
   );
 }
+function PromiseIcon() {
+  return (
+    <svg width={16} height={16} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+  );
+}
 function ArrowIcon() {
   return (
     <svg width={14} height={14} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -81,11 +89,12 @@ export default async function CityDashboardPage({ params }: Props) {
 
   const r = gemeente(city);
 
-  const [motionsResult, partiesResult, statsResult] =
+  const [motionsResult, partiesResult, statsResult, promiseStatsResult] =
     await Promise.allSettled([
       getScopedMotions(city, { limit: 8 }),
       getScopedParties(city),
       getScopedStats(city),
+      getScopedPromiseStats(city),
     ]);
 
   const recentMotions =
@@ -96,6 +105,8 @@ export default async function CityDashboardPage({ params }: Props) {
     partiesResult.status === "fulfilled" ? partiesResult.value : null;
   const stats =
     statsResult.status === "fulfilled" ? statsResult.value : null;
+  const promiseStats =
+    promiseStatsResult.status === "fulfilled" ? promiseStatsResult.value : null;
 
   const quickCards = [
     {
@@ -126,6 +137,17 @@ export default async function CityDashboardPage({ params }: Props) {
       href: r.moties,
       desc: "Stemresultaten per motie",
     },
+    ...(promiseStats && promiseStats.totalPromises > 0
+      ? [
+          {
+            icon: <PromiseIcon />,
+            label: "Beloften",
+            count: promiseStats.totalPromises,
+            href: r.beloften,
+            desc: "Verkiezingsbeloften gekoppeld aan stemgedrag",
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -340,6 +362,9 @@ export default async function CityDashboardPage({ params }: Props) {
                   { n: stats.votes, l: "Stemmingen" },
                   { n: stats.parties, l: "Partijen" },
                   { n: stats.members, l: "Raadsleden" },
+                  ...(promiseStats && promiseStats.totalPromises > 0
+                    ? [{ n: promiseStats.totalPromises, l: "Beloften" }]
+                    : []),
                 ].map((s) => (
                   <div key={s.l} className="card p-3 text-center">
                     <div className="text-[20px] font-serif text-ink leading-none">
