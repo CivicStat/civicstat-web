@@ -81,6 +81,45 @@ function CheckIcon({ active }: { active: boolean }) {
   );
 }
 
+function HomeIcon({ active }: { active: boolean }) {
+  return (
+    <svg width={20} height={20} fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.8} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  );
+}
+
+function InfoIcon({ active }: { active: boolean }) {
+  return (
+    <svg width={20} height={20} fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.8} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+    </svg>
+  );
+}
+
+function NLFlagIcon({ active }: { active: boolean }) {
+  return (
+    <svg width={20} height={20} fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.8} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  );
+}
+
+/* ── Global (unscoped) mobile nav items ─────────────────────── */
+const mobileNavItemsGlobal = [
+  { href: "/", label: "Home", exact: true },
+  { href: routes.tk.root, label: "TK" },
+  { href: routes.gemeenten.root, label: "Gemeenten" },
+  { href: routes.transparantie, label: "Info" },
+];
+
+const mobileIconsGlobal: Record<string, (props: { active: boolean }) => JSX.Element> = {
+  "/": HomeIcon,
+  [routes.tk.root]: NLFlagIcon,
+  [routes.gemeenten.root]: BuildingIcon,
+  [routes.transparantie]: InfoIcon,
+};
+
 const mobileIcons: Record<string, (props: { active: boolean }) => JSX.Element> = {
   [routes.tk.root]: GridIcon,
   [routes.tk.beloften]: CheckIcon,
@@ -143,18 +182,26 @@ export default function Nav() {
 
   // Choose which nav items to show based on scope
   const scopeNavItems = isTKScope ? tkNavItems : isGemeenteScope ? gemeenteNavItems : [];
-  const activeMobileItems = isGemeenteScope ? mobileGemeenteItems : mobileNavItemsTK;
+  const activeMobileItems = isGemeenteScope
+    ? mobileGemeenteItems
+    : isTKScope
+      ? mobileNavItemsTK
+      : mobileNavItemsGlobal;
 
-  // Mobile icons for gemeente scope
+  // Mobile icons based on current scope
   const getMobileIcon = (href: string): ((props: { active: boolean }) => JSX.Element) | undefined => {
-    if (!isGemeenteScope) return mobileIcons[href];
-    const g = gemeente(gemeenteSlug!);
-    if (href === g.root) return GridIcon;
-    if (href === g.beloften) return CheckIcon;
-    if (href === g.moties) return DocIcon;
-    if (href === g.partijen) return BuildingIcon;
-    if (href === g.raadsleden) return PeopleIcon;
-    return undefined;
+    if (isGemeenteScope) {
+      const g = gemeente(gemeenteSlug!);
+      if (href === g.root) return GridIcon;
+      if (href === g.beloften) return CheckIcon;
+      if (href === g.moties) return DocIcon;
+      if (href === g.partijen) return BuildingIcon;
+      if (href === g.raadsleden) return PeopleIcon;
+      return undefined;
+    }
+    if (isTKScope) return mobileIcons[href];
+    // Global/unscoped
+    return mobileIconsGlobal[href];
   };
 
   function isActive(href: string, exact?: boolean) {
