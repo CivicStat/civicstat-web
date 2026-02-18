@@ -3,7 +3,7 @@ import { getParliaments } from "../../../lib/api";
 import { gemeente } from "../../../lib/routes";
 import type { ParliamentListItem } from "../../../lib/types";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Gemeenteraden — CivicStat",
