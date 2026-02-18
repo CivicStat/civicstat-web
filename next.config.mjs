@@ -11,6 +11,23 @@ const nextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      // ── PostHog reverse proxy (avoids ad blockers) ──
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://eu-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://eu.i.posthog.com/:path*",
+      },
+      {
+        source: "/ingest/decide",
+        destination: "https://eu.i.posthog.com/decide",
+      },
+    ];
+  },
   async redirects() {
     return [
       // ── Old TK routes → new /nl/tweede-kamer/ routes ──
@@ -28,6 +45,8 @@ const nextConfig = {
       { source: "/status", destination: "/transparantie", permanent: true },
     ];
   },
+  // Prevent PostHog proxy rewrites from being blocked by middleware
+  skipTrailingSlashRedirect: true,
 };
 
 export default nextConfig;
