@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
 import MethodologyPanel from "./MethodologyPanel";
+import ScopeSwitcherLoader from "./ScopeSwitcherLoader";
 import { routes, gemeente } from "../lib/routes";
 
 /* ── TK scope nav items ───────────────────────────────────── */
@@ -99,7 +100,6 @@ function parseGemeenteSlug(pathname: string): string | null {
 }
 
 function slugToName(slug: string): string {
-  // "den-haag" → "Den Haag", "amsterdam" → "Amsterdam"
   return slug
     .split("-")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -116,12 +116,13 @@ export default function Nav() {
   const isGemeenteScope = gemeenteSlug !== null;
   const isScopedPage = isTKScope || isGemeenteScope;
 
-  // Build gemeente-scoped nav items dynamically
+  // Build gemeente-scoped nav items dynamically (with beloften)
   const gemeenteNavItems = useMemo(() => {
     if (!gemeenteSlug) return [];
     const g = gemeente(gemeenteSlug);
     return [
       { href: g.root, label: "Overzicht", exact: true },
+      { href: g.beloften, label: "Beloften" },
       { href: g.moties, label: "Moties" },
       { href: g.partijen, label: "Partijen" },
       { href: g.raadsleden, label: "Raadsleden" },
@@ -133,6 +134,7 @@ export default function Nav() {
     const g = gemeente(gemeenteSlug);
     return [
       { href: g.root, label: "Overzicht", exact: true },
+      { href: g.beloften, label: "Beloften" },
       { href: g.moties, label: "Moties" },
       { href: g.partijen, label: "Partijen" },
       { href: g.raadsleden, label: "Leden" },
@@ -146,9 +148,9 @@ export default function Nav() {
   // Mobile icons for gemeente scope
   const getMobileIcon = (href: string): ((props: { active: boolean }) => JSX.Element) | undefined => {
     if (!isGemeenteScope) return mobileIcons[href];
-    // Map gemeente routes to icons by position
     const g = gemeente(gemeenteSlug!);
     if (href === g.root) return GridIcon;
+    if (href === g.beloften) return CheckIcon;
     if (href === g.moties) return DocIcon;
     if (href === g.partijen) return BuildingIcon;
     if (href === g.raadsleden) return PeopleIcon;
@@ -165,48 +167,20 @@ export default function Nav() {
     <>
       {/* ── Global top bar ──────────────────────────────── */}
       <header className="sticky top-0 z-50 border-b border-border" style={{ background: "var(--nav-bg)", backdropFilter: "blur(18px) saturate(180%)", WebkitBackdropFilter: "blur(18px) saturate(180%)" }}>
-        {/* Top row: logo + scope + actions */}
+        {/* Top row: logo + scope switcher + actions */}
         <div className="mx-auto flex h-14 max-w-[1200px] items-center justify-between px-6">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
               <div className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-moss">
                 <span className="text-white dark:text-[#0E1623]"><ShieldIcon /></span>
               </div>
-              <span className="text-[17px] font-serif text-ink tracking-tight">CivicStat</span>
+              <span className="hidden sm:inline text-[17px] font-serif text-ink tracking-tight">CivicStat</span>
             </Link>
 
-            {/* Scope indicator — TK */}
-            {isTKScope && (
-              <>
-                <span className="text-text-tertiary text-[13px]">/</span>
-                <Link
-                  href={routes.tk.root}
-                  className="text-[13px] font-medium text-text-secondary hover:text-ink transition-colors"
-                >
-                  Tweede Kamer
-                </Link>
-              </>
-            )}
+            <span className="text-text-tertiary text-[13px] ml-0.5">/</span>
 
-            {/* Scope indicator — Gemeente */}
-            {isGemeenteScope && (
-              <>
-                <span className="text-text-tertiary text-[13px]">/</span>
-                <Link
-                  href={routes.gemeenten.root}
-                  className="text-[13px] text-text-tertiary hover:text-text-secondary transition-colors"
-                >
-                  Gemeenten
-                </Link>
-                <span className="text-text-tertiary text-[13px]">/</span>
-                <Link
-                  href={gemeente(gemeenteSlug!).root}
-                  className="text-[13px] font-medium text-text-secondary hover:text-ink transition-colors"
-                >
-                  {slugToName(gemeenteSlug!)}
-                </Link>
-              </>
-            )}
+            {/* Scope Switcher — replaces old breadcrumb */}
+            <ScopeSwitcherLoader />
           </div>
 
           {/* Actions: search + begrippen + global links + theme + hamburger */}
@@ -295,6 +269,35 @@ export default function Nav() {
         {/* Mobile slide-down menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-border-subtle bg-surface px-6 py-4 space-y-1">
+            {/* Scope navigation */}
+            <div className="text-[10px] font-medium uppercase tracking-widest text-text-tertiary mb-2">
+              Navigeer
+            </div>
+            <Link
+              href={routes.tk.root}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block rounded-lg px-3 py-2 text-[14px] transition-colors ${
+                isTKScope
+                  ? "bg-surface-sub font-semibold text-ink"
+                  : "text-text-secondary hover:bg-surface-sub/60"
+              }`}
+            >
+              🇳🇱 Tweede Kamer
+            </Link>
+            <Link
+              href={routes.gemeenten.root}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block rounded-lg px-3 py-2 text-[14px] transition-colors ${
+                pathname === routes.gemeenten.root
+                  ? "bg-surface-sub font-semibold text-ink"
+                  : "text-text-secondary hover:bg-surface-sub/60"
+              }`}
+            >
+              🏛 Gemeenteraden
+            </Link>
+            <div className="border-t border-border-subtle my-2" />
+
+            {/* Current scope items */}
             {isTKScope && (
               <>
                 <div className="text-[10px] font-medium uppercase tracking-widest text-text-tertiary mb-2">

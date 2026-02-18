@@ -16,6 +16,8 @@ export function gemeente(slug: string) {
   const base = `${GEMEENTE_BASE}/${slug}`;
   return {
     root: base,
+    beloften: `${base}/beloften`,
+    belofte: (id: string) => `${base}/beloften/${id}`,
     moties: `${base}/moties`,
     motie: (id: string) => `${base}/moties/${id}`,
     raadsleden: `${base}/raadsleden`,

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getPlatformStats, getInsights, getParliaments } from "../lib/api";
 import SearchBar from "../components/SearchBar";
-import { routes, gemeente } from "../lib/routes";
+import { routes } from "../lib/routes";
 
 export const revalidate = 3600; // ISR: re-generate at most every hour
 
@@ -12,6 +12,9 @@ export default async function HomePage() {
     getParliaments().catch(() => []),
   ]);
   const municipalities = parliamentsResult.filter((p) => p.level === "MUNICIPAL");
+  const activeMunicipalities = municipalities.filter(
+    (m) => (m._count?.motions ?? 0) > 0,
+  );
 
   return (
     <div>
@@ -51,14 +54,12 @@ export default async function HomePage() {
             >
               Bekijk Tweede Kamer
             </Link>
-            {municipalities.length > 0 && (
-              <Link
-                href={routes.gemeenten.root}
-                className="inline-flex items-center gap-2 rounded-[9px] bg-moss/10 px-5 py-2.5 text-sm font-medium text-moss hover:bg-moss/20 transition-colors"
-              >
-                Gemeenteraden
-              </Link>
-            )}
+            <Link
+              href={routes.gemeenten.root}
+              className="inline-flex items-center gap-2 rounded-[9px] bg-moss/10 px-5 py-2.5 text-sm font-medium text-moss hover:bg-moss/20 transition-colors"
+            >
+              Gemeenteraden
+            </Link>
             <Link
               href={routes.transparantie}
               className="inline-flex items-center gap-2 rounded-[9px] border border-border px-5 py-2.5 text-sm font-medium text-text-secondary hover:bg-surface-sub transition-colors"
@@ -154,22 +155,22 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Beschikbare analyses */}
+        {/* ─── Ontdek de Nederlandse politiek (scaled for 250+) ─── */}
         <section className="py-12 border-b border-border-subtle">
           <h2 className="font-serif text-[clamp(22px,3vw,28px)] font-normal text-ink mb-6">
-            Beschikbare analyses
+            Ontdek de Nederlandse politiek
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            {/* Active: Tweede Kamer */}
+            {/* Tweede Kamer */}
             <Link href={routes.tk.root} className="block p-6 rounded-xl border border-border bg-card hover:border-moss/30 transition-colors group">
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-2xl" aria-hidden>&#x1F1F3;&#x1F1F1;</span>
                 <h3 className="font-serif text-xl group-hover:text-moss transition-colors">Tweede Kamer</h3>
               </div>
-              <p className="text-sm text-text-secondary mb-3">150 zetels &middot; {stats?.parties ?? 16} partijen</p>
+              <p className="text-sm text-text-secondary mb-2">150 zetels &middot; {stats?.parties ?? 16} partijen</p>
               {stats && (
                 <p className="text-sm text-text-secondary">
-                  {stats.motions.toLocaleString("nl-NL")} moties &middot; {stats.promises.toLocaleString("nl-NL")} beloften &middot; {stats.matches.toLocaleString("nl-NL")} koppelingen
+                  {stats.motions.toLocaleString("nl-NL")} moties &middot; {stats.promises.toLocaleString("nl-NL")} beloften geanalyseerd
                 </p>
               )}
               <span className="inline-block mt-4 text-sm text-moss font-medium">
@@ -177,57 +178,42 @@ export default async function HomePage() {
               </span>
             </Link>
 
-            {/* Active municipalities */}
-            {municipalities.map((m) => {
-              const mr = gemeente(m.slug);
-              return (
-                <Link
-                  key={m.id}
-                  href={mr.root}
-                  className="block p-6 rounded-xl border border-border bg-card hover:border-moss/30 transition-colors group"
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="text-2xl" aria-hidden>&#x1F3DB;&#xFE0F;</span>
-                    <h3 className="font-serif text-xl group-hover:text-moss transition-colors">
-                      {m.shortName}
-                    </h3>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-moss/10 text-moss font-medium">
-                      gemeenteraad
-                    </span>
-                  </div>
-                  <p className="text-sm text-text-secondary mb-3">
-                    {m.seats} zetels &middot; {m._count.parties} partijen
-                  </p>
-                  <p className="text-sm text-text-secondary">
-                    {m._count.motions.toLocaleString("nl-NL")} moties &middot; {m._count.mps} raadsleden
-                  </p>
-                  <span className="inline-block mt-4 text-sm text-moss font-medium">
-                    Bekijk dashboard &rarr;
-                  </span>
-                </Link>
-              );
-            })}
-
-            {/* Coming soon */}
-            <div className="p-6 rounded-xl border border-dashed border-border/60 opacity-60">
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl" aria-hidden>&#x1F1F3;&#x1F1F1;</span>
-                  <span className="text-text-secondary">Eerste Kamer</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-surface-sub text-text-tertiary">binnenkort</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl" aria-hidden>&#x1F1EA;&#x1F1FA;</span>
-                  <span className="text-text-secondary">Europees Parlement</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-surface-sub text-text-tertiary">binnenkort</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl" aria-hidden>&#x1F3DB;&#xFE0F;</span>
-                  <span className="text-text-secondary">Meer gemeenten</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-surface-sub text-text-tertiary">binnenkort</span>
-                </div>
+            {/* Gemeenteraden — scaled summary card */}
+            <Link href={routes.gemeenten.root} className="block p-6 rounded-xl border border-border bg-card hover:border-moss/30 transition-colors group">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-2xl" aria-hidden>&#x1F3DB;&#xFE0F;</span>
+                <h3 className="font-serif text-xl group-hover:text-moss transition-colors">Gemeenteraden</h3>
               </div>
-            </div>
+              <p className="text-sm text-text-secondary mb-2">
+                {municipalities.length > 0
+                  ? `${municipalities.length} gemeenten beschikbaar`
+                  : "Gemeenteraden binnenkort beschikbaar"}
+              </p>
+              {activeMunicipalities.length > 0 && (
+                <p className="text-sm text-text-secondary">
+                  {activeMunicipalities.map((m) => m.shortName).join(", ")}
+                  {municipalities.length > activeMunicipalities.length &&
+                    ` + ${municipalities.length - activeMunicipalities.length} binnenkort`}
+                </p>
+              )}
+              <span className="inline-block mt-4 text-sm text-moss font-medium">
+                Bekijk alle gemeenten &rarr;
+              </span>
+            </Link>
+          </div>
+
+          {/* Binnenkort row */}
+          <div className="flex items-center gap-4 mt-4 px-2 text-[12px] text-text-tertiary">
+            <span>Binnenkort:</span>
+            <span className="flex items-center gap-1.5">
+              <span aria-hidden>🇳🇱</span> Eerste Kamer
+            </span>
+            <span>&middot;</span>
+            <span className="flex items-center gap-1.5">
+              <span aria-hidden>🇪🇺</span> Europees Parlement
+            </span>
+            <span>&middot;</span>
+            <span>250+ gemeenten</span>
           </div>
         </section>
 

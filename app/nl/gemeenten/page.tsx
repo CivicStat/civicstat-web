@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { getParliaments } from "../../../lib/api";
 import { gemeente } from "../../../lib/routes";
 import type { ParliamentListItem } from "../../../lib/types";
+import GemeentenSearch from "./GemeentenSearch";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +17,9 @@ export default async function GemeentenPage() {
   } catch {
     // API not yet deployed with /parliaments endpoint
   }
-  const municipalities = parliaments.filter((p) => p.level === "MUNICIPAL");
+  const municipalities = parliaments
+    .filter((p) => p.level === "MUNICIPAL")
+    .sort((a, b) => a.shortName.localeCompare(b.shortName, "nl"));
 
   return (
     <div className="mx-auto max-w-[1200px] px-6 pt-8 pb-20">
@@ -42,33 +44,19 @@ export default async function GemeentenPage() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {municipalities.map((m) => {
-            const r = gemeente(m.slug);
-            return (
-              <Link
-                key={m.id}
-                href={r.root}
-                className="card p-5 group hover:border-moss/40 transition-colors"
-              >
-                <h2 className="font-serif text-lg text-ink group-hover:text-moss transition-colors mb-1">
-                  {m.shortName}
-                </h2>
-                <p className="text-[13px] text-text-secondary mb-3">
-                  {m.seats} zetels
-                </p>
-                <div className="flex gap-4 text-[12px] text-text-tertiary">
-                  <span>{m._count.motions.toLocaleString("nl-NL")} moties</span>
-                  <span>{m._count.parties} partijen</span>
-                  <span>{m._count.mps} raadsleden</span>
-                </div>
-                <span className="inline-block mt-3 text-[13px] font-medium text-moss opacity-0 group-hover:opacity-100 transition-opacity">
-                  Bekijk dashboard &rarr;
-                </span>
-              </Link>
-            );
-          })}
-        </div>
+        <GemeentenSearch
+          municipalities={municipalities.map((m) => ({
+            id: m.id,
+            slug: m.slug,
+            name: m.shortName,
+            seats: m.seats,
+            motions: m._count.motions,
+            parties: m._count.parties,
+            mps: m._count.mps,
+            active: m._count.motions > 0,
+            href: gemeente(m.slug).root,
+          }))}
+        />
       )}
     </div>
   );
