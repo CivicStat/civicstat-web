@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getPromises, getParties } from "../../../../lib/api";
+import { getScopedPromises, getScopedParties } from "../../../../lib/api";
 import type { PromiseListItem } from "../../../../lib/types";
 import { themeLabel, formatSpecificity, directionLabel } from "../../../../lib/utils";
 import PartyBadge from "../../../../components/PartyBadge";
@@ -61,14 +61,13 @@ export default async function BeloftenPage({ searchParams }: Props) {
   try {
     const yearFilter = searchParams.periode ? parseInt(searchParams.periode) : undefined;
     const [promiseData, partyData] = await Promise.all([
-      getPromises({
+      getScopedPromises("tweede-kamer", {
         party: searchParams.partij,
         theme: searchParams.thema,
-        year: yearFilter,
         limit: PAGE_SIZE,
         offset,
       }),
-      getParties(),
+      getScopedParties("tweede-kamer"),
     ]);
     data = promiseData;
     parties = partyData.map((p) => ({
