@@ -246,7 +246,7 @@ export default function ScopeSwitcher({ municipalities = [] }: ScopeSwitcherProp
       {open && (
         <div
           ref={panelRef}
-          className="absolute left-0 top-full mt-1.5 z-[60] w-[280px] rounded-xl border border-border bg-surface shadow-lg shadow-black/8 overflow-hidden"
+          className="absolute left-0 top-full mt-1.5 z-[60] w-[280px] max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-surface shadow-lg shadow-black/8 overflow-hidden"
         >
           {/* Main items */}
           <div className="p-1.5">
