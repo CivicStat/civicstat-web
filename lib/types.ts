@@ -616,6 +616,37 @@ export interface InsightsResponse {
   generatedAt: string;
 }
 
+// ─── Coalition Dynamics ──────────────────────────────────────
+
+export interface CoalitionAlignmentResult {
+  partyId: string | null;
+  abbreviation: string;
+  coalitionName: string;
+  coalitionSlug: string;
+  periodStart: string;
+  periodEnd: string;
+  totalVotesAnalyzed: number;
+  alignedWithCoalition: number;
+  cai: number; // 0-100
+  isCoalitionMember: boolean;
+}
+
+export interface VrijeStemmenResult {
+  partyId: string;
+  abbreviation: string;
+  coalitionName: string;
+  coalitionSlug: string;
+  electionYear: number;
+  totalMCS: number;
+  vrijeStemmenMCS: number;
+  delta: number; // totalMCS - vrijeStemmenMCS (positive = inflated by discipline)
+  freeVoteCount: number;
+  coalitionVoteCount: number;
+  totalVoteCount: number;
+  scoredPromises: number;
+  freeVoteScoredPromises: number;
+}
+
 // ─── Coalitieverwatering ────────────────────────────────────
 export interface CoalitieverwateringResponse {
   partyId: string;

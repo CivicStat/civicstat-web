@@ -265,6 +265,42 @@ export async function getCoalitieverwatering(
   }
 }
 
+// ─── Coalition Dynamics ──────────────────────────────────────
+
+export async function getPartyCoalitionAlignment(
+  partyId: string,
+  coalition?: string,
+): Promise<import("./types").CoalitionAlignmentResult | null> {
+  try {
+    const sp = new URLSearchParams();
+    if (coalition) sp.set("coalition", coalition);
+    const qs = sp.toString();
+    return await apiFetch<import("./types").CoalitionAlignmentResult>(
+      `/parties/${encodeURIComponent(partyId)}/coalition-alignment${qs ? `?${qs}` : ""}`,
+    );
+  } catch {
+    return null;
+  }
+}
+
+export async function getPartyVrijeStemmen(
+  partyId: string,
+  year?: number,
+  coalition?: string,
+): Promise<import("./types").VrijeStemmenResult | null> {
+  try {
+    const sp = new URLSearchParams();
+    if (year) sp.set("year", String(year));
+    if (coalition) sp.set("coalition", coalition);
+    const qs = sp.toString();
+    return await apiFetch<import("./types").VrijeStemmenResult>(
+      `/parties/${encodeURIComponent(partyId)}/vrije-stemmen${qs ? `?${qs}` : ""}`,
+    );
+  } catch {
+    return null;
+  }
+}
+
 // ─── Langfuse AI Observability ────────────────────────────────
 
 export async function getLangfuseMetrics(): Promise<import("./types").LangfuseMetrics | null> {

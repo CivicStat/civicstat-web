@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { getParty, getParties, getPartyScorecard, getScorecardYears, getKoersvastheid, getRegeerakkoordScorecard, getCoalitieverwatering } from "../../../../../lib/api";
-import type { PartyScorecard, KoersvastheidResponse, CoalitieverwateringResponse } from "../../../../../lib/types";
+import { getParty, getParties, getPartyScorecard, getScorecardYears, getKoersvastheid, getRegeerakkoordScorecard, getCoalitieverwatering, getPartyCoalitionAlignment, getPartyVrijeStemmen } from "../../../../../lib/api";
+import type { PartyScorecard, KoersvastheidResponse, CoalitieverwateringResponse, CoalitionAlignmentResult, VrijeStemmenResult } from "../../../../../lib/types";
 import { getPartyColor, themeLabel } from "../../../../../lib/utils";
 import Breadcrumbs from "../../../../../components/Breadcrumbs";
 import VoteBar from "../../../../../components/VoteBar";
@@ -90,6 +90,19 @@ export default async function PartyDetailPage({
         return { coalition: c, regeerakkoord, verwatering };
       }),
     );
+  }
+
+  // Fetch coalition dynamics data (CAI + Vrije Stemmen MCS)
+  let coalitionAlignment: CoalitionAlignmentResult | null = null;
+  let vrijeStemmen: VrijeStemmenResult | null = null;
+
+  if (coalitions.length > 0) {
+    const latestCoalition = coalitions[coalitions.length - 1];
+    const coalitionSlug = latestCoalition.name.toLowerCase().includes("schoof") ? "schoof" : "jetten";
+    [coalitionAlignment, vrijeStemmen] = await Promise.all([
+      getPartyCoalitionAlignment(params.id, coalitionSlug),
+      getPartyVrijeStemmen(params.id, activeYear, coalitionSlug),
+    ]);
   }
 
   // Fetch all parties for prev/next navigation
@@ -520,6 +533,158 @@ export default async function PartyDetailPage({
                 Formule: koersvastheid = 100 − |MCS(TK2023) − MCS(TK2025)|.
                 Een hoge score betekent dat de partij in beide periodes vergelijkbaar scoort.
               </p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Coalition Dynamics — CAI + Vrije Stemmen MCS */}
+      {(coalitionAlignment || vrijeStemmen) && (
+        <section className="mb-8">
+          <h2 className="font-serif text-xl text-ink mb-4">Coalitiedynamiek</h2>
+          <div className="card p-5">
+            {/* CAI gauge */}
+            {coalitionAlignment && coalitionAlignment.totalVotesAnalyzed > 0 && (
+              <div className="mb-5">
+                <div className="section-label mb-3">
+                  <Term definition="De Coalitie Alignment Index (CAI) meet hoe vaak deze partij stemt in lijn met de coalitie-meerderheid. 100 = altijd mee, 0 = altijd tegen.">
+                    Coalitie Alignment Index
+                  </Term>
+                  {" "}<span className="text-text-tertiary font-normal">· {coalitionAlignment.coalitionName}</span>
+                </div>
+                <div className="flex items-start gap-6">
+                  <div className="text-center shrink-0">
+                    <div className="text-[42px] font-serif text-ink leading-none">
+                      {coalitionAlignment.cai}
+                    </div>
+                    <div className="text-[11px] text-text-tertiary mt-1">van 100</div>
+                    <div className={`text-[10px] mt-1.5 font-medium ${
+                      coalitionAlignment.cai >= 80
+                        ? "text-ink"
+                        : coalitionAlignment.cai >= 60
+                          ? "text-text-secondary"
+                          : "text-text-tertiary"
+                    }`}>
+                      {coalitionAlignment.cai >= 80
+                        ? "Hoge afstemming"
+                        : coalitionAlignment.cai >= 60
+                          ? "Gemiddeld"
+                          : "Afwijkend"}
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-text-secondary mb-3">
+                      {party.abbreviation} stemde in <strong>{coalitionAlignment.cai}%</strong> van de{" "}
+                      {coalitionAlignment.totalVotesAnalyzed.toLocaleString("nl-NL")} stemmingen mee met de coalitie-meerderheid
+                      {coalitionAlignment.isCoalitionMember ? " (als coalitiepartij)" : " (als oppositiepartij)"}.
+                    </p>
+                    {/* CAI bar */}
+                    <div className="h-3 rounded-md overflow-hidden bg-ink/4 dark:bg-white/4">
+                      <div
+                        className="h-full bg-ink/25 dark:bg-white/25 rounded-md transition-all"
+                        style={{ width: `${coalitionAlignment.cai}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between mt-1.5 text-[11px] text-text-tertiary">
+                      <span>{coalitionAlignment.alignedWithCoalition.toLocaleString("nl-NL")} aligned</span>
+                      <span>{coalitionAlignment.periodStart} – {coalitionAlignment.periodEnd}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Vrije Stemmen MCS comparison */}
+            {vrijeStemmen && vrijeStemmen.scoredPromises > 0 && (
+              <div className={coalitionAlignment && coalitionAlignment.totalVotesAnalyzed > 0 ? "border-t border-border pt-5" : ""}>
+                <div className="section-label mb-3">
+                  <Term definition="De Vrije Stemmen MCS meet de belofteconsistentie alleen op basis van 'vrije stemmen' — stemmingen waarbij de coalitie niet unaniem was. Dit onthult of consistentie echt is of door coalitiediscipline komt.">
+                    Vrije Stemmen MCS
+                  </Term>
+                </div>
+                <div className="flex items-start gap-6">
+                  <div className="text-center shrink-0 space-y-3">
+                    <div>
+                      <div className="text-[11px] text-text-tertiary mb-0.5">Standaard</div>
+                      <div className="text-[28px] font-serif text-ink leading-none">
+                        {vrijeStemmen.totalMCS}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-text-tertiary mb-0.5">Vrije stemmen</div>
+                      <div className="text-[28px] font-serif text-ink leading-none">
+                        {vrijeStemmen.vrijeStemmenMCS}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {/* Visual comparison bars */}
+                    <div className="space-y-2 mb-3">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[11px] text-text-tertiary w-[90px]">MCS standaard</span>
+                          <div className="flex-1 h-3 rounded-md overflow-hidden bg-ink/4 dark:bg-white/4">
+                            <div className="h-full bg-ink/25 dark:bg-white/25 rounded-md" style={{ width: `${vrijeStemmen.totalMCS}%` }} />
+                          </div>
+                          <span className="text-[12px] font-medium text-ink w-[30px] text-right">{vrijeStemmen.totalMCS}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[11px] text-text-tertiary w-[90px]">Vrije stemmen</span>
+                          <div className="flex-1 h-3 rounded-md overflow-hidden bg-ink/4 dark:bg-white/4">
+                            <div className="h-full bg-ink/15 dark:bg-white/15 rounded-md" style={{ width: `${vrijeStemmen.vrijeStemmenMCS}%` }} />
+                          </div>
+                          <span className="text-[12px] font-medium text-ink w-[30px] text-right">{vrijeStemmen.vrijeStemmenMCS}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Insight text */}
+                    {vrijeStemmen.delta > 5 ? (
+                      <p className="text-sm text-text-secondary">
+                        De MCS van {party.abbreviation} daalt met <strong>{vrijeStemmen.delta} punten</strong> zonder
+                        coalitiestemmen. Dit suggereert dat een deel van de consistentie voortkomt uit coalitiediscipline.
+                      </p>
+                    ) : vrijeStemmen.delta < -5 ? (
+                      <p className="text-sm text-text-secondary">
+                        De MCS van {party.abbreviation} stijgt met <strong>{Math.abs(vrijeStemmen.delta)} punten</strong> bij
+                        alleen vrije stemmen. De partij is consistenter wanneer coalitiediscipline geen rol speelt.
+                      </p>
+                    ) : (
+                      <p className="text-sm text-text-secondary">
+                        Het verschil is minimaal ({vrijeStemmen.delta > 0 ? "+" : ""}{vrijeStemmen.delta} punten).
+                        De consistentie van {party.abbreviation} is grotendeels onafhankelijk van coalitiediscipline.
+                      </p>
+                    )}
+
+                    {/* Stats */}
+                    <div className="flex gap-4 mt-3 text-[11px] text-text-tertiary">
+                      <span>{vrijeStemmen.freeVoteCount} vrije stemmen</span>
+                      <span>{vrijeStemmen.coalitionVoteCount} coalitiestemmen</span>
+                      <span>{vrijeStemmen.totalVoteCount} totaal</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Methodology */}
+            <div className="border-t border-border pt-3 mt-4">
+              <details className="text-xs text-text-tertiary">
+                <summary className="cursor-pointer hover:text-text-secondary underline underline-offset-2">
+                  Methodologie
+                </summary>
+                <p className="mt-2 max-w-lg leading-relaxed">
+                  <strong>CAI:</strong> Per stemming wordt de coalitie-meerderheidspositie bepaald.
+                  De CAI is het percentage stemmingen waarin de partij dezelfde positie inneemt.
+                  <br /><br />
+                  <strong>Vrije Stemmen MCS:</strong> Alle stemmingen worden geclassificeerd als
+                  &ldquo;coalitiestem&rdquo; (alle coalitiepartijen stemmen gelijk) of &ldquo;vrije stem&rdquo;
+                  (minstens één coalitiepartij wijkt af). De Vrije Stemmen MCS berekent de belofteconsistentie
+                  alleen op basis van vrije stemmen.
+                </p>
+              </details>
             </div>
           </div>
         </section>
