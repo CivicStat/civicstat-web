@@ -6,6 +6,7 @@ import type { MotionListItem } from "../../../../../lib/types";
 import { formatDate } from "../../../../../lib/utils";
 import PartyBadge from "../../../../../components/PartyBadge";
 import StatusBadge from "../../../../../components/StatusBadge";
+import MotionTypeBadge from "../../../../../components/MotionTypeBadge";
 import VoteBar from "../../../../../components/VoteBar";
 
 interface Props {
@@ -154,6 +155,12 @@ export default async function GemeenteMotiesPage({ params, searchParams }: Props
                   {m.title}
                 </div>
                 <div className="mt-1 flex items-center gap-1.5 text-xs text-text-tertiary">
+                  {m.soort && m.soort !== "Motie" && (
+                    <>
+                      <MotionTypeBadge type={m.soort} size="sm" />
+                      <span>·</span>
+                    </>
+                  )}
                   {party && (
                     <PartyBadge
                       abbreviation={party.abbreviation}

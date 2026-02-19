@@ -4,6 +4,7 @@ import type { MotionListItem } from "../../lib/types";
 import { formatDate } from "../../lib/utils";
 import PartyBadge from "../../components/PartyBadge";
 import StatusBadge from "../../components/StatusBadge";
+import MotionTypeBadge from "../../components/MotionTypeBadge";
 import VoteBar from "../../components/VoteBar";
 import MotiesFilters from "./MotiesFilters";
 
@@ -137,6 +138,12 @@ export default async function MotiesPage({ searchParams }: Props) {
                   {m.title}
                 </div>
                 <div className="mt-1 flex items-center gap-1.5 text-xs text-text-tertiary">
+                  {m.soort && m.soort !== "Motie" && (
+                    <>
+                      <MotionTypeBadge type={m.soort} size="sm" />
+                      <span>·</span>
+                    </>
+                  )}
                   {m.tkNumber && (
                     <>
                       <span>{m.tkNumber}</span>
