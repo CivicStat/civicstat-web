@@ -25,8 +25,10 @@ export const revalidate = 3600;
 /* ── Abbreviation alias map for TK cross-reference ────────── */
 const MUNICIPAL_TO_TK: Record<string, string> = {
   "GroenLinks": "GroenLinks-PvdA",
+  "PvdA": "GroenLinks-PvdA", // PvdA merged with GL in TK
   "Partij voor de Dieren": "PvdD",
   "VOLT": "Volt",
+  "FVD": "FVD", // Casing normalization
   // ChristenUnie-SGP is a combined local fraction — map to CU in TK
   "ChristenUnie-SGP": "ChristenUnie",
 };
