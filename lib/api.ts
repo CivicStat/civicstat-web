@@ -439,6 +439,33 @@ export async function getScopedPromiseStats(
   );
 }
 
+// ─── Parliament-scoped scorecards ────────────────────────────
+
+export async function getScopedScorecards(
+  slug: string,
+  params?: { year?: number },
+): Promise<Omit<PartyScorecard, "promises">[]> {
+  const sp = new URLSearchParams();
+  if (params?.year) sp.set("year", String(params.year));
+  const qs = sp.toString();
+  return apiFetch<Omit<PartyScorecard, "promises">[]>(
+    `/parliament/${encodeURIComponent(slug)}/scorecards${qs ? `?${qs}` : ""}`,
+  );
+}
+
+export async function getScopedScorecard(
+  slug: string,
+  partyId: string,
+  params?: { year?: number },
+): Promise<PartyScorecard> {
+  const sp = new URLSearchParams();
+  if (params?.year) sp.set("year", String(params.year));
+  const qs = sp.toString();
+  return apiFetch<PartyScorecard>(
+    `/parliament/${encodeURIComponent(slug)}/parties/${encodeURIComponent(partyId)}/scorecard${qs ? `?${qs}` : ""}`,
+  );
+}
+
 // ─── Admin / Status ──────────────────────────────────────────
 
 export async function getSystemStatus() {
