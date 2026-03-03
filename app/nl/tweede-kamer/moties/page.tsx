@@ -15,6 +15,7 @@ interface Props {
     q?: string;
     page?: string;
     sort?: string;
+    soort?: string;
     hasVotes?: string;
   };
 }
@@ -39,6 +40,7 @@ export default async function MotiesPage({ searchParams }: Props) {
     data = await getMotions({
       status: searchParams.status,
       q: searchParams.q,
+      soort: searchParams.soort,
       hasVotes: hasVotes || undefined,
       limit: PAGE_SIZE,
       offset,
@@ -88,8 +90,8 @@ export default async function MotiesPage({ searchParams }: Props) {
         Moties
       </h1>
       <p className="text-sm text-text-secondary leading-relaxed mb-5">
-        {total.toLocaleString("nl-NL")} ingediende moties met stemresultaat en
-        bronverwijzing.
+        {total.toLocaleString("nl-NL")} ingediende moties, amendementen en
+        wetsvoorstellen met stemresultaat en bronverwijzing.
       </p>
 
       {/* Filters */}
@@ -97,6 +99,7 @@ export default async function MotiesPage({ searchParams }: Props) {
         currentStatus={searchParams.status}
         currentQ={searchParams.q}
         currentSort={searchParams.sort}
+        currentSoort={searchParams.soort}
         currentHasVotes={hasVotes}
       />
 
@@ -135,7 +138,7 @@ export default async function MotiesPage({ searchParams }: Props) {
                   {m.title}
                 </div>
                 <div className="mt-1 flex items-center gap-1.5 text-xs text-text-tertiary">
-                  {m.soort && m.soort !== "Motie" && (
+                  {m.soort && (
                     <>
                       <MotionTypeBadge type={m.soort} size="sm" />
                       <span>·</span>
@@ -231,6 +234,7 @@ export default async function MotiesPage({ searchParams }: Props) {
                 status={searchParams.status}
                 q={searchParams.q}
                 sort={searchParams.sort}
+                soort={searchParams.soort}
                 label="← Vorige"
               />
             )}
@@ -240,6 +244,7 @@ export default async function MotiesPage({ searchParams }: Props) {
                 status={searchParams.status}
                 q={searchParams.q}
                 sort={searchParams.sort}
+                soort={searchParams.soort}
                 label="Volgende →"
               />
             )}
@@ -255,12 +260,14 @@ function PaginationLink({
   status,
   q,
   sort,
+  soort,
   label,
 }: {
   page: number;
   status?: string;
   q?: string;
   sort?: string;
+  soort?: string;
   label: string;
 }) {
   const sp = new URLSearchParams();
@@ -268,6 +275,7 @@ function PaginationLink({
   if (status) sp.set("status", status);
   if (q) sp.set("q", q);
   if (sort) sp.set("sort", sort);
+  if (soort) sp.set("soort", soort);
 
   return (
     <Link

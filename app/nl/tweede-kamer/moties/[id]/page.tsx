@@ -10,6 +10,7 @@ import Term from "../../../../../components/Term";
 import type { VoteRecord, RawStemming } from "../../../../../lib/types";
 import PredictionSection from "../../../../../components/PredictionSection";
 import Breadcrumbs from "../../../../../components/Breadcrumbs";
+import MotionTypeBadge from "../../../../../components/MotionTypeBadge";
 
 interface Props {
   params: { id: string };
@@ -83,9 +84,12 @@ export default async function MotieDetailPage({ params }: Props) {
       {/* Header */}
       <div className="mb-7">
         <div className="flex flex-wrap items-center gap-2.5 mb-2.5">
+          {m.soort && (
+            <MotionTypeBadge type={m.soort} size="md" />
+          )}
           {m.tkNumber && (
             <span className="text-[13px] text-text-tertiary font-medium">
-              Motie {m.tkNumber}
+              {m.soort || "Motie"} {m.tkNumber}
             </span>
           )}
           <span className="text-text-tertiary text-[10px]">·</span>

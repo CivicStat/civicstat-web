@@ -8,19 +8,21 @@ interface Props {
   currentStatus?: string;
   currentQ?: string;
   currentSort?: string;
+  currentSoort?: string;
   currentHasVotes?: boolean;
 }
 
-export default function MotiesFilters({ currentStatus, currentQ, currentSort, currentHasVotes }: Props) {
+export default function MotiesFilters({ currentStatus, currentQ, currentSort, currentSoort, currentHasVotes }: Props) {
   const router = useRouter();
   const [q, setQ] = useState(currentQ ?? "");
   const [isPending, startTransition] = useTransition();
 
-  function navigate(params: { status?: string; q?: string; sort?: string; hasVotes?: boolean }) {
+  function navigate(params: { status?: string; q?: string; sort?: string; soort?: string; hasVotes?: boolean }) {
     const sp = new URLSearchParams();
     if (params.status) sp.set("status", params.status);
     if (params.q) sp.set("q", params.q);
     if (params.sort) sp.set("sort", params.sort);
+    if (params.soort) sp.set("soort", params.soort);
     if (params.hasVotes === false) sp.set("hasVotes", "false");
     startTransition(() => {
       router.push(`${routes.tk.moties}${sp.toString() ? `?${sp.toString()}` : ""}` as any);
@@ -29,11 +31,36 @@ export default function MotiesFilters({ currentStatus, currentQ, currentSort, cu
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    navigate({ status: currentStatus, q: q || undefined, sort: currentSort, hasVotes: currentHasVotes });
+    navigate({ status: currentStatus, q: q || undefined, sort: currentSort, soort: currentSoort, hasVotes: currentHasVotes });
   }
 
   return (
     <div className="mb-5 space-y-3">
+      {/* Type filter pills */}
+      <div className="flex gap-1.5 flex-wrap">
+        {[
+          { value: undefined as string | undefined, label: "Alle types" },
+          { value: "Motie" as string | undefined, label: "Moties" },
+          { value: "Amendement" as string | undefined, label: "Amendementen" },
+          { value: "Wetsvoorstel" as string | undefined, label: "Wetsvoorstellen" },
+        ].map((f) => {
+          const active = currentSoort === f.value;
+          return (
+            <button
+              key={f.label}
+              onClick={() => navigate({ status: currentStatus, q: currentQ, sort: currentSort, soort: f.value, hasVotes: currentHasVotes })}
+              className={`rounded-lg px-3.5 py-1.5 text-[13px] font-medium border transition-colors ${
+                active
+                  ? "border-moss bg-accent-subtle text-moss"
+                  : "border-border text-text-secondary hover:bg-surface-sub"
+              }`}
+            >
+              {f.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Status filter pills */}
       <div className="flex gap-1.5 flex-wrap">
         {[
@@ -45,7 +72,7 @@ export default function MotiesFilters({ currentStatus, currentQ, currentSort, cu
           return (
             <button
               key={f.label}
-              onClick={() => navigate({ status: f.value, q: currentQ, sort: currentSort, hasVotes: currentHasVotes })}
+              onClick={() => navigate({ status: f.value, q: currentQ, sort: currentSort, soort: currentSoort, hasVotes: currentHasVotes })}
               className={`rounded-lg px-3.5 py-1.5 text-[13px] font-medium border transition-colors ${
                 active
                   ? "border-moss bg-accent-subtle text-moss"
@@ -83,6 +110,7 @@ export default function MotiesFilters({ currentStatus, currentQ, currentSort, cu
               status: currentStatus,
               q: currentQ,
               sort: currentSort,
+              soort: currentSoort,
               hasVotes: currentHasVotes ? false : undefined,
             })
           }
@@ -111,6 +139,7 @@ export default function MotiesFilters({ currentStatus, currentQ, currentSort, cu
                   status: currentStatus,
                   q: currentQ,
                   sort: s.value,
+                  soort: currentSoort,
                   hasVotes: currentHasVotes,
                 })
               }

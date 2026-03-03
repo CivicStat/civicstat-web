@@ -17,6 +17,10 @@ const TYPE_CONFIG: Record<string, { label: string; className: string }> = {
     label: "Amendement",
     className: "bg-amber-500/8 text-amber-700 border-amber-500/20 dark:text-amber-400",
   },
+  Wetsvoorstel: {
+    label: "Wetsvoorstel",
+    className: "bg-ink/8 text-ink/70 border-ink/15",
+  },
 };
 
 export default function MotionTypeBadge({ type, size = "sm" }: MotionTypeBadgeProps) {
