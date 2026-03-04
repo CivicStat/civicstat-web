@@ -11,6 +11,7 @@ interface Props {
   searchParams: {
     partij?: string;
     thema?: string;
+    jaar?: string;
     page?: string;
   };
 }
@@ -44,6 +45,7 @@ export default async function MunicipalBeloftenPage({ params, searchParams }: Pr
       getScopedPromises(slug, {
         party: searchParams.partij,
         theme: searchParams.thema,
+        year: searchParams.jaar ? Number(searchParams.jaar) : undefined,
         limit: PAGE_SIZE,
         offset,
       }),
@@ -85,7 +87,7 @@ export default async function MunicipalBeloftenPage({ params, searchParams }: Pr
         Verkiezingsbeloften
       </h1>
       <p className="text-sm text-text-secondary leading-relaxed mb-5">
-        {total} beloften uit gemeenteraadsprogramma&apos;s, vergeleken met
+        {total} beloften uit {searchParams.jaar ? `verkiezingsprogramma's ${searchParams.jaar}` : "gemeenteraadsprogramma\u2019s"}, vergeleken met
         stemgedrag in de gemeenteraad van {cityName}.
       </p>
 
@@ -93,6 +95,7 @@ export default async function MunicipalBeloftenPage({ params, searchParams }: Pr
       <MunicipalBeloftenFilters
         currentParty={searchParams.partij}
         currentTheme={searchParams.thema}
+        currentYear={searchParams.jaar}
         parties={parties}
         citySlug={slug}
       />
@@ -192,6 +195,7 @@ export default async function MunicipalBeloftenPage({ params, searchParams }: Pr
                 page={page - 1}
                 partij={searchParams.partij}
                 thema={searchParams.thema}
+                jaar={searchParams.jaar}
                 basePath={routes.beloften}
                 label={"\u2190 Vorige"}
               />
@@ -201,6 +205,7 @@ export default async function MunicipalBeloftenPage({ params, searchParams }: Pr
                 page={page + 1}
                 partij={searchParams.partij}
                 thema={searchParams.thema}
+                jaar={searchParams.jaar}
                 basePath={routes.beloften}
                 label={"Volgende \u2192"}
               />
@@ -230,12 +235,14 @@ function PaginationLink({
   page,
   partij,
   thema,
+  jaar,
   basePath,
   label,
 }: {
   page: number;
   partij?: string;
   thema?: string;
+  jaar?: string;
   basePath: string;
   label: string;
 }) {
@@ -243,6 +250,7 @@ function PaginationLink({
   sp.set("page", String(page));
   if (partij) sp.set("partij", partij);
   if (thema) sp.set("thema", thema);
+  if (jaar) sp.set("jaar", jaar);
 
   return (
     <Link

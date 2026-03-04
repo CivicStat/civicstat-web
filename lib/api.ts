@@ -444,6 +444,7 @@ export async function getScopedPromises(
     q?: string;
     party?: string;
     theme?: string;
+    year?: number;
     limit?: number;
     offset?: number;
   },
@@ -452,6 +453,7 @@ export async function getScopedPromises(
   if (params?.q) sp.set("q", params.q);
   if (params?.party) sp.set("party", params.party);
   if (params?.theme) sp.set("theme", params.theme);
+  if (params?.year) sp.set("year", String(params.year));
   if (params?.limit) sp.set("limit", String(params.limit));
   if (params?.offset) sp.set("offset", String(params.offset));
   const qs = sp.toString();

@@ -15,6 +15,7 @@ import MethodologyLink from "../../../../../../components/MethodologyLink";
 import Term from "../../../../../../components/Term";
 import { gemeente } from "../../../../../../lib/routes";
 import { getScoreConfidence } from "../../../../../../lib/scoring";
+import VooruitblikScore from "../../../../../../components/VooruitblikScore";
 
 interface Props {
   params: Promise<{ city: string; id: string }>;
@@ -114,7 +115,7 @@ export default async function GemeentePartyDetailPage({ params }: Props) {
     notFound();
   }
 
-  // Fetch promise stats, local scorecard, and TK scorecards in parallel
+  // Fetch promise stats, local scorecard, 2026 scorecard, and TK scorecards in parallel
   let promiseStats: {
     totalPromises: number;
     totalMatches: number;
@@ -122,12 +123,14 @@ export default async function GemeentePartyDetailPage({ params }: Props) {
     byTheme: { theme: string; count: number }[];
   } | null = null;
   let localScorecard: PartyScorecard | null = null;
+  let scorecard2026: PartyScorecard | null = null;
   let tkScorecards: Omit<PartyScorecard, "promises">[] = [];
 
-  const [promiseStatsResult, localScorecardResult, tkScorecardsResult] =
+  const [promiseStatsResult, localScorecardResult, scorecard2026Result, tkScorecardsResult] =
     await Promise.allSettled([
       getScopedPromiseStats(city),
       getScopedScorecard(city, party.id, { year: 2022 }),
+      getScopedScorecard(city, party.id, { year: 2026 }),
       getAllScorecards({ year: 2023 }),
     ]);
 
@@ -135,6 +138,8 @@ export default async function GemeentePartyDetailPage({ params }: Props) {
     promiseStats = promiseStatsResult.value;
   if (localScorecardResult.status === "fulfilled")
     localScorecard = localScorecardResult.value;
+  if (scorecard2026Result.status === "fulfilled")
+    scorecard2026 = scorecard2026Result.value;
   if (tkScorecardsResult.status === "fulfilled")
     tkScorecards = tkScorecardsResult.value;
 
@@ -165,6 +170,8 @@ export default async function GemeentePartyDetailPage({ params }: Props) {
 
   const hasLocalScore =
     localScorecard && localScorecard.scoredPromises > 0;
+  const has2026Score =
+    scorecard2026 && scorecard2026.scoredPromises > 0;
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
@@ -325,12 +332,27 @@ export default async function GemeentePartyDetailPage({ params }: Props) {
         {hasLocalScore && (
           <div className="card p-4">
             <div className="section-label">
-              <Term definition="De Mandate Consistency Score (MCS) meet hoe consistent een partij stemt in lijn met haar verkiezingsbeloften. 100 = volledig consistent.">
-                MCS
+              <Term definition="De Mandate Consistency Score (MCS) meet hoe consistent een partij stemt in lijn met haar verkiezingsbeloften uit 2022. 100 = volledig consistent.">
+                MCS 2022
               </Term>
             </div>
             <div className="text-2xl font-serif text-ink">
               {localScorecard!.mandateConsistencyScore}
+            </div>
+            <div className="text-[11px] text-text-tertiary mt-0.5">
+              van 100
+            </div>
+          </div>
+        )}
+        {has2026Score && (
+          <div className="card p-4">
+            <div className="section-label">
+              <Term definition="De Vooruitblik-score meet hoe consistent deze partij al stemde (2022-2026) met wat ze nu beloven voor 2026.">
+                Vooruitblik 2026
+              </Term>
+            </div>
+            <div className="text-2xl font-serif text-ink">
+              {scorecard2026!.mandateConsistencyScore}
             </div>
             <div className="text-[11px] text-text-tertiary mt-0.5">
               van 100
@@ -418,11 +440,11 @@ export default async function GemeentePartyDetailPage({ params }: Props) {
         </section>
       )}
 
-      {/* ── Local Belofteconsistentie ─────────────────────────── */}
+      {/* ── Local Belofteconsistentie (2022 track record) ────────── */}
       {hasLocalScore && (
         <section className="mb-8">
-          <h2 className="font-serif text-xl text-ink mb-4">
-            Belofteconsistentie
+          <h2 className="font-serif text-xl text-ink mb-1">
+            Track record 2022–2026
           </h2>
           <div className="text-[12px] text-text-tertiary mb-3">
             Gemeenteraad {parliament.shortName} — Verkiezingsbeloften 2022
@@ -595,6 +617,16 @@ export default async function GemeentePartyDetailPage({ params }: Props) {
             </p>
           </div>
         </section>
+      )}
+
+      {/* ── Verkiezingsprogramma 2026 (Vooruitblik) ────────────── */}
+      {has2026Score && (
+        <VooruitblikScore
+          scorecard={scorecard2026!}
+          partyAbbreviation={party.abbreviation}
+          beloftenHref={`${r.beloften}?partij=${encodeURIComponent(party.abbreviation)}&jaar=2026`}
+          cityName={parliament.shortName}
+        />
       )}
 
       {/* ── Landelijk stemgedrag (TK cross-reference) ─────────── */}

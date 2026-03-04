@@ -6,12 +6,15 @@ import {
   getScopedParties,
   getScopedStats,
   getScopedPromiseStats,
+  getScopedScorecards,
 } from "../../../../lib/api";
+import type { PartyScorecard } from "../../../../lib/types";
 import { formatDate, getPartyColor } from "../../../../lib/utils";
 import PartyBadge from "../../../../components/PartyBadge";
 import StatusBadge from "../../../../components/StatusBadge";
 import VoteBar from "../../../../components/VoteBar";
 import PartyAvatar from "../../../../components/PartyAvatar";
+import ElectionCountdown from "../../../../components/ElectionCountdown";
 import { gemeente } from "../../../../lib/routes";
 
 export const revalidate = 300;
@@ -89,12 +92,14 @@ export default async function CityDashboardPage({ params }: Props) {
 
   const r = gemeente(city);
 
-  const [motionsResult, partiesResult, statsResult, promiseStatsResult] =
+  const [motionsResult, partiesResult, statsResult, promiseStatsResult, sc2022Result, sc2026Result] =
     await Promise.allSettled([
       getScopedMotions(city, { limit: 8 }),
       getScopedParties(city),
       getScopedStats(city),
       getScopedPromiseStats(city),
+      getScopedScorecards(city, { year: 2022 }),
+      getScopedScorecards(city, { year: 2026 }),
     ]);
 
   const recentMotions =
@@ -107,6 +112,16 @@ export default async function CityDashboardPage({ params }: Props) {
     statsResult.status === "fulfilled" ? statsResult.value : null;
   const promiseStats =
     promiseStatsResult.status === "fulfilled" ? promiseStatsResult.value : null;
+
+  const scorecards2022: Omit<PartyScorecard, "promises">[] =
+    sc2022Result.status === "fulfilled" ? sc2022Result.value : [];
+  const scorecards2026: Omit<PartyScorecard, "promises">[] =
+    sc2026Result.status === "fulfilled" ? sc2026Result.value : [];
+
+  // Build comparison data for parties that have at least one score
+  const sc2022Map = new Map(scorecards2022.map((s) => [s.partyId, s]));
+  const sc2026Map = new Map(scorecards2026.map((s) => [s.partyId, s]));
+  const hasComparisonData = scorecards2022.length > 0 || scorecards2026.length > 0;
 
   const quickCards = [
     {
@@ -182,6 +197,12 @@ export default async function CityDashboardPage({ params }: Props) {
         </p>
       </div>
 
+      {/* Election countdown */}
+      <ElectionCountdown
+        electionDate="2026-03-18"
+        label="gemeenteraadsverkiezingen"
+      />
+
       {/* Quick-access cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
         {quickCards.map((c) => (
@@ -207,6 +228,113 @@ export default async function CityDashboardPage({ params }: Props) {
           </Link>
         ))}
       </div>
+
+      {/* Verkiezingen 2026 — comparison table */}
+      {hasComparisonData && parties && parties.length > 0 && (
+        <section className="mb-10">
+          <div className="flex items-baseline justify-between mb-4">
+            <div>
+              <div className="section-label">Verkiezingen 2026</div>
+              <h2 className="font-serif text-[20px] font-normal text-ink mt-1">
+                Consistentiescores per partij
+              </h2>
+            </div>
+            <Link
+              href={`${r.partijen}?sort=2026`}
+              className="text-[12px] font-medium text-moss hover:underline inline-flex items-center gap-1"
+            >
+              Vergelijk alle partijen <ArrowIcon />
+            </Link>
+          </div>
+          <div className="card overflow-hidden">
+            <div className="hidden sm:grid sm:grid-cols-[1fr_90px_90px] gap-2 px-5 py-2.5 border-b border-border bg-surface-sub/30 text-[10px] font-medium text-text-tertiary uppercase tracking-wider">
+              <span>Partij</span>
+              <span className="text-right">Track record 2022</span>
+              <span className="text-right">Vooruitblik 2026</span>
+            </div>
+            {[...parties]
+              .filter((p) => sc2022Map.has(p.id) || sc2026Map.has(p.id))
+              .sort((a, b) => {
+                const sa = sc2026Map.get(a.id)?.mandateConsistencyScore ?? -1;
+                const sb = sc2026Map.get(b.id)?.mandateConsistencyScore ?? -1;
+                if (sb !== sa) return sb - sa;
+                return b.seats - a.seats;
+              })
+              .map((p, idx, arr) => {
+                const s22 = sc2022Map.get(p.id);
+                const s26 = sc2026Map.get(p.id);
+                return (
+                  <Link
+                    key={p.id}
+                    href={r.partij(p.id)}
+                    className={`block hover:bg-surface-sub/40 transition-colors ${
+                      idx < arr.length - 1 ? "border-b border-border-subtle" : ""
+                    }`}
+                  >
+                    {/* Desktop */}
+                    <div className="hidden sm:grid sm:grid-cols-[1fr_90px_90px] gap-2 items-center px-5 py-2.5">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <PartyAvatar
+                          abbreviation={p.abbreviation}
+                          color={getPartyColor(p.abbreviation, p.colorNeutral)}
+                          size="sm"
+                        />
+                        <span className="text-[13px] font-semibold text-ink truncate">
+                          {p.abbreviation}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        {s22 && s22.scoredPromises > 0 ? (
+                          <span className="text-[15px] font-serif text-ink">
+                            {s22.mandateConsistencyScore}
+                          </span>
+                        ) : (
+                          <span className="text-[12px] text-text-tertiary">—</span>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        {s26 && s26.scoredPromises > 0 ? (
+                          <span className="text-[15px] font-serif text-ink font-medium">
+                            {s26.mandateConsistencyScore}
+                          </span>
+                        ) : (
+                          <span className="text-[12px] text-text-tertiary">—</span>
+                        )}
+                      </div>
+                    </div>
+                    {/* Mobile */}
+                    <div className="sm:hidden px-4 py-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <PartyAvatar
+                          abbreviation={p.abbreviation}
+                          color={getPartyColor(p.abbreviation, p.colorNeutral)}
+                          size="sm"
+                        />
+                        <span className="text-[13px] font-semibold text-ink">
+                          {p.abbreviation}
+                        </span>
+                      </div>
+                      <div className="flex gap-4 text-[11px]">
+                        {s22 && s22.scoredPromises > 0 && (
+                          <span>
+                            <span className="text-text-tertiary">2022: </span>
+                            <span className="font-serif text-[14px] text-ink">{s22.mandateConsistencyScore}</span>
+                          </span>
+                        )}
+                        {s26 && s26.scoredPromises > 0 && (
+                          <span>
+                            <span className="text-text-tertiary">2026: </span>
+                            <span className="font-serif text-[14px] text-ink font-medium">{s26.mandateConsistencyScore}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+          </div>
+        </section>
+      )}
 
       {/* Two-column layout */}
       <div className="grid lg:grid-cols-5 gap-6">

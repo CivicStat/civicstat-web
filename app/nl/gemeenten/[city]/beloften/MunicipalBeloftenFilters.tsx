@@ -27,13 +27,21 @@ const THEMES = [
 interface Props {
   currentParty?: string;
   currentTheme?: string;
+  currentYear?: string;
   parties: { abbreviation: string; id: string }[];
   citySlug: string;
 }
 
+const YEARS = [
+  { value: "", label: "Alle jaren" },
+  { value: "2026", label: "2026" },
+  { value: "2022", label: "2022" },
+];
+
 export default function MunicipalBeloftenFilters({
   currentParty,
   currentTheme,
+  currentYear,
   parties,
   citySlug,
 }: Props) {
@@ -81,8 +89,25 @@ export default function MunicipalBeloftenFilters({
         ))}
       </select>
 
+      {/* Year filter */}
+      <div className="flex gap-1">
+        {YEARS.map((y) => (
+          <button
+            key={y.value}
+            onClick={() => navigate("jaar", y.value)}
+            className={`px-2.5 py-1 rounded-md text-[12px] font-medium transition-colors ${
+              (currentYear || "") === y.value
+                ? "bg-ink text-white dark:bg-white dark:text-ink shadow-sm"
+                : "text-text-tertiary hover:text-ink hover:bg-surface-sub border border-border"
+            }`}
+          >
+            {y.label}
+          </button>
+        ))}
+      </div>
+
       {/* Active filter pills */}
-      {(currentParty || currentTheme) && (
+      {(currentParty || currentTheme || currentYear) && (
         <button
           onClick={() => router.push(routes.beloften)}
           className="rounded-full border border-border px-2.5 py-1 text-[11px] font-medium text-text-secondary hover:bg-surface-sub transition-colors"
