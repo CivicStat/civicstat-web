@@ -71,6 +71,32 @@ export default async function HomePage() {
         </div>
       </div>
 
+      {/* Pre-election banner — visible until election day */}
+      {new Date() < new Date("2026-03-19") && (
+        <div className="border-b border-border-subtle">
+          <div className="mx-auto max-w-[1200px] px-6 py-4">
+            <div className="border-l-4 border-neutral-800 dark:border-neutral-300 pl-4">
+              <p className="text-sm font-medium text-ink">
+                Gemeenteraadsverkiezingen 18 maart 2026
+              </p>
+              <p className="text-sm text-text-secondary mt-0.5">
+                Bekijk het track record van partijen in Amsterdam en Den Haag,
+                en hun nieuwe beloften voor 2026.
+              </p>
+              <Link
+                href={routes.verkiezingen[2026]}
+                className="inline-flex items-center gap-1 text-sm text-moss font-medium mt-1 hover:underline"
+              >
+                Naar het verkiezingsoverzicht
+                <svg width={14} height={14} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Platform stats banner */}
       {stats && (
         <div className="border-b border-border-subtle">

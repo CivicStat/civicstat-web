@@ -5,8 +5,10 @@ import {
   getScopedParties,
   getScopedPromiseStats,
   getScopedScorecard,
+  getScopedPromises,
   getAllScorecards,
 } from "../../../../../../lib/api";
+import type { PromiseListItem } from "../../../../../../lib/types";
 import type { PartyScorecard } from "../../../../../../lib/types";
 import { getPartyColor, themeLabel } from "../../../../../../lib/utils";
 import PartyAvatar from "../../../../../../components/PartyAvatar";
@@ -125,13 +127,15 @@ export default async function GemeentePartyDetailPage({ params }: Props) {
   let localScorecard: PartyScorecard | null = null;
   let scorecard2026: PartyScorecard | null = null;
   let tkScorecards: Omit<PartyScorecard, "promises">[] = [];
+  let promises2026: PromiseListItem[] = [];
 
-  const [promiseStatsResult, localScorecardResult, scorecard2026Result, tkScorecardsResult] =
+  const [promiseStatsResult, localScorecardResult, scorecard2026Result, tkScorecardsResult, promises2026Result] =
     await Promise.allSettled([
       getScopedPromiseStats(city),
       getScopedScorecard(city, party.id, { year: 2022 }),
       getScopedScorecard(city, party.id, { year: 2026 }),
       getAllScorecards({ year: 2023 }),
+      getScopedPromises(city, { party: party.abbreviation, year: 2026, limit: 500 }),
     ]);
 
   if (promiseStatsResult.status === "fulfilled")
@@ -142,6 +146,8 @@ export default async function GemeentePartyDetailPage({ params }: Props) {
     scorecard2026 = scorecard2026Result.value;
   if (tkScorecardsResult.status === "fulfilled")
     tkScorecards = tkScorecardsResult.value;
+  if (promises2026Result.status === "fulfilled")
+    promises2026 = promises2026Result.value.items ?? [];
 
   const partyPromiseCount =
     promiseStats?.byParty?.find(
@@ -627,6 +633,96 @@ export default async function GemeentePartyDetailPage({ params }: Props) {
           beloftenHref={`${r.beloften}?partij=${encodeURIComponent(party.abbreviation)}&jaar=2026`}
           cityName={parliament.shortName}
         />
+      )}
+
+      {/* ── Campagnebeloften 2026 ─────────────────────────────── */}
+      {promises2026.length > 0 && (
+        <section className="mb-8">
+          <h2 className="font-serif text-xl text-ink mb-1">
+            Campagnebeloften 2026
+          </h2>
+          <div className="text-[12px] text-text-tertiary mb-3">
+            {promises2026.length} beloften uit het verkiezingsprogramma 2026
+          </div>
+
+          {/* Context banner */}
+          <div className="rounded-lg border border-amber-200/60 bg-amber-50/50 dark:border-amber-900/40 dark:bg-amber-950/20 px-4 py-3 mb-4">
+            <p className="text-[12px] text-amber-800 dark:text-amber-300/90">
+              Dit zijn beloften uit het verkiezingsprogramma 2026 van {party.abbreviation}.
+              Ze worden gematcht aan stemgedrag uit de huidige raadsperiode (2022–2026) om een vooruitblik te geven.
+            </p>
+          </div>
+
+          {/* Promises grouped by theme */}
+          <div className="space-y-4">
+            {(() => {
+              const byTheme = new Map<string, PromiseListItem[]>();
+              for (const p of promises2026) {
+                const theme = p.theme || "OVERIG";
+                if (!byTheme.has(theme)) byTheme.set(theme, []);
+                byTheme.get(theme)!.push(p);
+              }
+              return [...byTheme.entries()]
+                .sort(([, a], [, b]) => b.length - a.length)
+                .map(([theme, themePromises]) => (
+                  <div key={theme} className="card overflow-hidden">
+                    <div className="px-4 py-2.5 bg-surface-sub/40 border-b border-border-subtle flex items-center justify-between">
+                      <span className="text-[12px] font-medium text-ink">
+                        {themeLabel(theme)}
+                      </span>
+                      <span className="text-[11px] text-text-tertiary">
+                        {themePromises.length} belofte{themePromises.length !== 1 ? "n" : ""}
+                      </span>
+                    </div>
+                    <div className="divide-y divide-border-subtle">
+                      {themePromises.slice(0, 10).map((p) => (
+                        <Link
+                          key={p.id}
+                          href={`${r.beloften}/${p.id}`}
+                          className="block px-4 py-3 hover:bg-surface-sub/30 transition-colors group"
+                        >
+                          <div className="flex items-start gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-ink group-hover:text-moss transition-colors line-clamp-2">
+                                {p.summary}
+                              </p>
+                            </div>
+                            {p.specificity && (
+                              <span className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                                p.specificity === "CONCREET"
+                                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
+                                  : p.specificity === "GEMIDDELD"
+                                    ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400"
+                                    : "bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400"
+                              }`}>
+                                {p.specificity === "CONCREET" ? "Concreet" : p.specificity === "GEMIDDELD" ? "Gemiddeld" : "Vaag"}
+                              </span>
+                            )}
+                          </div>
+                        </Link>
+                      ))}
+                      {themePromises.length > 10 && (
+                        <div className="px-4 py-2 text-[11px] text-text-tertiary">
+                          + {themePromises.length - 10} meer
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ));
+            })()}
+          </div>
+
+          {/* Link to all promises */}
+          <Link
+            href={`${r.beloften}?partij=${encodeURIComponent(party.abbreviation)}&jaar=2026`}
+            className="inline-flex items-center gap-1.5 mt-3 text-[12px] font-medium text-moss hover:underline"
+          >
+            Alle {promises2026.length} beloften bekijken
+            <svg width={13} height={13} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </Link>
+        </section>
       )}
 
       {/* ── Landelijk stemgedrag (TK cross-reference) ─────────── */}

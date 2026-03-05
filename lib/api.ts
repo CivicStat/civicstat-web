@@ -506,6 +506,43 @@ export async function getScopedScorecard(
   );
 }
 
+// ─── Election Overview (Campaign 2026) ──────────────────────
+
+export interface ElectionOverviewParty {
+  partyId: string;
+  abbreviation: string;
+  name: string;
+  seats: number | null;
+  historicalMcs: number | null;
+  historicalScoredPromises: number | null;
+  historicalTotalPromises: number | null;
+  vooruitblikMcs: number | null;
+  vooruitblikScoredPromises: number | null;
+  vooruitblikTotalPromises: number | null;
+  promiseCount2022: number;
+  promiseCount2026: number;
+}
+
+export interface ElectionOverviewResponse {
+  parliamentId: string;
+  parliamentName: string;
+  parliamentSlug: string;
+  electionDate: string;
+  parties: ElectionOverviewParty[];
+}
+
+export async function getElectionOverview(
+  slug: string,
+): Promise<ElectionOverviewResponse | null> {
+  try {
+    return await apiFetch<ElectionOverviewResponse>(
+      `/parliament/${encodeURIComponent(slug)}/election-overview`,
+    );
+  } catch {
+    return null;
+  }
+}
+
 // ─── Admin / Status ──────────────────────────────────────────
 
 export async function getSystemStatus() {

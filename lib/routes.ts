@@ -52,6 +52,11 @@ export const routes = {
     root: GEMEENTE_BASE,
   },
 
+  // Verkiezingen (elections)
+  verkiezingen: {
+    2026: "/nl/verkiezingen/2026",
+  },
+
   // Global / non-scoped
   transparantie: "/transparantie",
   privacy: "/privacy",
