@@ -141,7 +141,6 @@ export default async function BeloftenPage({ searchParams }: Props) {
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   <Link
                     href={`${routes.tk.beloften}?partij=${encodeURIComponent(promise.program.party.abbreviation)}`}
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <PartyBadge
                       abbreviation={promise.program.party.abbreviation}
@@ -152,7 +151,6 @@ export default async function BeloftenPage({ searchParams }: Props) {
                   <Link
                     href={`${routes.tk.beloften}?thema=${encodeURIComponent(promise.theme)}`}
                     className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-semibold text-text-secondary hover:border-moss/40 hover:text-moss transition-colors"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     {themeLabel(promise.theme)}
                   </Link>

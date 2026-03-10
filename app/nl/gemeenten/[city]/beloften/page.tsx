@@ -112,13 +112,12 @@ export default async function MunicipalBeloftenPage({ params, searchParams }: Pr
           const matchCount = promise.motionMatches?.length ?? 0;
 
           return (
-            <Link key={promise.id} href={routes.belofte(promise.id)} className="block card overflow-hidden hover:border-moss/40 transition-colors">
+            <div key={promise.id} className="card overflow-hidden">
               <div className="px-5 pt-4 pb-3">
                 {/* Meta row */}
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   <Link
                     href={`${routes.beloften}?partij=${encodeURIComponent(promise.program.party.abbreviation)}`}
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <PartyBadge
                       abbreviation={promise.program.party.abbreviation}
@@ -129,7 +128,6 @@ export default async function MunicipalBeloftenPage({ params, searchParams }: Pr
                   <Link
                     href={`${routes.beloften}?thema=${encodeURIComponent(promise.theme)}`}
                     className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-semibold text-text-secondary hover:border-moss/40 hover:text-moss transition-colors"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     {themeLabel(promise.theme)}
                   </Link>
@@ -142,7 +140,8 @@ export default async function MunicipalBeloftenPage({ params, searchParams }: Pr
                 </div>
 
                 {/* Summary */}
-                <h2 className="text-[15px] font-medium text-ink leading-snug mb-1.5">
+                <Link href={routes.belofte(promise.id)} className="block group">
+                <h2 className="text-[15px] font-medium text-ink group-hover:text-moss transition-colors leading-snug mb-1.5">
                   {promise.summary}
                 </h2>
                 <span className="sm:hidden text-[11px] text-text-tertiary font-mono">
@@ -162,6 +161,7 @@ export default async function MunicipalBeloftenPage({ params, searchParams }: Pr
                   </span>{" "}
                   ({promise.program.electionYear})
                 </div>
+                </Link>
               </div>
 
               {/* Motion matches footer */}
@@ -178,7 +178,7 @@ export default async function MunicipalBeloftenPage({ params, searchParams }: Pr
                   </span>
                 </div>
               )}
-            </Link>
+            </div>
           );
         })}
       </div>
