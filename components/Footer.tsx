@@ -11,8 +11,9 @@ export default function Footer() {
           <div>
             <div className="text-[10px] font-medium uppercase tracking-widest text-text-tertiary mb-2.5">Platform</div>
             <div className="space-y-1.5">
-              <FooterLink href={routes.tk.root}>Tweede Kamer</FooterLink>
+              <FooterLink href={routes.transparantie}>Over CivicStat</FooterLink>
               <FooterLink href={routes.transparantie}>Methodologie</FooterLink>
+              <FooterLink href={`${routes.transparantie}#neutraliteit`}>Governance</FooterLink>
               <FooterLink href={routes.status}>Status</FooterLink>
               <FooterLink href={routes.privacy}>Privacy</FooterLink>
             </div>
@@ -22,6 +23,7 @@ export default function Footer() {
           <div>
             <div className="text-[10px] font-medium uppercase tracking-widest text-text-tertiary mb-2.5">Tweede Kamer</div>
             <div className="space-y-1.5">
+              <FooterLink href={routes.tk.root}>Overzicht</FooterLink>
               <FooterLink href={routes.tk.beloften}>Beloften</FooterLink>
               <FooterLink href={routes.tk.moties}>Moties</FooterLink>
               <FooterLink href={routes.tk.kamerleden}>Kamerleden</FooterLink>

@@ -144,6 +144,58 @@ const SECTIONS: Section[] = [
     ],
   },
   {
+    id: "coalitie",
+    title: "Coalition Tracking",
+    entries: [
+      {
+        term: "Coalitie Alignment Index (CAI)",
+        definition:
+          "Het percentage stemmingen waarin een partij hetzelfde stemt als de andere coalitiepartijen. Meet coalitiediscipline versus eigenstandigheid.",
+        formula: "CAI = gelijke stemmen met coalitieblok / totaal stemmingen \u00d7 100%",
+      },
+      {
+        term: "Vrije Stemmen MCS",
+        definition:
+          "De MCS berekend over alleen de stemmingen waarbij een partij afwijkt van het coalitieblok. Toont of afwijkingen consistent zijn met de eigen beloften.",
+      },
+      {
+        term: "Coalitieverwatering",
+        definition:
+          "De mate waarin een partij belofteconsistentie opoffert ten gunste van coalitiediscipline. Verschil tussen MCS op vrije stemmen en MCS over alle stemmen.",
+        formula: "Verwatering = Vrije Stemmen MCS \u2212 totaal MCS",
+      },
+      {
+        term: "Kabinetsperiode",
+        definition:
+          "De periode waarin een coalitie regeert. Stemmingen worden gekoppeld aan de actieve kabinetsperiode voor coalitie-analyse.",
+      },
+    ],
+  },
+  {
+    id: "motietypen",
+    title: "Motietypen & gewichten",
+    entries: [
+      {
+        term: "Motie",
+        definition:
+          "Niet-bindend verzoek aan de regering. Standaardgewicht in MCS-berekening.",
+        formula: "Gewicht: 1.0",
+      },
+      {
+        term: "Amendement",
+        definition:
+          "Wijzigingsvoorstel op een wetsvoorstel. Weegt zwaarder omdat het directe wetgevingsimpact heeft.",
+        formula: "Gewicht: 1.5",
+      },
+      {
+        term: "Wetsvoorstel",
+        definition:
+          "Volledig voorstel voor nieuwe wetgeving. Hoogste gewicht in de MCS-berekening.",
+        formula: "Gewicht: 2.0",
+      },
+    ],
+  },
+  {
     id: "databronnen",
     title: "Databronnen",
     entries: [

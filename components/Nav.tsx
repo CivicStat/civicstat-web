@@ -28,8 +28,8 @@ const mobileNavItemsTK = [
   { href: routes.tk.root, label: "TK", exact: true },
   { href: routes.tk.beloften, label: "Beloften" },
   { href: routes.tk.moties, label: "Moties" },
-  { href: routes.tk.kamerleden, label: "Leden" },
   { href: routes.tk.partijen, label: "Partijen" },
+  { href: routes.tk.verbinding, label: "Verbinding" },
 ];
 
 /* ── Icons ────────────────────────────────────────────────── */
@@ -97,6 +97,14 @@ function InfoIcon({ active }: { active: boolean }) {
   );
 }
 
+function LinkIcon({ active }: { active: boolean }) {
+  return (
+    <svg width={20} height={20} fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.8} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  );
+}
+
 function NLFlagIcon({ active }: { active: boolean }) {
   return (
     <svg width={20} height={20} fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.8} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -107,14 +115,12 @@ function NLFlagIcon({ active }: { active: boolean }) {
 
 /* ── Global (unscoped) mobile nav items ─────────────────────── */
 const mobileNavItemsGlobal = [
-  { href: "/", label: "Home", exact: true },
   { href: routes.tk.root, label: "TK" },
   { href: routes.gemeenten.root, label: "Gemeenten" },
-  { href: routes.transparantie, label: "Info" },
+  { href: routes.transparantie, label: "Transparantie" },
 ];
 
 const mobileIconsGlobal: Record<string, (props: { active: boolean }) => JSX.Element> = {
-  "/": HomeIcon,
   [routes.tk.root]: NLFlagIcon,
   [routes.gemeenten.root]: BuildingIcon,
   [routes.transparantie]: InfoIcon,
@@ -124,8 +130,8 @@ const mobileIcons: Record<string, (props: { active: boolean }) => JSX.Element> =
   [routes.tk.root]: GridIcon,
   [routes.tk.beloften]: CheckIcon,
   [routes.tk.moties]: DocIcon,
-  [routes.tk.kamerleden]: PeopleIcon,
   [routes.tk.partijen]: BuildingIcon,
+  [routes.tk.verbinding]: LinkIcon,
 };
 
 /* ── Gemeente scope helpers ──────────────────────────────── */
