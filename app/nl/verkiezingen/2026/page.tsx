@@ -51,6 +51,23 @@ export default async function VerkiezingenPage() {
       {/* Countdown */}
       <ElectionCountdown electionDate="2026-03-18" label="gemeenteraadsverkiezingen" />
 
+      {/* Summary stats */}
+      {overviews.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          {[
+            { label: "Gemeenten", value: overviews.length },
+            { label: "Partijen", value: overviews.reduce((s, o) => s + o.data.parties.length, 0) },
+            { label: "Moties geanalyseerd", value: overviews.reduce((s, o) => s + (o.municipality._count?.motions ?? 0), 0).toLocaleString("nl-NL") },
+            { label: "Stemmen geanalyseerd", value: overviews.reduce((s, o) => s + (o.municipality._count?.votes ?? 0), 0).toLocaleString("nl-NL") },
+          ].map((stat) => (
+            <div key={stat.label} className="card px-4 py-3 text-center">
+              <div className="text-lg font-serif text-ink">{stat.value}</div>
+              <div className="text-[11px] text-text-tertiary uppercase tracking-wider">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Per-municipality cards */}
       {overviews.length === 0 ? (
         <div className="card p-8 text-center">
@@ -97,10 +114,13 @@ function MunicipalityCard({
   const cityRoutes = gemeente(slug);
 
   // Separate parties with 2022 track record from 2026-only
-  const partiesWithHistory = data.parties.filter(
-    (p) => p.historicalMcs !== null,
-  );
-  const partiesWith2026 = data.parties.filter((p) => p.promiseCount2026 > 0);
+  const partiesWithHistory = data.parties
+    .filter((p) => p.historicalMcs !== null)
+    .sort((a, b) => (b.historicalMcs ?? 0) - (a.historicalMcs ?? 0));
+  const partiesWith2026 = data.parties
+    .filter((p) => p.promiseCount2026 > 0)
+    .sort((a, b) => (b.vooruitblikMcs ?? 0) - (a.vooruitblikMcs ?? 0));
+  const hasHistory = partiesWithHistory.length > 0;
 
   return (
     <div className="card overflow-hidden">
@@ -108,10 +128,10 @@ function MunicipalityCard({
       <div className="px-6 py-4 border-b border-border-subtle bg-surface-sub/30">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-xl" aria-hidden>
-              🏛️
-            </span>
             <h2 className="font-serif text-xl text-ink">{name}</h2>
+            <span className="text-[11px] text-text-tertiary px-2 py-0.5 rounded bg-surface-sub">
+              {data.parties.length} partijen
+            </span>
           </div>
           <Link
             href={cityRoutes.root}
@@ -122,18 +142,14 @@ function MunicipalityCard({
         </div>
       </div>
 
-      {/* Two columns */}
-      <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border-subtle">
-        {/* Left: Historical track record */}
-        <div className="p-6">
-          <h3 className="text-[11px] font-medium text-text-tertiary uppercase tracking-wider mb-3">
-            Historisch track record (2022–2026)
-          </h3>
-          {partiesWithHistory.length === 0 ? (
-            <p className="text-sm text-text-tertiary">
-              Nog geen scorecards beschikbaar.
-            </p>
-          ) : (
+      {/* Two columns (or single column if no history) */}
+      <div className={`grid ${hasHistory ? "md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border-subtle" : ""}`}>
+        {/* Left: Historical track record (only if data exists) */}
+        {hasHistory && (
+          <div className="p-6">
+            <h3 className="text-[11px] font-medium text-text-tertiary uppercase tracking-wider mb-3">
+              Historisch track record (2022–2026)
+            </h3>
             <div className="space-y-1.5">
               {partiesWithHistory.map((p) => (
                 <Link
@@ -153,20 +169,20 @@ function MunicipalityCard({
                 </Link>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Right: 2026 promises */}
+        {/* Right (or full-width): 2026 promises + MCS */}
         <div className="p-6">
           <h3 className="text-[11px] font-medium text-text-tertiary uppercase tracking-wider mb-3">
-            Wat beloven ze nu (2026)
+            {hasHistory ? "Wat beloven ze nu (2026)" : "Beloften en track record 2026"}
           </h3>
           {partiesWith2026.length === 0 ? (
             <p className="text-sm text-text-tertiary">
               Nog geen 2026-beloften beschikbaar.
             </p>
           ) : (
-            <div className="space-y-1.5">
+            <div className={`space-y-1.5 ${!hasHistory ? "grid sm:grid-cols-2 gap-x-8 gap-y-1.5 space-y-0" : ""}`}>
               {partiesWith2026.map((p) => (
                 <Link
                   key={p.partyId}
@@ -184,7 +200,7 @@ function MunicipalityCard({
                       <McsChip mcs={p.vooruitblikMcs} label="MCS" />
                     ) : (
                       <span className="text-[11px] text-text-tertiary px-2 py-0.5 rounded bg-surface-sub">
-                        —
+                        --
                       </span>
                     )}
                   </span>
