@@ -46,6 +46,7 @@ export const routes = {
     inzichten: `${TK}/inzichten`,
     zoeken: `${TK}/zoeken`,
     coalities: `${TK}/coalities`,
+    coalitie: (slug: string) => `${TK}/coalities/${slug}`,
     vergelijk: `${TK}/vergelijk`,
   },
 

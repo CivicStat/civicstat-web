@@ -68,7 +68,9 @@ function CoalitionCard({ data }: { data: CoalitionComparisonItem }) {
       <div className="px-6 py-4 border-b border-border-subtle bg-surface-sub/30">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <h2 className="font-serif text-xl text-ink">{coalition.name}</h2>
+            <Link href={routes.tk.coalitie(coalition.slug)} className="hover:underline">
+              <h2 className="font-serif text-xl text-ink">{coalition.name}</h2>
+            </Link>
             <p className="text-[12px] text-text-tertiary mt-0.5">
               {coalition.parties.join(", ")}
               {coalition.active ? (

@@ -17,6 +17,7 @@ import type {
   PromiseStatsResponse,
   CoalitieverwateringResponse,
   CoalitionComparisonItem,
+  BelofteOMeterResponse,
   PartyComparisonResponse,
   PlatformStats,
   ParliamentListItem,
@@ -309,6 +310,10 @@ export async function getPartyVrijeStemmen(
 
 export async function getCoalitionComparison(): Promise<CoalitionComparisonItem[]> {
   return apiFetch<CoalitionComparisonItem[]>("/coalitions/compare");
+}
+
+export async function getBelofteOMeter(slug: string): Promise<BelofteOMeterResponse> {
+  return apiFetch<BelofteOMeterResponse>(`/coalitions/${slug}/belofte-o-meter`);
 }
 
 // ─── Party Comparison ────────────────────────────────────────

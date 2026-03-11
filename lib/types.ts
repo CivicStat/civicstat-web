@@ -709,6 +709,52 @@ export interface PartyComparisonResponse {
   };
 }
 
+// ─── Belofte-O-Meter ────────────────────────────────────────
+export interface BelofteOMeterResponse {
+  coalition: {
+    name: string;
+    slug: string;
+    parties: string[];
+    startDate: string;
+    endDate: string | null;
+    active: boolean;
+  };
+  regeerakkoord: {
+    title: string;
+    electionYear: number;
+    periodStart: string;
+    periodEnd: string;
+  };
+  summary: {
+    totalPromises: number;
+    enacted: number;
+    broken: number;
+    pending: number;
+    insufficientData: number;
+    enactedPct: number;
+    brokenPct: number;
+    pendingPct: number;
+  };
+  partyScorecards: {
+    partyId: string;
+    abbreviation: string;
+    mcs: number;
+    consistentCount: number;
+    inconsistentCount: number;
+    mixedCount: number;
+    scoredPromises: number;
+  }[];
+  byTheme: Record<string, { total: number; enacted: number; broken: number; pending: number; insufficientData: number }>;
+  promises: {
+    promiseId: string;
+    promiseCode: string;
+    summary: string;
+    theme: string;
+    coalitionStatus: "enacted" | "broken" | "pending" | "insufficient_data";
+    partyStatuses: Record<string, { status: string; alignedVotes: number; opposedVotes: number }>;
+  }[];
+}
+
 // ─── Coalitieverwatering ────────────────────────────────────
 export interface CoalitieverwateringResponse {
   partyId: string;
