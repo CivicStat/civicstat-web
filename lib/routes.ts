@@ -45,6 +45,8 @@ export const routes = {
     verbinding: `${TK}/verbinding`,
     inzichten: `${TK}/inzichten`,
     zoeken: `${TK}/zoeken`,
+    coalities: `${TK}/coalities`,
+    vergelijk: `${TK}/vergelijk`,
   },
 
   // Gemeenten (municipalities) listing

@@ -16,6 +16,8 @@ import type {
   PromiseDetail,
   PromiseStatsResponse,
   CoalitieverwateringResponse,
+  CoalitionComparisonItem,
+  PartyComparisonResponse,
   PlatformStats,
   ParliamentListItem,
   ParliamentDetail,
@@ -301,6 +303,27 @@ export async function getPartyVrijeStemmen(
   } catch {
     return null;
   }
+}
+
+// ─── Coalition Comparison ────────────────────────────────────
+
+export async function getCoalitionComparison(): Promise<CoalitionComparisonItem[]> {
+  return apiFetch<CoalitionComparisonItem[]>("/coalitions/compare");
+}
+
+// ─── Party Comparison ────────────────────────────────────────
+
+export async function getPartyComparison(
+  slug: string,
+  partyIds: string[],
+  year?: number,
+): Promise<PartyComparisonResponse> {
+  const sp = new URLSearchParams();
+  sp.set("partyIds", partyIds.join(","));
+  if (year) sp.set("year", String(year));
+  return apiFetch<PartyComparisonResponse>(
+    `/parliament/${encodeURIComponent(slug)}/parties/compare?${sp.toString()}`,
+  );
 }
 
 // ─── Langfuse AI Observability ────────────────────────────────

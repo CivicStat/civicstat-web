@@ -647,6 +647,68 @@ export interface VrijeStemmenResult {
   freeVoteScoredPromises: number;
 }
 
+// ─── Coalition Comparison ───────────────────────────────────
+
+export interface CoalitionComparisonItem {
+  coalition: {
+    name: string;
+    slug: string;
+    parties: string[];
+    startDate: string;
+    endDate: string | null;
+    active: boolean;
+  };
+  classification: {
+    totalVotes: number;
+    coalitionVotes: number;
+    freeVotes: number;
+    noDataVotes: number;
+    coalitionPct: number;
+    freePct: number;
+  };
+  alignment: {
+    avgMemberCAI: number;
+    parties: {
+      abbreviation: string;
+      cai: number;
+      totalVotesAnalyzed: number;
+      isCoalitionMember: boolean;
+    }[];
+  };
+  coalitieverwatering: number;
+}
+
+// ─── Party Comparison ───────────────────────────────────────
+
+export interface PartyComparisonResponse {
+  parliamentId: string;
+  parliamentName: string;
+  parliamentSlug: string;
+  themes: string[];
+  parties: {
+    partyId: string;
+    abbreviation: string;
+    name: string;
+    seats: number | null;
+    colorNeutral: string;
+    mandateConsistencyScore: number | null;
+    electionYear: number | null;
+    totalPromises: number;
+    scoredPromises: number | null;
+    byTheme: Record<string, { consistent: number; inconsistent: number; mixed: number; total: number; insufficientData: number }> | null;
+    promisesByTheme: Record<string, number>;
+  }[];
+  voteAgreement: {
+    pairs: {
+      party1: string;
+      party2: string;
+      sharedVotes: number;
+      agreed: number;
+      agreementRate: number;
+    }[];
+  };
+}
+
 // ─── Coalitieverwatering ────────────────────────────────────
 export interface CoalitieverwateringResponse {
   partyId: string;
