@@ -92,6 +92,55 @@ export default async function CityDashboardPage({ params }: Props) {
 
   const r = gemeente(city);
 
+  /* ── Empty-state: no data yet ────────────────────────── */
+  if (parliament._count.motions === 0) {
+    return (
+      <div className="mx-auto max-w-[1200px] px-6 pt-8 pb-20">
+        <nav className="text-[11px] text-text-tertiary mb-4 flex items-center gap-1.5">
+          <Link href="/" className="hover:text-moss transition-colors">
+            Home
+          </Link>
+          <span>/</span>
+          <Link
+            href="/nl/gemeenten"
+            className="hover:text-moss transition-colors"
+          >
+            Gemeenten
+          </Link>
+          <span>/</span>
+          <span className="text-ink font-medium">{parliament.shortName}</span>
+        </nav>
+
+        <div className="mb-8">
+          <p className="text-[11px] font-medium uppercase tracking-widest text-text-tertiary mb-2">
+            Gemeenteraad
+          </p>
+          <h1 className="font-serif text-[clamp(26px,4vw,38px)] font-normal text-ink leading-[1.2] tracking-tight">
+            {parliament.name}
+          </h1>
+        </div>
+
+        <ElectionCountdown
+          electionDate="2026-03-18"
+          label="gemeenteraadsverkiezingen"
+        />
+
+        <div className="card p-8 text-center">
+          <p className="text-[15px] text-text-secondary leading-relaxed">
+            Data voor de gemeenteraad van {parliament.shortName} wordt momenteel
+            verzameld. Verwacht: binnenkort beschikbaar.
+          </p>
+          <Link
+            href="/nl/gemeenten"
+            className="inline-block mt-4 text-[13px] font-medium text-moss hover:underline"
+          >
+            &larr; Terug naar alle gemeenten
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   const [motionsResult, partiesResult, statsResult, promiseStatsResult, sc2022Result, sc2026Result] =
     await Promise.allSettled([
       getScopedMotions(city, { limit: 8 }),
