@@ -7,6 +7,7 @@ import {
 } from "../../../../../lib/api";
 import type { PartyScorecard } from "../../../../../lib/types";
 import { getPartyColor } from "../../../../../lib/utils";
+import { getScoreConfidence } from "../../../../../lib/scoring";
 import PartyAvatar from "../../../../../components/PartyAvatar";
 import Term from "../../../../../components/Term";
 import { gemeente } from "../../../../../lib/routes";
@@ -274,11 +275,16 @@ export default async function GemeentePartijenPage({ params, searchParams }: Pro
                     <div className="text-right">
                       {sc2022 && sc2022.scoredPromises > 0 ? (
                         <div>
-                          <span className="text-[16px] font-serif text-ink">
+                          <span className={`text-[16px] font-serif ${getScoreConfidence(sc2022.scoredPromises, sc2022.totalPromises).level === "onvoldoende" ? "text-text-tertiary" : "text-ink"}`}>
                             {sc2022.mandateConsistencyScore}
                           </span>
                           <div className="text-[10px] text-text-tertiary">
                             {sc2022.scoredPromises}/{sc2022.totalPromises}
+                            {["laag", "onvoldoende"].includes(getScoreConfidence(sc2022.scoredPromises, sc2022.totalPromises).level) && (
+                              <span className="ml-1" title={getScoreConfidence(sc2022.scoredPromises, sc2022.totalPromises).description}>
+                                — {getScoreConfidence(sc2022.scoredPromises, sc2022.totalPromises).label}
+                              </span>
+                            )}
                           </div>
                         </div>
                       ) : (
@@ -288,11 +294,16 @@ export default async function GemeentePartijenPage({ params, searchParams }: Pro
                     <div className="text-right">
                       {sc2026 && sc2026.scoredPromises > 0 ? (
                         <div>
-                          <span className="text-[16px] font-serif text-ink font-medium">
+                          <span className={`text-[16px] font-serif font-medium ${getScoreConfidence(sc2026.scoredPromises, sc2026.totalPromises).level === "onvoldoende" ? "text-text-tertiary" : "text-ink"}`}>
                             {sc2026.mandateConsistencyScore}
                           </span>
                           <div className="text-[10px] text-text-tertiary">
                             {sc2026.scoredPromises}/{sc2026.totalPromises}
+                            {["laag", "onvoldoende"].includes(getScoreConfidence(sc2026.scoredPromises, sc2026.totalPromises).level) && (
+                              <span className="ml-1" title={getScoreConfidence(sc2026.scoredPromises, sc2026.totalPromises).description}>
+                                — {getScoreConfidence(sc2026.scoredPromises, sc2026.totalPromises).label}
+                              </span>
+                            )}
                           </div>
                         </div>
                       ) : (
@@ -335,15 +346,21 @@ export default async function GemeentePartijenPage({ params, searchParams }: Pro
                     {sc2022 && sc2022.scoredPromises > 0 && (
                       <div className="text-[11px]">
                         <span className="text-text-tertiary">2022: </span>
-                        <span className="font-serif text-[14px] text-ink">{sc2022.mandateConsistencyScore}</span>
+                        <span className={`font-serif text-[14px] ${getScoreConfidence(sc2022.scoredPromises, sc2022.totalPromises).level === "onvoldoende" ? "text-text-tertiary" : "text-ink"}`}>{sc2022.mandateConsistencyScore}</span>
                         <span className="text-text-tertiary ml-1">({sc2022.scoredPromises}/{sc2022.totalPromises})</span>
+                        {["laag", "onvoldoende"].includes(getScoreConfidence(sc2022.scoredPromises, sc2022.totalPromises).level) && (
+                          <div className="text-[9px] text-text-tertiary">{getScoreConfidence(sc2022.scoredPromises, sc2022.totalPromises).label}</div>
+                        )}
                       </div>
                     )}
                     {sc2026 && sc2026.scoredPromises > 0 && (
                       <div className="text-[11px]">
                         <span className="text-text-tertiary">2026: </span>
-                        <span className="font-serif text-[14px] text-ink font-medium">{sc2026.mandateConsistencyScore}</span>
+                        <span className={`font-serif text-[14px] font-medium ${getScoreConfidence(sc2026.scoredPromises, sc2026.totalPromises).level === "onvoldoende" ? "text-text-tertiary" : "text-ink"}`}>{sc2026.mandateConsistencyScore}</span>
                         <span className="text-text-tertiary ml-1">({sc2026.scoredPromises}/{sc2026.totalPromises})</span>
+                        {["laag", "onvoldoende"].includes(getScoreConfidence(sc2026.scoredPromises, sc2026.totalPromises).level) && (
+                          <div className="text-[9px] text-text-tertiary">{getScoreConfidence(sc2026.scoredPromises, sc2026.totalPromises).label}</div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -359,7 +376,8 @@ export default async function GemeentePartijenPage({ params, searchParams }: Pro
         <div className="mt-4 text-[11px] text-text-tertiary leading-relaxed">
           <strong className="text-text-secondary">2022</strong> = track record (hoe consistent stemde de partij met beloften uit 2022).{" "}
           <strong className="text-text-secondary">2026</strong> = vooruitblik (hoe consistent stemde de partij al met nieuwe beloften voor 2026).{" "}
-          Scores van 0–100. Achter de score: beoordeelde/totaal beloften.
+          Scores van 0–100. Achter de score: beoordeelde/totaal beloften.{" "}
+          Scores met weinig gekoppelde beloften zijn minder betrouwbaar en worden als zodanig gemarkeerd.
         </div>
       )}
     </div>

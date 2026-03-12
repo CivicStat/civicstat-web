@@ -26,11 +26,12 @@ export default function ElectionCountdown({
   const diffMs = electionDay.getTime() - today.getTime();
   const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
-  // Don't show if election is more than 60 days away or more than 1 day past
-  if (diffDays > 60 || diffDays < -1) return null;
+  // Don't show if election is more than 60 days away or more than 7 days past
+  if (diffDays > 60 || diffDays < -7) return null;
 
   let message: string;
   let accent = false;
+  let postElection = false;
 
   if (diffDays > 1) {
     message = `Nog ${diffDays} dagen tot de ${label}`;
@@ -41,8 +42,9 @@ export default function ElectionCountdown({
     message = `Vandaag: ${label}`;
     accent = true;
   } else {
-    // diffDays === -1 (yesterday)
-    message = `De ${label} waren gisteren`;
+    // Post-election: show results mode
+    postElection = true;
+    message = `De ${label} hebben plaatsgevonden`;
   }
 
   return (
@@ -50,7 +52,9 @@ export default function ElectionCountdown({
       className={`rounded-lg border px-5 py-3.5 mb-6 ${
         accent
           ? "border-moss/40 bg-moss/5"
-          : "border-border bg-surface-sub/40"
+          : postElection
+            ? "border-border-subtle bg-surface-sub/20"
+            : "border-border bg-surface-sub/40"
       }`}
     >
       <div className="flex items-center gap-3">
@@ -65,14 +69,23 @@ export default function ElectionCountdown({
           viewBox="0 0 24 24"
           className={accent ? "text-moss" : "text-text-tertiary"}
         >
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-          <line x1="16" y1="2" x2="16" y2="6" />
-          <line x1="8" y1="2" x2="8" y2="6" />
-          <line x1="3" y1="10" x2="21" y2="10" />
+          {postElection ? (
+            <>
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </>
+          ) : (
+            <>
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </>
+          )}
         </svg>
         <div>
           <div
-            className={`text-sm font-medium ${accent ? "text-moss" : "text-ink"}`}
+            className={`text-sm font-medium ${accent ? "text-moss" : postElection ? "text-text-secondary" : "text-ink"}`}
           >
             {message}
           </div>
@@ -80,6 +93,15 @@ export default function ElectionCountdown({
             <div className="text-[11px] text-text-tertiary mt-0.5">
               {new Date(electionDate).toLocaleDateString("nl-NL", {
                 weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </div>
+          )}
+          {postElection && (
+            <div className="text-[11px] text-text-tertiary mt-0.5">
+              {new Date(electionDate).toLocaleDateString("nl-NL", {
                 day: "numeric",
                 month: "long",
                 year: "numeric",

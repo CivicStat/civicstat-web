@@ -10,6 +10,7 @@ import {
 } from "../../../../lib/api";
 import type { PartyScorecard } from "../../../../lib/types";
 import { formatDate, getPartyColor } from "../../../../lib/utils";
+import { getScoreConfidence } from "../../../../lib/scoring";
 import PartyBadge from "../../../../components/PartyBadge";
 import StatusBadge from "../../../../components/StatusBadge";
 import VoteBar from "../../../../components/VoteBar";
@@ -334,18 +335,32 @@ export default async function CityDashboardPage({ params }: Props) {
                       </div>
                       <div className="text-right">
                         {s22 && s22.scoredPromises > 0 ? (
-                          <span className="text-[15px] font-serif text-ink">
-                            {s22.mandateConsistencyScore}
-                          </span>
+                          <>
+                            <span className={`text-[15px] font-serif ${getScoreConfidence(s22.scoredPromises, s22.totalPromises).level === "onvoldoende" ? "text-text-tertiary" : "text-ink"}`}>
+                              {s22.mandateConsistencyScore}
+                            </span>
+                            {["laag", "onvoldoende"].includes(getScoreConfidence(s22.scoredPromises, s22.totalPromises).level) && (
+                              <div className="text-[9px] text-text-tertiary" title={getScoreConfidence(s22.scoredPromises, s22.totalPromises).description}>
+                                {getScoreConfidence(s22.scoredPromises, s22.totalPromises).label}
+                              </div>
+                            )}
+                          </>
                         ) : (
                           <span className="text-[12px] text-text-tertiary">—</span>
                         )}
                       </div>
                       <div className="text-right">
                         {s26 && s26.scoredPromises > 0 ? (
-                          <span className="text-[15px] font-serif text-ink font-medium">
-                            {s26.mandateConsistencyScore}
-                          </span>
+                          <>
+                            <span className={`text-[15px] font-serif font-medium ${getScoreConfidence(s26.scoredPromises, s26.totalPromises).level === "onvoldoende" ? "text-text-tertiary" : "text-ink"}`}>
+                              {s26.mandateConsistencyScore}
+                            </span>
+                            {["laag", "onvoldoende"].includes(getScoreConfidence(s26.scoredPromises, s26.totalPromises).level) && (
+                              <div className="text-[9px] text-text-tertiary" title={getScoreConfidence(s26.scoredPromises, s26.totalPromises).description}>
+                                {getScoreConfidence(s26.scoredPromises, s26.totalPromises).label}
+                              </div>
+                            )}
+                          </>
                         ) : (
                           <span className="text-[12px] text-text-tertiary">—</span>
                         )}
@@ -367,13 +382,19 @@ export default async function CityDashboardPage({ params }: Props) {
                         {s22 && s22.scoredPromises > 0 && (
                           <span>
                             <span className="text-text-tertiary">2022: </span>
-                            <span className="font-serif text-[14px] text-ink">{s22.mandateConsistencyScore}</span>
+                            <span className={`font-serif text-[14px] ${getScoreConfidence(s22.scoredPromises, s22.totalPromises).level === "onvoldoende" ? "text-text-tertiary" : "text-ink"}`}>{s22.mandateConsistencyScore}</span>
+                            {["laag", "onvoldoende"].includes(getScoreConfidence(s22.scoredPromises, s22.totalPromises).level) && (
+                              <span className="text-[9px] text-text-tertiary ml-0.5">*</span>
+                            )}
                           </span>
                         )}
                         {s26 && s26.scoredPromises > 0 && (
                           <span>
                             <span className="text-text-tertiary">2026: </span>
-                            <span className="font-serif text-[14px] text-ink font-medium">{s26.mandateConsistencyScore}</span>
+                            <span className={`font-serif text-[14px] font-medium ${getScoreConfidence(s26.scoredPromises, s26.totalPromises).level === "onvoldoende" ? "text-text-tertiary" : "text-ink"}`}>{s26.mandateConsistencyScore}</span>
+                            {["laag", "onvoldoende"].includes(getScoreConfidence(s26.scoredPromises, s26.totalPromises).level) && (
+                              <span className="text-[9px] text-text-tertiary ml-0.5">*</span>
+                            )}
                           </span>
                         )}
                       </div>
@@ -500,7 +521,7 @@ export default async function CityDashboardPage({ params }: Props) {
                       <div className="flex-shrink-0 flex items-center gap-2">
                         {vote &&
                         (vote.totalFor > 0 || vote.totalAgainst > 0) ? (
-                          <div className="w-16 hidden sm:block">
+                          <div className="w-16">
                             <VoteBar
                               voor={vote.totalFor}
                               tegen={vote.totalAgainst}
