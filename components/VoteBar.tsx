@@ -15,6 +15,10 @@ export default function VoteBar({
   showLabels = false,
   showCounts = false,
 }: VoteBarProps) {
+  if (voor === 0 && tegen === 0 && (!afwezig || afwezig === 0)) {
+    return <span className="text-text-tertiary text-sm">Geen stemregistratie</span>;
+  }
+
   const total = voor + tegen + afwezig || 1;
   const pVoor = (voor / total) * 100;
   const pTegen = (tegen / total) * 100;
