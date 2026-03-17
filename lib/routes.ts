@@ -6,6 +6,7 @@
  */
 
 const TK = "/nl/tweede-kamer";
+const EK = "/nl/eerste-kamer";
 const GEMEENTE_BASE = "/nl/gemeenten";
 
 /**
@@ -48,6 +49,17 @@ export const routes = {
     coalities: `${TK}/coalities`,
     coalitie: (slug: string) => `${TK}/coalities/${slug}`,
     vergelijk: `${TK}/vergelijk`,
+  },
+
+  // Eerste Kamer scope
+  ek: {
+    root: EK,
+    moties: `${EK}/moties`,
+    motie: (id: string) => `${EK}/moties/${id}`,
+    senatoren: `${EK}/senatoren`,
+    senator: (id: string) => `${EK}/senatoren/${id}`,
+    partijen: `${EK}/partijen`,
+    partij: (id: string) => `${EK}/partijen/${encodeURIComponent(id)}`,
   },
 
   // Gemeenten (municipalities) listing

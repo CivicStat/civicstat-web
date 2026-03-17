@@ -384,19 +384,20 @@ export default function ScopeSwitcher({ municipalities = [] }: ScopeSwitcherProp
 
           <div className="border-t border-border-subtle" />
 
-          {/* Coming soon */}
+          {/* Other parliaments */}
           <div className="p-1.5">
-            <div className="flex items-center gap-2.5 rounded-lg px-3 py-2 opacity-50">
+            <Link
+              href="/nl/eerste-kamer"
+              className="flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-surface-sub/60 transition-colors"
+              onClick={() => setOpen(false)}
+            >
               <span className="text-[13px]" aria-hidden>
                 🇳🇱
               </span>
-              <span className="text-[12px] text-text-tertiary">
+              <span className="text-[12px] text-ink font-medium">
                 Eerste Kamer
               </span>
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-surface-sub text-text-tertiary">
-                binnenkort
-              </span>
-            </div>
+            </Link>
             <div className="flex items-center gap-2.5 rounded-lg px-3 py-2 opacity-50">
               <span className="text-[13px]" aria-hidden>
                 🇪🇺

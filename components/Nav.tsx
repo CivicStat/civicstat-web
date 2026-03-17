@@ -116,12 +116,14 @@ function NLFlagIcon({ active }: { active: boolean }) {
 /* ── Global (unscoped) mobile nav items ─────────────────────── */
 const mobileNavItemsGlobal = [
   { href: routes.tk.root, label: "TK" },
+  { href: routes.ek.root, label: "EK" },
   { href: routes.gemeenten.root, label: "Gemeenten" },
   { href: routes.transparantie, label: "Transparantie" },
 ];
 
 const mobileIconsGlobal: Record<string, (props: { active: boolean }) => JSX.Element> = {
   [routes.tk.root]: NLFlagIcon,
+  [routes.ek.root]: NLFlagIcon,
   [routes.gemeenten.root]: BuildingIcon,
   [routes.transparantie]: InfoIcon,
 };
