@@ -74,6 +74,7 @@ export const routes = {
 
   // Inzichten (top-level insights)
   inzichten: "/nl/inzichten",
+  inzicht: (type: string) => `/nl/inzichten/${type}`,
 
   // Global / non-scoped
   transparantie: "/transparantie",
