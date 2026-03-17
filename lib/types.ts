@@ -608,11 +608,63 @@ export interface StilleConsensusMotion {
   note: string;
 }
 
+export interface Beloftehouder {
+  partyId: string;
+  abbreviation: string;
+  mcs: number;
+  scoredPromises: number;
+  rank: number;
+  note: string;
+}
+
+export interface Themakloof {
+  theme: string;
+  coalitionName: string;
+  avgMcs: number;
+  parties: { abbreviation: string; mcs: number }[];
+  note: string;
+}
+
+export interface Rebel {
+  mpId: string;
+  name: string;
+  surname: string;
+  abbreviation: string;
+  totalVotes: number;
+  deviations: number;
+  deviationPct: number;
+  note: string;
+}
+
+export interface Verwatering {
+  partyId: string;
+  abbreviation: string;
+  totalPromises: number;
+  survivedCount: number;
+  dilutionRate: number;
+  coalitionName: string;
+  note: string;
+}
+
+export interface Paradox {
+  partyId: string;
+  abbreviation: string;
+  theme: string;
+  mcs: number;
+  promiseDirection: string;
+  note: string;
+}
+
 export interface InsightsResponse {
   bedgenoten: BedgenotenPair[];
   scheuren: CoalitieScheur[];
   beweging: StijgerDaler[];
   consensus: StilleConsensusMotion[];
+  beloftehouders: Beloftehouder[];
+  themakloof: Themakloof[];
+  rebellen: Rebel[];
+  verwatering: Verwatering[];
+  paradox: Paradox[];
   generatedAt: string;
 }
 

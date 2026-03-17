@@ -72,6 +72,9 @@ export const routes = {
     2026: "/nl/verkiezingen/2026",
   },
 
+  // Inzichten (top-level insights)
+  inzichten: "/nl/inzichten",
+
   // Global / non-scoped
   transparantie: "/transparantie",
   privacy: "/privacy",
