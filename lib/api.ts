@@ -159,6 +159,37 @@ export async function getKoersvastheid(
   );
 }
 
+// ─── MCS Trend (scorecard history) ──────────────────────────
+
+export interface McsSnapshot {
+  month: string;
+  electionYear: number;
+  mcs: number;
+  scoredPromises: number;
+  consistentCount: number;
+  inconsistentCount: number;
+  mixedCount: number;
+}
+
+export interface McsHistoryResponse {
+  partyId: string;
+  abbreviation: string;
+  snapshots: McsSnapshot[];
+}
+
+export async function getMcsHistory(
+  parliamentSlug: string,
+  partyAbbr: string,
+  params?: { year?: number },
+): Promise<McsHistoryResponse> {
+  const sp = new URLSearchParams();
+  if (params?.year) sp.set("year", String(params.year));
+  const qs = sp.toString();
+  return apiFetch<McsHistoryResponse>(
+    `/parliament/${encodeURIComponent(parliamentSlug)}/parties/${encodeURIComponent(partyAbbr)}/scorecard/history${qs ? `?${qs}` : ""}`,
+  );
+}
+
 // ─── Votes ──────────────────────────────────────────────────
 
 // ─── Promises ───────────────────────────────────────────────

@@ -12,6 +12,10 @@ import MemberPhoto from "../../../components/MemberPhoto";
 import { getCoalitionsForParty, COALITIONS } from "../../../lib/coalitions";
 import type { Coalition } from "../../../lib/coalitions";
 import PartyBadge from "../../../components/PartyBadge";
+import ScorecardFeedback from "../../../components/ScorecardFeedback";
+import McsTrendChart from "../../../components/McsTrendChart";
+import { getMcsHistory } from "../../../lib/api";
+import type { McsSnapshot } from "../../../lib/api";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   try {
@@ -86,6 +90,21 @@ export default async function PartyDetailPage({
       }),
     );
   }
+
+  // Fetch MCS trend snapshots
+  let trendSnapshots: McsSnapshot[] = [];
+  try {
+    const history = await getMcsHistory("tweede-kamer", party.abbreviation);
+    trendSnapshots = history.snapshots || [];
+  } catch {
+    // Trend data not available yet
+  }
+
+  // Coalition entry date for marker
+  const latestCoalition = coalitions[coalitions.length - 1];
+  const coalitionEntryDate = latestCoalition
+    ? COALITIONS.find((c) => c.name === latestCoalition.name)?.startDate
+    : undefined;
 
   const color = getPartyColor(party.abbreviation, party.colorNeutral);
   const seats = party.seats ?? 0;
@@ -211,6 +230,26 @@ export default async function PartyDetailPage({
                 Koersvastheid: <span className="font-semibold text-ink">{Math.round(koersvastheid.koersvastheid)}%</span>
               </div>
             )}
+          </div>
+        </section>
+      )}
+
+      {/* MCS Trend Chart */}
+      {trendSnapshots.length > 0 && (
+        <section className="mb-8">
+          <h2 className="font-serif text-xl text-ink mb-4">Score-evolutie</h2>
+          <div className="card p-5">
+            <McsTrendChart
+              snapshots={trendSnapshots}
+              abbreviation={party.abbreviation}
+              coalitionEntryDate={coalitionEntryDate}
+            />
+            <div className="border-t border-border pt-3 mt-4">
+              <p className="text-[11px] text-text-tertiary">
+                Maandelijkse MCS-score per verkiezingsperiode. Een dalende lijn na coalitietoetreding
+                kan wijzen op compromissen ten koste van verkiezingsbeloften.
+              </p>
+            </div>
           </div>
         </section>
       )}
@@ -396,7 +435,14 @@ export default async function PartyDetailPage({
                   Moties worden gekoppeld via trefwoordanalyse (keyword-overlap-v2).
                 </p>
               </details>
-              <MethodologyLink />
+              <div className="flex items-center justify-between mt-2">
+                <MethodologyLink />
+                <ScorecardFeedback
+                  partyId={params.id}
+                  partyAbbreviation={party.abbreviation}
+                  electionYear={activeYear}
+                />
+              </div>
             </div>
           </div>
         </section>

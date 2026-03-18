@@ -3,6 +3,7 @@ export interface Coalition {
   subtitle: string;
   year: number;
   parties: readonly string[];
+  startDate?: string; // ISO date for trend chart marker
 }
 
 export const COALITIONS: Coalition[] = [
@@ -11,12 +12,14 @@ export const COALITIONS: Coalition[] = [
     subtitle: "Hoop, lef en trots",
     year: 2024,
     parties: ["PVV", "VVD", "NSC", "BBB"],
+    startDate: "2024-07-02",
   },
   {
     name: "Kabinet-Jetten",
     subtitle: "Aan de slag",
     year: 2026,
     parties: ["D66", "VVD", "CDA"],
+    startDate: "2026-02-23",
   },
 ];
 
