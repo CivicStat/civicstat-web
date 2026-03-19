@@ -77,6 +77,7 @@ export const routes = {
   inzicht: (type: string) => `/nl/inzichten/${type}`,
 
   // Global / non-scoped
+  developer: "/nl/developer",
   transparantie: "/transparantie",
   privacy: "/privacy",
   status: "/status",
