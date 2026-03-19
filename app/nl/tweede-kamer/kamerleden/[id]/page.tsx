@@ -11,7 +11,15 @@ import Breadcrumbs from "../../../../../components/Breadcrumbs";
 export async function generateMetadata({ params }: { params: { id: string } }) {
   try {
     const member = await getMember(params.id);
-    return { title: `${member.surname} — CivicStat` };
+    const partyLabel = member.party?.abbreviation ? ` (${member.party.abbreviation})` : "";
+    return {
+      title: `${member.surname} — CivicStat`,
+      description: `Stemgedrag en moties van ${member.name}${partyLabel} in de Tweede Kamer.`,
+      openGraph: {
+        title: `${member.surname} — CivicStat`,
+        description: `Stemgedrag en moties van ${member.name}${partyLabel} in de Tweede Kamer.`,
+      },
+    };
   } catch {
     return { title: "Kamerlid — CivicStat" };
   }

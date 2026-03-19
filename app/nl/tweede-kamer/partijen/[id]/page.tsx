@@ -21,7 +21,14 @@ import { getScoreConfidence } from "../../../../../lib/scoring";
 export async function generateMetadata({ params }: { params: { id: string } }) {
   try {
     const party = await getParty(params.id);
-    return { title: `${party.abbreviation} — CivicStat` };
+    return {
+      title: `${party.abbreviation} — CivicStat`,
+      description: `Belofteconsistentie en stemgedrag van ${party.abbreviation} (${party.name}) in de Tweede Kamer.`,
+      openGraph: {
+        title: `${party.abbreviation} — CivicStat`,
+        description: `Belofteconsistentie en stemgedrag van ${party.abbreviation} in de Tweede Kamer.`,
+      },
+    };
   } catch {
     return { title: "Partij — CivicStat" };
   }
