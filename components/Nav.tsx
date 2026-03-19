@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
 import MethodologyPanel from "./MethodologyPanel";
 import ScopeSwitcherLoader from "./ScopeSwitcherLoader";
+import SearchDropdown from "./SearchDropdown";
 import { routes, gemeente } from "../lib/routes";
 
 /* ── TK scope nav items ───────────────────────────────────── */
@@ -267,9 +268,12 @@ export default function Nav() {
               </svg>
               <span>Begrippen</span>
             </button>
+            <div className="hidden md:block">
+              <SearchDropdown />
+            </div>
             <Link
               href={routes.tk.zoeken}
-              className={`rounded-[7px] p-2 transition-colors ${
+              className={`md:hidden rounded-[7px] p-2 transition-colors ${
                 isActive(routes.tk.zoeken)
                   ? "bg-surface-sub text-ink"
                   : "text-text-tertiary hover:bg-surface-sub/60 hover:text-text-secondary"
