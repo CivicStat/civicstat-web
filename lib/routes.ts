@@ -72,6 +72,12 @@ export const routes = {
     2026: "/nl/verkiezingen/2026",
   },
 
+  // Formatie (coalition formation)
+  formatie: {
+    root: "/nl/formatie",
+    detail: (slug: string) => `/nl/formatie/${slug}`,
+  },
+
   // Inzichten (top-level insights)
   inzichten: "/nl/inzichten",
   inzicht: (type: string) => `/nl/inzichten/${type}`,

@@ -602,6 +602,32 @@ export async function getElectionOverview(
   }
 }
 
+// ─── Formatie (Coalition Formation) ──────────────────────────
+
+export async function getFormation(
+  slug: string,
+): Promise<import("./types").FormationResponse | null> {
+  try {
+    return await apiFetch<import("./types").FormationResponse>(
+      `/parliament/${encodeURIComponent(slug)}/formatie`,
+    );
+  } catch {
+    return null;
+  }
+}
+
+export async function getFormationKansen(
+  slug: string,
+): Promise<import("./types").KansenResponse | null> {
+  try {
+    return await apiFetch<import("./types").KansenResponse>(
+      `/parliament/${encodeURIComponent(slug)}/formatie/kansen`,
+    );
+  } catch {
+    return null;
+  }
+}
+
 // ─── Admin / Status ──────────────────────────────────────────
 
 export async function getSystemStatus() {

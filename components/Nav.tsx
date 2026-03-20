@@ -21,6 +21,7 @@ const tkNavItems = [
 ];
 
 const globalItems = [
+  { href: routes.formatie.root, label: "Formatie" },
   { href: routes.transparantie, label: "Transparantie" },
 ];
 
@@ -353,6 +354,17 @@ export default function Nav() {
               }`}
             >
               🏛 Gemeenteraden
+            </Link>
+            <Link
+              href={routes.formatie.root}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block rounded-lg px-3 py-2 text-[14px] transition-colors ${
+                pathname.startsWith(routes.formatie.root)
+                  ? "bg-surface-sub font-semibold text-ink"
+                  : "text-text-secondary hover:bg-surface-sub/60"
+              }`}
+            >
+              Formatie
             </Link>
             <div className="border-t border-border-subtle my-2" />
 

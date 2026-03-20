@@ -807,6 +807,94 @@ export interface BelofteOMeterResponse {
   }[];
 }
 
+// ─── Formatie (Coalition Formation) ─────────────────────────
+
+export interface FormationParticipant {
+  party: {
+    id: string;
+    name: string;
+    abbreviation: string;
+    seats: number;
+  };
+  status: string;
+  joinedAt: string;
+  leftAt: string | null;
+  notes: string | null;
+}
+
+export interface FormationRound {
+  id: string;
+  roundNumber: number;
+  phase: string;
+  leader: string | null;
+  leaderRole: string | null;
+  startedAt: string;
+  endedAt: string | null;
+  outcome: string | null;
+  notes: string | null;
+}
+
+export interface Formation {
+  id: string;
+  electionDate: string;
+  phase: string;
+  currentLeader: string;
+  leaderRole: string;
+  notes: string | null;
+  startedAt: string;
+  completedAt: string | null;
+  participants: FormationParticipant[];
+  rounds: FormationRound[];
+}
+
+export interface FormationResponse {
+  parliamentSlug: string;
+  parliamentName: string;
+  formation: Formation | null;
+  compatibilityOverlay: {
+    parliamentSlug: string;
+    parliamentName: string;
+    parties: string[];
+    averagePairwiseAlignment: number;
+    pairwiseBreakdown: {
+      partyA: string;
+      partyB: string;
+      agreementPct: number;
+      agreedVotes: number;
+      totalSharedVotes: number;
+    }[];
+  } | null;
+}
+
+export interface KansenCoalition {
+  parties: {
+    abbreviation: string;
+    name: string;
+    seats: number;
+    isParticipating: boolean;
+  }[];
+  totalSeats: number;
+  averageAlignment: number;
+  pairwiseBreakdown: {
+    partyA: string;
+    partyB: string;
+    alignment: number;
+  }[];
+}
+
+export interface KansenResponse {
+  parliamentSlug: string;
+  parliamentName: string;
+  majorityThreshold: number;
+  totalSeats: number;
+  activeFormation: {
+    phase: string;
+    participatingParties: string[];
+  } | null;
+  coalitions: KansenCoalition[];
+  computedAt: string;
+}
+
 // ─── Coalitieverwatering ────────────────────────────────────
 export interface CoalitieverwateringResponse {
   partyId: string;
