@@ -189,7 +189,7 @@ export default async function VergelijkPage({
                 </table>
               </div>
               <div className="px-4 py-2 text-[10px] text-text-tertiary border-t border-border-subtle">
-                Legende: consistent / inconsistent / gemengd
+                Legende: consistent / niet in lijn / gemengd
               </div>
             </div>
           )}

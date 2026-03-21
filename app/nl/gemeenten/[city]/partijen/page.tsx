@@ -274,7 +274,7 @@ export default async function GemeentePartijenPage({ params, searchParams }: Pro
                   <>
                     <div className="text-right">
                       {sc2022 && sc2022.scoredPromises > 0 ? (
-                        <div>
+                        <div className="cursor-help" title={`MCS: ${sc2022.mandateConsistencyScore}/100. Gebaseerd op ${sc2022.scoredPromises} van ${sc2022.totalPromises} beloften. ${getScoreConfidence(sc2022.scoredPromises, sc2022.totalPromises).label}.`}>
                           <span className={`text-[16px] font-serif ${getScoreConfidence(sc2022.scoredPromises, sc2022.totalPromises).level === "onvoldoende" ? "text-text-tertiary" : "text-ink"}`}>
                             {sc2022.mandateConsistencyScore}
                           </span>
@@ -293,7 +293,7 @@ export default async function GemeentePartijenPage({ params, searchParams }: Pro
                     </div>
                     <div className="text-right">
                       {sc2026 && sc2026.scoredPromises > 0 ? (
-                        <div>
+                        <div className="cursor-help" title={`MCS: ${sc2026.mandateConsistencyScore}/100. Gebaseerd op ${sc2026.scoredPromises} van ${sc2026.totalPromises} beloften. ${getScoreConfidence(sc2026.scoredPromises, sc2026.totalPromises).label}.`}>
                           <span className={`text-[16px] font-serif font-medium ${getScoreConfidence(sc2026.scoredPromises, sc2026.totalPromises).level === "onvoldoende" ? "text-text-tertiary" : "text-ink"}`}>
                             {sc2026.mandateConsistencyScore}
                           </span>

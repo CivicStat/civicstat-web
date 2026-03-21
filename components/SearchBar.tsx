@@ -37,7 +37,7 @@ export default function SearchBar() {
           type="text"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Zoek moties, Kamerleden of partijen..."
+          placeholder="Zoek partijen, moties, beloften of volksvertegenwoordigers..."
           className="flex-1 border-none outline-none bg-transparent text-sm text-ink py-2.5 placeholder:text-text-tertiary"
         />
         {q.trim() && (

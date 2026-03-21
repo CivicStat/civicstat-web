@@ -433,7 +433,7 @@ export default async function TransparantiePage() {
             gewogen stemuitlijning is in lijn met de belofte.
           </p>
           <p>
-            <strong className="text-ink">Inconsistent:</strong> ≤30% van de
+            <strong className="text-ink">Niet in lijn:</strong> ≤30% van de
             gewogen stemuitlijning is in lijn.
           </p>
           <p>
@@ -462,21 +462,21 @@ export default async function TransparantiePage() {
             </p>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-ink mb-1">Koersvastheid</h3>
+            <h3 className="text-sm font-semibold text-ink mb-1">Periodevergelijking</h3>
             <p className="text-[13px] text-text-secondary leading-relaxed">
-              De koersvastheid meet hoe stabiel een partij scoort over
-              verschillende parlementaire periodes. Een partij met een gelijke
-              MCS in TK2023 en TK2025 krijgt koersvastheid 100. Een partij
-              waarvan de MCS sterk schommelt, krijgt een lagere waarde.
+              De periodevergelijking meet hoe stabiel een partij scoort over
+              verschillende parlementaire periodes, met een richting-correctie.
+              Verbetering wordt niet bestraft, verslechtering wel. Een hoge score
+              betekent stabiel en consistent stemgedrag op een hoog niveau.
             </p>
           </div>
         </div>
 
         <div className="mt-2 space-y-2 text-sm text-text-secondary max-w-[68ch]">
           <ScoreDefinition
-            term="Koersvastheid"
-            definition="Meet de stabiliteit van de MCS over periodes. 100 = identieke MCS in beide periodes; 0 = maximaal verschil (100 punten)."
-            formula="Koersvastheid = 100 &minus; |MCS(TK2023) &minus; MCS(TK2025)|"
+            term="Periodevergelijking"
+            definition="Richting-gecorrigeerde stabiliteitsscore. Verbetering wordt niet bestraft, verslechtering wel. Houdt rekening met zowel het niveau als de trend."
+            formula="Score = gemiddeld MCS + (delta/2 als verbeterend, delta als verslechterend)"
           />
         </div>
       </section>

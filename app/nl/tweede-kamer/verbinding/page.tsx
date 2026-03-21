@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import PartyBadge from "../../../../components/PartyBadge";
 import ConsensusMatrix from "./ConsensusMatrix";
 
@@ -140,11 +139,11 @@ function PairRow({
         <div className="flex-1 h-[6px] rounded-full bg-surface-sub overflow-hidden">
           <div
             className={`h-full rounded-full ${barColor}`}
-            style={{ width: `${pair.pct}%` }}
+            style={{ width: `${displayPct}%` }}
           />
         </div>
         <span className="text-[12px] font-semibold text-ink w-[36px] text-right">
-          {pair.pct}%
+          {displayPct}%
         </span>
       </div>
     </div>

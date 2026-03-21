@@ -141,7 +141,7 @@ export default async function HomePage() {
             Kamerstemmen, moties en wetsvoorstellen.
           </p>
           <p className="text-[15px] font-medium text-ink max-w-[400px]">
-            Niet op gevoel. Niet op framing. Op data.
+            Gebaseerd op openbare bronnen. Reproduceerbaar. Transparant over methodologische keuzes.
           </p>
         </section>
 

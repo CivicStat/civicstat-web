@@ -143,7 +143,7 @@ export default async function BeloftenPage({ searchParams }: Props) {
                   <span className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-semibold text-text-secondary">
                     {themeLabel(promise.theme)}
                   </span>
-                  <span className="hidden sm:inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
+                  <span className="hidden sm:inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary cursor-help" title={formatSpecificity(promise.specificity).description}>
                     {formatSpecificity(promise.specificity).label}
                   </span>
                   {promise.expectedVoteDirection && (

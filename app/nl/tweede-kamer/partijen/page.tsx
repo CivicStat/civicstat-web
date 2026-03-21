@@ -148,15 +148,20 @@ export default async function PartijenPage({
         </div>
       </div>
 
+      {/* MCS explainer */}
+      <div className="text-[12px] text-text-secondary bg-surface-sub/50 border border-border rounded-lg px-4 py-3 mb-4 leading-relaxed">
+        <strong className="text-ink">MCS</strong> = Mandaatconsistentiescore (0-100). Meet hoe consistent een partij stemt in lijn met haar verkiezingsbeloften. De ratio <span className="text-text-tertiary font-mono text-[11px]">gescoord/totaal</span> geeft aan op hoeveel beloften voldoende stemdata beschikbaar is. Hover over scores voor details.
+      </div>
+
       {/* Data-rich party table */}
       <div className="card overflow-hidden">
         {/* Table header — hidden on mobile */}
         <div className="hidden sm:grid sm:grid-cols-[1fr_60px_80px_80px_60px] lg:grid-cols-[1fr_70px_100px_100px_70px] gap-2 px-5 py-2.5 border-b border-border bg-surface-sub/30 text-[10px] font-medium text-text-tertiary uppercase tracking-wider">
           <span>Partij</span>
           <span className="text-right">Zetels</span>
-          <span className="text-right">MCS 2023</span>
-          <span className="text-right">MCS 2025</span>
-          <span className="text-right">{"\u0394"}</span>
+          <span className="text-right cursor-help" title="Mandaatconsistentiescore 2023: hoe consistent stemde deze partij met haar verkiezingsbeloften uit 2023? Score van 0-100.">MCS 2023</span>
+          <span className="text-right cursor-help" title="Mandaatconsistentiescore 2025: hoe consistent stemde deze partij met haar verkiezingsbeloften uit 2025? Score van 0-100.">MCS 2025</span>
+          <span className="text-right cursor-help" title="Verschil tussen MCS 2025 en MCS 2023. Positief = consistenter geworden.">{"\u0394"}</span>
         </div>
 
         {/* Party rows */}
@@ -211,7 +216,7 @@ export default async function PartijenPage({
                     const conf23 = getScoreConfidence(sc23.scoredPromises, sc23.totalPromises);
                     const muted23 = conf23.level === "onvoldoende" || conf23.level === "laag";
                     return (
-                      <div>
+                      <div title={`Mandaatconsistentiescore: ${sc23.mandateConsistencyScore} van 100. Gebaseerd op ${sc23.scoredPromises} van ${sc23.totalPromises} beloften met voldoende stemdata. ${conf23.label}.`} className="cursor-help">
                         <div className="flex items-center justify-end gap-2">
                           <div className="flex h-1.5 rounded-full overflow-hidden gap-px w-[40px]">
                             {sc23.consistentCount > 0 && <div className="bg-ink/25" style={{ flex: sc23.consistentCount }} />}
@@ -234,7 +239,7 @@ export default async function PartijenPage({
                     const conf25 = getScoreConfidence(sc25.scoredPromises, sc25.totalPromises);
                     const muted25 = conf25.level === "onvoldoende" || conf25.level === "laag";
                     return (
-                      <div>
+                      <div title={`Mandaatconsistentiescore: ${sc25.mandateConsistencyScore} van 100. Gebaseerd op ${sc25.scoredPromises} van ${sc25.totalPromises} beloften met voldoende stemdata. ${conf25.label}.`} className="cursor-help">
                         <div className="flex items-center justify-end gap-2">
                           <div className="flex h-1.5 rounded-full overflow-hidden gap-px w-[40px]">
                             {sc25.consistentCount > 0 && <div className="bg-ink/25" style={{ flex: sc25.consistentCount }} />}

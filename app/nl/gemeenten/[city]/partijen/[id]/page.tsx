@@ -582,8 +582,13 @@ export default async function GemeentePartyDetailPage({ params }: Props) {
                 </div>
               )}
 
-            {/* Methodology */}
+            {/* Methodology disclaimer */}
             <div className="border-t border-border pt-3 mt-4">
+              <p className="text-[11px] text-text-tertiary leading-relaxed mb-3 max-w-lg">
+                Deze scores zijn gebaseerd op openbare gemeentelijke bronnen en geautomatiseerde tekstanalyse.
+                Elke methodologische keuze (drempelwaarden, gewichten, matchcriteria) is een normatieve keuze.
+                Scores van coalitie- en oppositiepartijen zijn niet direct vergelijkbaar.
+              </p>
               <details className="text-xs text-text-tertiary">
                 <summary className="cursor-pointer hover:text-text-secondary underline underline-offset-2">
                   Methodologie

@@ -234,6 +234,8 @@ export interface VoteStats {
   participationRate?: number;
   votesWon?: number;
   votesLost?: number;
+  winLabel?: string;
+  motionEffectiveness?: number;
 }
 
 // Member detail

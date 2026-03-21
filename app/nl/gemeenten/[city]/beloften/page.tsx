@@ -131,7 +131,7 @@ export default async function MunicipalBeloftenPage({ params, searchParams }: Pr
                   >
                     {themeLabel(promise.theme)}
                   </Link>
-                  <span className="hidden sm:inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
+                  <span className="hidden sm:inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary cursor-help" title={formatSpecificity(promise.specificity).description}>
                     {formatSpecificity(promise.specificity).label}
                   </span>
                   <span className="hidden sm:inline text-[11px] text-text-tertiary ml-auto font-mono">

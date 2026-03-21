@@ -64,7 +64,7 @@ function statusBadge(
       };
     case "BROKEN":
       return {
-        label: "Inconsistent",
+        label: "Niet in lijn",
         icon: "cross",
         className: "bg-red-500/10 text-red-400",
         description: `${scoringSummary?.opposedCount ?? 0} van ${scored} beoordeelde moties wijken af van de belofte.`,
@@ -121,7 +121,7 @@ function computeConsistency(
   if (scored === 0) return { label: "Onvoldoende data", className: "bg-surface-sub text-text-tertiary" };
   const ratio = aligned / scored;
   if (ratio >= 0.7) return { label: "Consistent", className: "bg-accent-subtle text-moss" };
-  if (ratio <= 0.3) return { label: "Inconsistent", className: "bg-red-500/10 text-red-400" };
+  if (ratio <= 0.3) return { label: "Niet in lijn", className: "bg-red-500/10 text-red-400" };
   return { label: "Gemengd", className: "bg-amber-500/10 text-amber-600" };
 }
 
@@ -192,7 +192,7 @@ export default async function BelofteDetailPage({ params }: Props) {
           <span className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-semibold text-text-secondary">
             {themeLabel(p.theme)}
           </span>
-          <span className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
+          <span className="inline-flex items-center rounded-full bg-surface-sub border border-border px-2 py-0.5 text-[11px] font-medium text-text-tertiary cursor-help" title={formatSpecificity(p.specificity).description}>
             {formatSpecificity(p.specificity).label}
           </span>
           {p.expectedVoteDirection && (
@@ -310,7 +310,7 @@ export default async function BelofteDetailPage({ params }: Props) {
             <p>
               <strong className="text-ink">Consistent</strong> ({"\u2265"}70%): de meerderheid van
               gerelateerde moties is in lijn met de belofte.{" "}
-              <strong className="text-ink">Inconsistent</strong> ({"\u2264"}30%):
+              <strong className="text-ink">Niet in lijn</strong> ({"\u2264"}30%):
               de meerderheid wijkt af.{" "}
               <strong className="text-ink">Gemengd</strong>: tussen 30% en 70%.
             </p>

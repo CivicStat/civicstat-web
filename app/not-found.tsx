@@ -22,7 +22,7 @@ export default function NotFound() {
       </div>
 
       <div className="card p-6">
-        <p className="text-sm text-text-secondary mb-4">Populaire pagina's:</p>
+        <p className="text-sm text-text-secondary mb-4">Populaire pagina&apos;s:</p>
         <div className="flex flex-wrap justify-center gap-3">
           <Link href="/nl/tweede-kamer/partijen" className="text-sm text-moss hover:underline">
             Partijen
