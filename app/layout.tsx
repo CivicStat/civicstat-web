@@ -6,6 +6,7 @@ import Footer from "../components/Footer";
 import { PostHogProvider } from "./providers";
 import PostHogPageView from "../components/PostHogPageView";
 import UsersnapWidget from "../components/UsersnapWidget";
+import BetaBanner from "../components/BetaBanner";
 
 const serif = Instrument_Serif({
   subsets: ["latin"],
@@ -59,11 +60,7 @@ export default function RootLayout({
         <PostHogProvider>
           <PostHogPageView />
           <Nav />
-          <div className="w-full bg-amber-50 dark:bg-amber-950 border-b border-amber-200 dark:border-amber-800">
-            <div className="mx-auto max-w-7xl px-4 py-2 text-center text-sm text-amber-800 dark:text-amber-200">
-              Dit platform is momenteel nog in aanbouw en nog niet officieel gelanceerd.
-            </div>
-          </div>
+          <BetaBanner />
           <div className="flex-1">
             {children}
           </div>

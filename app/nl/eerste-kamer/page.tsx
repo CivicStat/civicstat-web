@@ -328,7 +328,7 @@ export default async function EKDashboardPage() {
                       }`}
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="text-[13px] font-medium text-ink truncate">{m.title}</div>
+                        <div className="text-[13px] font-medium text-ink truncate" title={m.title}>{m.title}</div>
                         <div className="mt-0.5 flex items-center gap-2 text-[11px] text-text-tertiary">
                           <span>{formatDate(m.dateIntroduced)}</span>
                           {party && (

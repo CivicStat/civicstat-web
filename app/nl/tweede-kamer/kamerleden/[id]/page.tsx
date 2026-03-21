@@ -176,7 +176,7 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
                   <div
                     className="bg-bar-tegen transition-[width] duration-500 ease-out"
                     style={{ width: `${(scorecard.inconsistentCount / scorecard.scoredPromises) * 100}%` }}
-                    title={`Inconsistent: ${scorecard.inconsistentCount}`}
+                    title={`Niet in lijn: ${scorecard.inconsistentCount}`}
                   />
                 )}
               </div>
@@ -191,7 +191,7 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="w-2.5 h-2.5 rounded-sm bg-bar-tegen" />
-                  Inconsistent ({scorecard.inconsistentCount})
+                  Niet in lijn ({scorecard.inconsistentCount})
                 </span>
                 {scorecard.insufficientDataPromises > 0 && (
                   <span className="ml-auto">
@@ -268,7 +268,7 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
                     {role}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-ink truncate">{m.title}</div>
+                    <div className="text-sm font-medium text-ink truncate" title={m.title}>{m.title}</div>
                     <div className="flex items-center gap-2 mt-0.5 text-[12px] text-text-tertiary">
                       <span>{m.tkNumber}</span>
                       {m.dateIntroduced && <><span>·</span><span>{formatDate(m.dateIntroduced)}</span></>}

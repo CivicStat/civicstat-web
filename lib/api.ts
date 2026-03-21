@@ -472,6 +472,15 @@ export async function getScopedMembers(
   );
 }
 
+export async function getScopedMember(
+  slug: string,
+  id: string,
+): Promise<MemberDetail> {
+  return apiFetch<MemberDetail>(
+    `/parliament/${encodeURIComponent(slug)}/members/${encodeURIComponent(id)}`,
+  );
+}
+
 export async function getScopedVotes(
   slug: string,
   params?: { limit?: number; offset?: number },

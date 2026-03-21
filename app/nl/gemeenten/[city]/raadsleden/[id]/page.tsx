@@ -1,31 +1,59 @@
 import Link from "next/link";
-import { getMember } from "../../../lib/api";
-import { getPartyColor, formatDate } from "../../../lib/utils";
-import PartyBadge from "../../../components/PartyBadge";
-import VoteBar from "../../../components/VoteBar";
-import MemberPhoto from "../../../components/MemberPhoto";
+import { notFound } from "next/navigation";
+import { getParliament, getScopedMember } from "../../../../../../lib/api";
+import { getPartyColor, formatDate } from "../../../../../../lib/utils";
+import PartyBadge from "../../../../../../components/PartyBadge";
+import VoteBar from "../../../../../../components/VoteBar";
+import MemberPhoto from "../../../../../../components/MemberPhoto";
+import { gemeente } from "../../../../../../lib/routes";
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
+interface Props {
+  params: Promise<{ city: string; id: string }>;
+}
+
+export const revalidate = 3600;
+
+export async function generateMetadata({ params }: Props) {
+  const { city, id } = await params;
   try {
-    const member = await getMember(params.id);
-    return { title: `${member.surname} — CivicStat` };
+    const member = await getScopedMember(city, id);
+    const parliament = await getParliament(city);
+    return {
+      title: `${member.surname} — ${parliament.shortName} — CivicStat`,
+    };
   } catch {
-    return { title: "Kamerlid — CivicStat" };
+    return { title: "Raadslid — CivicStat" };
   }
 }
 
-export default async function KamerlidDetailPage({ params }: { params: { id: string } }) {
+export default async function RaadslidDetailPage({ params }: Props) {
+  const { city, id } = await params;
+
+  let parliament;
+  try {
+    parliament = await getParliament(city);
+  } catch {
+    notFound();
+  }
+
+  const r = gemeente(city);
+
   let member;
   try {
-    member = await getMember(params.id);
+    member = await getScopedMember(city, id);
   } catch {
     return (
       <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
-        <Link href="/kamerleden" className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink mb-5">
+        <Link
+          href={r.raadsleden}
+          className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink mb-5"
+        >
           <svg width={15} height={15} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
-          Terug naar kamerleden
+          Terug naar raadsleden
         </Link>
-        <div className="card p-6 text-sm text-text-secondary">Kon dit kamerlid niet laden.</div>
+        <div className="card p-6 text-sm text-text-secondary">
+          Kon dit raadslid niet laden.
+        </div>
       </div>
     );
   }
@@ -34,21 +62,20 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
   const motions = member.motions || [];
   const vs = member.voteStats;
 
-  // Separate motions by role
-  const sponsored = motions.filter((m: any) =>
-    m.sponsors?.some((s: any) => s.role === "indiener")
-  );
-  const cosigned = motions.filter((m: any) =>
-    m.sponsors?.every((s: any) => s.role !== "indiener")
-  );
-
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
-      {/* Back link */}
-      <Link href="/kamerleden" className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-ink mb-6">
-        <svg width={15} height={15} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
-        Terug naar kamerleden
-      </Link>
+      {/* Breadcrumb */}
+      <nav className="text-[11px] text-text-tertiary mb-4 flex items-center gap-1.5">
+        <Link href="/" className="hover:text-moss transition-colors">Home</Link>
+        <span>/</span>
+        <Link href="/nl/gemeenten" className="hover:text-moss transition-colors">Gemeenten</Link>
+        <span>/</span>
+        <Link href={r.root} className="hover:text-moss transition-colors">{parliament.shortName}</Link>
+        <span>/</span>
+        <Link href={r.raadsleden} className="hover:text-moss transition-colors">Raadsleden</Link>
+        <span>/</span>
+        <span className="text-ink font-medium">{member.surname}</span>
+      </nav>
 
       {/* Header */}
       <div className="flex items-start gap-4 mb-8">
@@ -59,7 +86,7 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
           </h1>
           <p className="text-sm text-text-secondary mt-0.5">{member.name}</p>
           <div className="mt-2">
-            <Link href={`/partijen/${member.party.id}`}>
+            <Link href={r.partij(member.party.id)}>
               <PartyBadge abbreviation={member.party.abbreviation} colorNeutral={member.party.colorNeutral} size="md" />
             </Link>
           </div>
@@ -122,7 +149,7 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
               return (
                 <Link
                   key={m.id}
-                  href={`/moties/${m.id}`}
+                  href={r.motie(m.id)}
                   className={`flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-surface-sub ${
                     i < motions.length - 1 ? "border-b border-border-subtle" : ""
                   }`}
@@ -149,7 +176,7 @@ export default async function KamerlidDetailPage({ params }: { params: { id: str
             })}
           </div>
           <p className="text-[12px] text-text-tertiary mt-3">
-            Moties waarbij dit kamerlid als indiener of mede-indiener betrokken is.
+            Moties waarbij dit raadslid als indiener of mede-indiener betrokken is.
           </p>
         </section>
       )}

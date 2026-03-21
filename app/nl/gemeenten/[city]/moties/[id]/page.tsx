@@ -95,7 +95,7 @@ export default async function GemeenteMotieDetailPage({ params }: Props) {
         <div className="lg:col-span-2 space-y-6">
           {/* Motion text */}
           <section className="card p-5">
-            <div className="section-label mb-2">Tekst motie</div>
+            <div className="section-label mb-2">Samenvatting</div>
             <p className="text-[14px] text-text-secondary leading-relaxed whitespace-pre-line">
               {m.text}
             </p>
