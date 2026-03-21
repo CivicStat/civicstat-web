@@ -210,11 +210,17 @@ export default async function PartyDetailPage({
               <div className="text-2xl font-serif text-ink">{vs.totalVotes}</div>
             </div>
             <div className="card p-4">
-              <div className="section-label">Gewonnen</div>
+              <div className="section-label">{vs.winLabel || "Winnende kant"}</div>
               <div className="text-2xl font-serif text-ink">
                 {vs.votesWon != null ? `${Math.round((vs.votesWon / vs.totalVotes) * 100)}%` : "–"}
               </div>
             </div>
+            {vs.motionEffectiveness != null && (
+              <div className="card p-4">
+                <div className="section-label">Motie-effectiviteit</div>
+                <div className="text-2xl font-serif text-ink">{vs.motionEffectiveness}%</div>
+              </div>
+            )}
           </>
         )}
         {party.startDate && (
@@ -307,8 +313,14 @@ export default async function PartyDetailPage({
               </div>
               {vs.votesWon != null && (
                 <div>
-                  <span className="text-text-tertiary text-xs">Winnende kant</span>
+                  <span className="text-text-tertiary text-xs">{vs.winLabel || "Winnende kant"}</span>
                   <div className="text-ink font-semibold">{vs.votesWon} van {vs.totalVotes}</div>
+                </div>
+              )}
+              {vs.motionEffectiveness != null && (
+                <div>
+                  <span className="text-text-tertiary text-xs">Motie-effectiviteit</span>
+                  <div className="text-ink font-semibold">{vs.motionEffectiveness}%</div>
                 </div>
               )}
             </div>
@@ -425,8 +437,13 @@ export default async function PartyDetailPage({
               <PromiseSearchList promises={scorecard.promises} />
             )}
 
-            {/* Methodology */}
+            {/* Methodology disclaimer */}
             <div className="border-t border-border pt-3 mt-4">
+              <p className="text-[11px] text-text-tertiary leading-relaxed mb-3 max-w-lg">
+                Deze scores zijn gebaseerd op openbare parlementaire bronnen en geautomatiseerde tekstanalyse.
+                Elke methodologische keuze (drempelwaarden, gewichten, matchcriteria) is een normatieve keuze.
+                Scores van coalitie- en oppositiepartijen zijn niet direct vergelijkbaar.
+              </p>
               <details className="text-xs text-text-tertiary">
                 <summary className="cursor-pointer hover:text-text-secondary underline underline-offset-2">
                   Methodologie
@@ -537,8 +554,8 @@ export default async function PartyDetailPage({
 
             <div className="border-t border-border pt-3 mt-4">
               <p className="text-[11px] text-text-tertiary">
-                Formule: koersvastheid = 100 − |MCS(TK2023) − MCS(TK2025)|.
-                Een hoge score betekent dat de partij in beide periodes vergelijkbaar scoort.
+                Periodevergelijking: richting-gecorrigeerde stabiliteitsscore.
+                Verbetering wordt niet bestraft, verslechtering wel. Een hoge score betekent stabiel en consistent stemgedrag.
               </p>
             </div>
           </div>
