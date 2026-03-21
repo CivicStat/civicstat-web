@@ -14,6 +14,7 @@ export default function Footer() {
               <FooterLink href={routes.transparantie}>Over CivicStat</FooterLink>
               <FooterLink href={routes.transparantie}>Methodologie</FooterLink>
               <FooterLink href={`${routes.transparantie}#neutraliteit`}>Governance</FooterLink>
+              <FooterLink href={routes.updates}>Wat is er nieuw?</FooterLink>
               <FooterLink href={routes.status}>Status</FooterLink>
               <FooterLink href={routes.privacy}>Privacy</FooterLink>
             </div>

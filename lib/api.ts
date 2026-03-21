@@ -666,3 +666,23 @@ export async function getPipelineRuns(limit: number = 10) {
     return [];
   }
 }
+
+// ─── Platform Updates ───────────────────────────────────────
+
+export interface PlatformUpdateItem {
+  id: string;
+  title: string;
+  body: string;
+  category: "NIEUWE_DATA" | "NIEUWE_ANALYSE" | "VERBETERING" | "BUGFIX" | null;
+  linkUrl: string | null;
+  linkLabel: string | null;
+  publishedAt: string;
+}
+
+export async function getPlatformUpdates(): Promise<PlatformUpdateItem[]> {
+  try {
+    return await apiFetch<PlatformUpdateItem[]>("/updates?limit=100");
+  } catch {
+    return [];
+  }
+}

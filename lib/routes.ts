@@ -87,6 +87,7 @@ export const routes = {
   transparantie: "/transparantie",
   privacy: "/privacy",
   status: "/status",
+  updates: "/updates",
 } as const;
 
 /** Build a query-string href, e.g. routes.tk.beloften + qs({ page: "2" }) */
