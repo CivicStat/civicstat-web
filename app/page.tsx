@@ -186,7 +186,7 @@ export default async function HomePage() {
           <h2 className="font-serif text-[clamp(22px,3vw,28px)] font-normal text-ink mb-6">
             Ontdek de Nederlandse politiek
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3">
             {/* Tweede Kamer */}
             <Link href={routes.tk.root} className="block p-6 rounded-xl border border-border bg-card hover:border-moss/30 transition-colors group">
               <div className="flex items-center gap-3 mb-3">
@@ -234,15 +234,26 @@ export default async function HomePage() {
                 Bekijk alle gemeenten &rarr;
               </span>
             </Link>
+
+            {/* Eerste Kamer */}
+            <Link href={routes.ek.root} className="block p-6 rounded-xl border border-border bg-card hover:border-moss/30 transition-colors group">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-2xl" aria-hidden>&#x1F1F3;&#x1F1F1;</span>
+                <h3 className="font-serif text-xl group-hover:text-moss transition-colors">Eerste Kamer</h3>
+              </div>
+              <p className="text-sm text-text-secondary mb-2">75 zetels &middot; Senaat</p>
+              <p className="text-sm text-text-secondary">
+                Moties, stemmingen en consistentiescores van de Eerste Kamer
+              </p>
+              <span className="inline-block mt-4 text-sm text-moss font-medium">
+                Bekijk dashboard &rarr;
+              </span>
+            </Link>
           </div>
 
           {/* Binnenkort row */}
           <div className="flex items-center gap-4 mt-4 px-2 text-[12px] text-text-tertiary">
             <span>Binnenkort:</span>
-            <span className="flex items-center gap-1.5">
-              <span aria-hidden>🇳🇱</span> Eerste Kamer
-            </span>
-            <span>&middot;</span>
             <span className="flex items-center gap-1.5">
               <span aria-hidden>🇪🇺</span> Europees Parlement
             </span>
