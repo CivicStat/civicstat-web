@@ -290,7 +290,7 @@ export default async function HomePage() {
                   className="card p-5 group hover:border-moss/40 transition-colors"
                 >
                   <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-wider mb-2">
-                    🤝 Bondgenoten
+                    Bondgenoten
                   </div>
                   <div className="text-[18px] font-serif text-ink leading-tight mb-1">
                     {insights.bedgenoten[0].partyA} &amp; {insights.bedgenoten[0].partyB}
@@ -308,7 +308,7 @@ export default async function HomePage() {
                   className="card p-5 group hover:border-moss/40 transition-colors"
                 >
                   <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-wider mb-2">
-                    ⚡ Coalitiescheur
+                    Coalitiescheur
                   </div>
                   <div className="text-[14px] font-medium text-ink leading-snug mb-1 line-clamp-2">
                     {insights.scheuren[0].motionTitle}
@@ -327,7 +327,7 @@ export default async function HomePage() {
                   className="card p-5 group hover:border-moss/40 transition-colors"
                 >
                   <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-wider mb-2">
-                    🕊️ Consensus
+                    Consensus
                   </div>
                   <div className="text-[18px] font-serif text-ink leading-tight mb-1">
                     {insights.consensus[0].unanimousPct}%

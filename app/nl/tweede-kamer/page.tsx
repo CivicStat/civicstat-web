@@ -282,7 +282,7 @@ export default async function TKDashboardPage() {
                     href={routes.tk.inzichten}
                     className="card px-4 py-3 flex items-center gap-3 hover:border-moss/40 transition-colors"
                   >
-                    <span className="text-[14px]" aria-hidden>🤝</span>
+                    <span className="text-[14px] text-text-tertiary" aria-hidden>&bull;</span>
                     <div className="flex-1 min-w-0">
                       <div className="text-[12px] font-semibold text-ink">
                         {pair.partyA} & {pair.partyB}
@@ -299,7 +299,7 @@ export default async function TKDashboardPage() {
                     href={routes.tk.inzichten}
                     className="card px-4 py-3 flex items-center gap-3 hover:border-moss/40 transition-colors"
                   >
-                    <span className="text-[14px]" aria-hidden>⚡</span>
+                    <span className="text-[14px] text-text-tertiary" aria-hidden>&bull;</span>
                     <div className="flex-1 min-w-0">
                       <div className="text-[12px] font-semibold text-ink truncate">
                         {s.motionTitle}

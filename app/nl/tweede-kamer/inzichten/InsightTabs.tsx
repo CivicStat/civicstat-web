@@ -13,10 +13,10 @@ import PartyBadge from "../../../../components/PartyBadge";
 import { routes } from "../../../../lib/routes";
 
 const TABS = [
-  { id: "bedgenoten", label: "Onverwachte bondgenoten", icon: "🤝" },
-  { id: "scheuren", label: "Coalitiescheuren", icon: "⚡" },
-  { id: "beweging", label: "Stijgers & dalers", icon: "📊" },
-  { id: "consensus", label: "Stille consensus", icon: "🕊️" },
+  { id: "bedgenoten", label: "Onverwachte bondgenoten" },
+  { id: "scheuren", label: "Coalitiescheuren" },
+  { id: "beweging", label: "Stijgers & dalers" },
+  { id: "consensus", label: "Stille consensus" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -50,7 +50,6 @@ export default function InsightTabs({
                 : "bg-surface border border-border text-text-secondary hover:bg-surface-sub"
             }`}
           >
-            <span aria-hidden>{tab.icon}</span>
             {tab.label}
           </button>
         ))}
