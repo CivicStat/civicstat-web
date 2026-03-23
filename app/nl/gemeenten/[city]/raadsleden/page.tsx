@@ -166,10 +166,15 @@ export default async function GemeenteRaadsledenPage({
                       style={{ backgroundColor: color }}
                     />
                     <span>{m.party.abbreviation}</span>
-                    {m._count.voteRecords > 0 && (
+                    {m._count.voteRecords > 0 ? (
                       <>
                         <span>&middot;</span>
                         <span>{m._count.voteRecords} stemmen</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>&middot;</span>
+                        <span className="text-[10px]">Nog geen stemmingen</span>
                       </>
                     )}
                   </div>

@@ -40,8 +40,15 @@ export default function KamerledenFilters({ members, parties }: Props) {
       );
     }
 
-    // Sort
+    // Sort — always push zero-activity MPs to the bottom
+    const activity = (m: typeof result[0]) =>
+      (m._count?.sponsors ?? 0) + (m._count?.voteRecords ?? 0);
+
     result = [...result].sort((a, b) => {
+      const aActive = activity(a) > 0 ? 0 : 1;
+      const bActive = activity(b) > 0 ? 0 : 1;
+      if (aActive !== bActive) return aActive - bActive;
+
       switch (sort) {
         case "party":
           return a.party.abbreviation.localeCompare(b.party.abbreviation);
@@ -145,7 +152,7 @@ export default function KamerledenFilters({ members, parties }: Props) {
                       colorNeutral={m.party.colorNeutral}
                       size="sm"
                     />
-                    {(m._count?.sponsors > 0 || m._count?.voteRecords > 0) && (
+                    {(m._count?.sponsors > 0 || m._count?.voteRecords > 0) ? (
                       <span className="text-[11px] text-text-tertiary">
                         {m._count.sponsors > 0
                           ? `${m._count.sponsors} moties`
@@ -156,6 +163,10 @@ export default function KamerledenFilters({ members, parties }: Props) {
                         {m._count.voteRecords > 0
                           ? `${m._count.voteRecords} stemmen`
                           : ""}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-text-tertiary">
+                        Nog geen stemmingen geregistreerd
                       </span>
                     )}
                   </div>
