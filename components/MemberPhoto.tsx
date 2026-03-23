@@ -37,7 +37,10 @@ export default function MemberPhoto({
   const { px, tkSize } = SIZE_MAP[size];
   const url = `https://www.tweedekamer.nl/sites/default/files/styles/${tkSize}/public/tk_external_data_ggm_sync/photos/${tkId}.jpg`;
 
-  if (error || !tkId) {
+  // NB- prefixed IDs are NotuBiz/placeholder IDs with no photo on tweedekamer.nl
+  const isNonTkId = tkId?.startsWith("NB-");
+
+  if (error || !tkId || isNonTkId) {
     return (
       <div
         className={`flex items-center justify-center rounded-full font-semibold text-ink shrink-0 ${className}`}
