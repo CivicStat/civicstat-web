@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getMotions, getAllScorecards, getPromiseStats, getScopedStats, getInsights } from "../../../lib/api";
+import { getMotions, getAllScorecards, getScopedPromiseStats, getScopedStats, getInsights } from "../../../lib/api";
 import { formatDate, getPartyColor } from "../../../lib/utils";
 import PartyBadge from "../../../components/PartyBadge";
 import StatusBadge from "../../../components/StatusBadge";
@@ -57,7 +57,7 @@ export default async function TKDashboardPage() {
     await Promise.allSettled([
       getMotions({ limit: 8 }),
       getAllScorecards(),
-      getPromiseStats(),
+      getScopedPromiseStats("tweede-kamer"),
       getScopedStats("tweede-kamer"),
       getInsights(),
     ]);
