@@ -7,6 +7,7 @@ import {
   getScopedStats,
   getScopedPromiseStats,
   getScopedScorecards,
+  getFormation,
 } from "../../../../lib/api";
 import type { PartyScorecard } from "../../../../lib/types";
 import { formatDate, getPartyColor } from "../../../../lib/utils";
@@ -16,7 +17,7 @@ import StatusBadge from "../../../../components/StatusBadge";
 import VoteBar from "../../../../components/VoteBar";
 import PartyAvatar from "../../../../components/PartyAvatar";
 import ElectionCountdown from "../../../../components/ElectionCountdown";
-import { gemeente } from "../../../../lib/routes";
+import { gemeente, routes } from "../../../../lib/routes";
 
 export const revalidate = 300;
 
@@ -142,7 +143,7 @@ export default async function CityDashboardPage({ params }: Props) {
     );
   }
 
-  const [motionsResult, partiesResult, statsResult, promiseStatsResult, sc2022Result, sc2026Result] =
+  const [motionsResult, partiesResult, statsResult, promiseStatsResult, sc2022Result, sc2026Result, formationResult] =
     await Promise.allSettled([
       getScopedMotions(city, { limit: 8 }),
       getScopedParties(city),
@@ -150,6 +151,7 @@ export default async function CityDashboardPage({ params }: Props) {
       getScopedPromiseStats(city),
       getScopedScorecards(city, { year: 2022 }),
       getScopedScorecards(city, { year: 2026 }),
+      getFormation(city),
     ]);
 
   const recentMotions =
@@ -167,6 +169,8 @@ export default async function CityDashboardPage({ params }: Props) {
     sc2022Result.status === "fulfilled" ? sc2022Result.value : [];
   const scorecards2026: Omit<PartyScorecard, "promises">[] =
     sc2026Result.status === "fulfilled" ? sc2026Result.value : [];
+  const formation =
+    formationResult.status === "fulfilled" ? formationResult.value?.formation ?? null : null;
 
   // Build comparison data for parties that have at least one score
   const sc2022Map = new Map(scorecards2022.map((s) => [s.partyId, s]));
@@ -252,6 +256,47 @@ export default async function CityDashboardPage({ params }: Props) {
         electionDate="2026-03-18"
         label="gemeenteraadsverkiezingen"
       />
+
+      {/* Formatie callout — shown when formation is active */}
+      {formation && (
+        <Link
+          href={routes.formatie.detail(city)}
+          className="card p-5 mb-6 flex items-center justify-between group hover:border-moss/40 transition-colors"
+        >
+          <div>
+            <div className="flex items-center gap-2.5 mb-1">
+              <h3 className="text-[14px] font-semibold text-ink">
+                Coalitievorming
+              </h3>
+              <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                formation.phase === "VERKENNING" ? "bg-amber-100 text-amber-800" :
+                formation.phase === "INFORMATIE" ? "bg-blue-100 text-blue-800" :
+                formation.phase === "FORMATIE" ? "bg-emerald-100 text-emerald-800" :
+                formation.phase === "AFGEROND" ? "bg-zinc-100 text-zinc-600" :
+                "bg-zinc-100 text-zinc-600"
+              }`}>
+                {formation.phase === "VERKENNING" ? "Verkenning" :
+                 formation.phase === "INFORMATIE" ? "Informatie" :
+                 formation.phase === "FORMATIE" ? "Formatie" :
+                 formation.phase === "AFGEROND" ? "Afgerond" :
+                 formation.phase}
+              </span>
+            </div>
+            <p className="text-[13px] text-text-secondary leading-relaxed">
+              In {parliament.shortName} wordt een nieuwe coalitie gevormd.
+              {formation.currentLeader && (
+                <> {formation.phase === "VERKENNING" ? "Verkenner" : formation.phase === "INFORMATIE" ? "Informateur" : "Formateur"}: {formation.currentLeader}.</>
+              )}
+              {formation.participants.length > 0 && (
+                <> {formation.participants.length} {formation.participants.length === 1 ? "partij" : "partijen"} aan tafel.</>
+              )}
+            </p>
+          </div>
+          <span className="text-[12px] font-medium text-moss group-hover:underline whitespace-nowrap ml-4 inline-flex items-center gap-1">
+            Bekijk formatie <ArrowIcon />
+          </span>
+        </Link>
+      )}
 
       {/* Quick-access cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
