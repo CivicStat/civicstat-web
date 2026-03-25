@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getPlatformStats, getInsights, getParliaments } from "../lib/api";
+import { getScopedStats, getInsights, getParliaments } from "../lib/api";
 import SearchBar from "../components/SearchBar";
 import { routes } from "../lib/routes";
 
@@ -7,7 +7,7 @@ export const revalidate = 3600; // ISR: re-generate at most every hour
 
 export default async function HomePage() {
   const [stats, insights, parliamentsResult] = await Promise.all([
-    getPlatformStats().catch(() => null),
+    getScopedStats("tweede-kamer").catch(() => null),
     getInsights().catch(() => null),
     getParliaments().catch(() => []),
   ]);
