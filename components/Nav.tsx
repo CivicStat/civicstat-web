@@ -342,7 +342,7 @@ export default function Nav() {
                   : "text-text-secondary hover:bg-surface-sub/60"
               }`}
             >
-              🇳🇱 Tweede Kamer
+              Tweede Kamer
             </Link>
             <Link
               href={routes.gemeenten.root}
@@ -353,7 +353,7 @@ export default function Nav() {
                   : "text-text-secondary hover:bg-surface-sub/60"
               }`}
             >
-              🏛 Gemeenteraden
+              Gemeenteraden
             </Link>
             <Link
               href={routes.formatie.root}

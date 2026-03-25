@@ -72,8 +72,8 @@ export default function MotionMatchList({ matches, adopted, rejected, noVote }: 
             />
           </div>
           {avgConfidence < 0.6 && (
-            <span className="text-text-tertiary/70 italic" title="Lage woordovereenkomst — handmatige controle aanbevolen">
-              ⚠
+            <span className="text-[10px] text-text-tertiary/70 font-medium" title="Lage woordovereenkomst — handmatige controle aanbevolen">
+              LQ
             </span>
           )}
         </div>

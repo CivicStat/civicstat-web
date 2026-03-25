@@ -255,7 +255,7 @@ export default async function HomePage() {
           <div className="flex items-center gap-4 mt-4 px-2 text-[12px] text-text-tertiary">
             <span>Binnenkort:</span>
             <span className="flex items-center gap-1.5">
-              <span aria-hidden>🇪🇺</span> Europees Parlement
+              Europees Parlement
             </span>
             <span>&middot;</span>
             <span>250+ gemeenten</span>

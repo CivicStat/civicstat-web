@@ -213,10 +213,10 @@ export default function ScopeSwitcher({ municipalities = [] }: ScopeSwitcherProp
   const scopeIcon = useMemo(() => {
     switch (scope.type) {
       case "tk":
-        return "🇳🇱";
+        return "NL";
       case "gemeente":
       case "gemeenten-list":
-        return "🏛";
+        return "GR";
       default:
         return null;
     }
@@ -234,7 +234,7 @@ export default function ScopeSwitcher({ municipalities = [] }: ScopeSwitcherProp
         }`}
       >
         {scopeIcon && (
-          <span className="text-[13px]" aria-hidden>
+          <span className="text-[10px] font-semibold tracking-wide text-text-tertiary" aria-hidden>
             {scopeIcon}
           </span>
         )}
@@ -258,8 +258,8 @@ export default function ScopeSwitcher({ municipalities = [] }: ScopeSwitcherProp
                   : "text-text-secondary hover:bg-surface-sub/60 hover:text-ink"
               }`}
             >
-              <span className="text-[15px]" aria-hidden>
-                🇳🇱
+              <span className="text-[10px] font-semibold tracking-wide text-text-tertiary" aria-hidden>
+                NL
               </span>
               <div className="flex-1 min-w-0">
                 <div className="text-[13px] font-medium">Tweede Kamer</div>
@@ -321,8 +321,8 @@ export default function ScopeSwitcher({ municipalities = [] }: ScopeSwitcherProp
                         : "text-text-secondary hover:bg-surface-sub/60 hover:text-ink"
                     }`}
                   >
-                    <span className="text-[13px]" aria-hidden>
-                      🏛
+                    <span className="text-[10px] font-semibold tracking-wide text-text-tertiary" aria-hidden>
+                      GR
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-medium">{m.name}</div>
@@ -361,8 +361,8 @@ export default function ScopeSwitcher({ municipalities = [] }: ScopeSwitcherProp
                           : "text-text-secondary hover:bg-surface-sub/60 hover:text-ink"
                       }`}
                     >
-                      <span className="text-[13px]" aria-hidden>
-                        🏛
+                      <span className="text-[10px] font-semibold tracking-wide text-text-tertiary" aria-hidden>
+                        GR
                       </span>
                       <div className="flex-1 min-w-0">
                         <div className="text-[13px] font-medium">{m.name}</div>
@@ -391,16 +391,16 @@ export default function ScopeSwitcher({ municipalities = [] }: ScopeSwitcherProp
               className="flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-surface-sub/60 transition-colors"
               onClick={() => setOpen(false)}
             >
-              <span className="text-[13px]" aria-hidden>
-                🇳🇱
+              <span className="text-[10px] font-semibold tracking-wide text-text-tertiary" aria-hidden>
+                EK
               </span>
               <span className="text-[12px] text-ink font-medium">
                 Eerste Kamer
               </span>
             </Link>
             <div className="flex items-center gap-2.5 rounded-lg px-3 py-2 opacity-50">
-              <span className="text-[13px]" aria-hidden>
-                🇪🇺
+              <span className="text-[10px] font-semibold tracking-wide text-text-tertiary" aria-hidden>
+                EU
               </span>
               <span className="text-[12px] text-text-tertiary">
                 Europees Parlement
