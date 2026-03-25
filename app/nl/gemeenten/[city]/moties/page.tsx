@@ -8,6 +8,7 @@ import PartyBadge from "../../../../../components/PartyBadge";
 import StatusBadge from "../../../../../components/StatusBadge";
 import MotionTypeBadge from "../../../../../components/MotionTypeBadge";
 import VoteBar from "../../../../../components/VoteBar";
+import MotiesFilters from "./MotiesFilters";
 
 interface Props {
   params: Promise<{ city: string }>;
@@ -15,6 +16,9 @@ interface Props {
     status?: string;
     q?: string;
     page?: string;
+    sort?: string;
+    soort?: string;
+    hasVotes?: string;
   }>;
 }
 
@@ -50,11 +54,16 @@ export default async function GemeenteMotiesPage({ params, searchParams }: Props
   const page = Math.max(1, Number(sp.page ?? 1));
   const offset = (page - 1) * PAGE_SIZE;
 
+  // Default to showing only motions with votes, unless explicitly disabled or when searching/filtering by status
+  const hasVotes = sp.hasVotes === "false" ? false : !sp.q && !sp.status;
+
   let data;
   try {
     data = await getScopedMotions(city, {
       status: sp.status,
       q: sp.q,
+      soort: sp.soort,
+      hasVotes: hasVotes || undefined,
       limit: PAGE_SIZE,
       offset,
     });
@@ -71,6 +80,16 @@ export default async function GemeenteMotiesPage({ params, searchParams }: Props
 
   const { items, total } = data;
   const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  // Client-side sort: when sort=votes, reorder current page by total votes desc
+  const sortedItems =
+    sp.sort === "votes"
+      ? [...items].sort((a, b) => {
+          const aV = (a.vote?.totalFor ?? 0) + (a.vote?.totalAgainst ?? 0);
+          const bV = (b.vote?.totalFor ?? 0) + (b.vote?.totalAgainst ?? 0);
+          return bV - aV;
+        })
+      : items;
 
   function getVote(m: MotionListItem) {
     if (m.vote) return m.vote;
@@ -105,24 +124,15 @@ export default async function GemeenteMotiesPage({ params, searchParams }: Props
         {parliament.shortName}.
       </p>
 
-      {/* Simple search */}
-      <form className="mb-5">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            name="q"
-            defaultValue={sp.q ?? ""}
-            placeholder="Zoek in moties..."
-            className="flex-1 rounded-lg border border-border bg-card px-3.5 py-2 text-sm text-ink placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-moss/30"
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-moss px-4 py-2 text-sm font-medium text-white hover:bg-moss-hover transition-colors"
-          >
-            Zoek
-          </button>
-        </div>
-      </form>
+      {/* Filters */}
+      <MotiesFilters
+        basePath={r.moties}
+        currentStatus={sp.status}
+        currentQ={sp.q}
+        currentSort={sp.sort}
+        currentSoort={sp.soort}
+        currentHasVotes={hasVotes}
+      />
 
       {/* Table */}
       <div className="card overflow-hidden">
@@ -133,12 +143,12 @@ export default async function GemeenteMotiesPage({ params, searchParams }: Props
           <span>Status</span>
         </div>
 
-        {items.length === 0 && (
+        {sortedItems.length === 0 && (
           <div className="px-5 py-10 text-center text-sm text-text-tertiary">
             Geen moties gevonden.
           </div>
         )}
-        {items.map((m, i) => {
+        {sortedItems.map((m, i) => {
           const vote = getVote(m);
           const party = getSponsorParty(m);
 
@@ -147,7 +157,7 @@ export default async function GemeenteMotiesPage({ params, searchParams }: Props
               key={m.id}
               href={r.motie(m.id)}
               className={`block sm:grid sm:grid-cols-[1fr_100px_80px_100px] items-center gap-2 px-5 py-3.5 table-row-hover ${
-                i < items.length - 1 ? "border-b border-border-subtle" : ""
+                i < sortedItems.length - 1 ? "border-b border-border-subtle" : ""
               }`}
             >
               <div className="min-w-0">
@@ -227,7 +237,9 @@ export default async function GemeenteMotiesPage({ params, searchParams }: Props
                 page={page - 1}
                 status={sp.status}
                 q={sp.q}
-                label="\u2190 Vorige"
+                sort={sp.sort}
+                soort={sp.soort}
+                label={"\u2190 Vorige"}
               />
             )}
             {page < totalPages && (
@@ -236,7 +248,9 @@ export default async function GemeenteMotiesPage({ params, searchParams }: Props
                 page={page + 1}
                 status={sp.status}
                 q={sp.q}
-                label="Volgende \u2192"
+                sort={sp.sort}
+                soort={sp.soort}
+                label={"Volgende \u2192"}
               />
             )}
           </div>
@@ -251,18 +265,24 @@ function PagLink({
   page,
   status,
   q,
+  sort,
+  soort,
   label,
 }: {
   basePath: string;
   page: number;
   status?: string;
   q?: string;
+  sort?: string;
+  soort?: string;
   label: string;
 }) {
   const sp = new URLSearchParams();
   sp.set("page", String(page));
   if (status) sp.set("status", status);
   if (q) sp.set("q", q);
+  if (sort) sp.set("sort", sort);
+  if (soort) sp.set("soort", soort);
 
   return (
     <Link

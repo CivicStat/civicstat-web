@@ -428,6 +428,8 @@ export async function getScopedMotions(
     status?: string;
     result?: string;
     party?: string;
+    soort?: string;
+    hasVotes?: boolean;
     limit?: number;
     offset?: number;
   },
@@ -437,6 +439,8 @@ export async function getScopedMotions(
   if (params?.status) sp.set("status", params.status);
   if (params?.result) sp.set("result", params.result);
   if (params?.party) sp.set("party", params.party);
+  if (params?.soort) sp.set("soort", params.soort);
+  if (params?.hasVotes) sp.set("hasVotes", "true");
   if (params?.limit) sp.set("limit", String(params.limit));
   if (params?.offset) sp.set("offset", String(params.offset));
   const qs = sp.toString();
