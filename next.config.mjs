@@ -46,6 +46,10 @@ const nextConfig = {
       { source: "/formatie/:slug", destination: "/nl/formatie/:slug", permanent: true },
       // ── Status → Transparantie ──
       { source: "/status", destination: "/transparantie", permanent: true },
+      // ── Old singular gemeente → plural gemeenten ──
+      { source: "/nl/gemeente", destination: "/nl/gemeenten", permanent: true },
+      { source: "/nl/gemeente/:city", destination: "/nl/gemeenten/:city", permanent: true },
+      { source: "/nl/gemeente/:city/:path*", destination: "/nl/gemeenten/:city/:path*", permanent: true },
     ];
   },
   // Prevent PostHog proxy rewrites from being blocked by middleware
