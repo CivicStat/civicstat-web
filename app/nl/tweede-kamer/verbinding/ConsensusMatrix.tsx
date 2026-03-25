@@ -9,6 +9,7 @@ interface Props {
 
 function cellColor(pct: number, isDiagonal: boolean): string {
   if (isDiagonal) return "bg-surface-sub";
+  if (pct < 0) return "bg-surface-sub/40";
   if (pct >= 80) return "bg-moss/30 dark:bg-moss/25";
   if (pct >= 65) return "bg-moss/18 dark:bg-moss/15";
   if (pct >= 50) return "bg-moss/10 dark:bg-moss/8";
@@ -25,6 +26,8 @@ export default function ConsensusMatrix({ parties, matrix }: Props) {
 
   function handleCellClick(row: string, col: string) {
     if (row === col) return;
+    const val = matrix[row]?.[col] ?? 0;
+    if (val < 0) return; // insufficient data — not clickable
     // Toggle selection
     if (selected?.row === row && selected?.col === col) {
       setSelected(null);
@@ -34,7 +37,7 @@ export default function ConsensusMatrix({ parties, matrix }: Props) {
   }
 
   const selectedPct = selected ? (matrix[selected.row]?.[selected.col] ?? 0) : 0;
-  const disagreePct = selected ? 100 - selectedPct : 0;
+  const disagreePct = selected ? Math.max(0, 100 - selectedPct) : 0;
 
   return (
     <div className="relative">
@@ -89,9 +92,9 @@ export default function ConsensusMatrix({ parties, matrix }: Props) {
                           : isHovered && !isDiag
                             ? "ring-2 ring-moss/40 scale-110 z-10"
                             : ""
-                      } ${isDiag ? "text-text-tertiary" : "text-ink cursor-pointer"}`}
+                      } ${isDiag ? "text-text-tertiary" : pct < 0 ? "text-text-tertiary" : "text-ink cursor-pointer"}`}
                     >
-                      {isDiag ? "—" : `${pct}`}
+                      {isDiag ? "—" : pct < 0 ? "–" : `${pct}`}
                     </div>
 
                     {/* Tooltip */}
@@ -101,7 +104,7 @@ export default function ConsensusMatrix({ parties, matrix }: Props) {
                           {row} &amp; {col}
                         </div>
                         <div className="text-[10px] text-text-secondary">
-                          {pct}% stemoverlap
+                          {pct < 0 ? "onvoldoende data" : `${pct}% stemoverlap`}
                         </div>
                       </div>
                     )}

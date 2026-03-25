@@ -9,6 +9,7 @@ interface Props {
 
 function cellColor(pct: number, isDiagonal: boolean): string {
   if (isDiagonal) return "bg-surface-sub";
+  if (pct < 0) return "bg-surface-sub/40";
   if (pct >= 80) return "bg-moss/30 dark:bg-moss/25";
   if (pct >= 65) return "bg-moss/18 dark:bg-moss/15";
   if (pct >= 50) return "bg-moss/10 dark:bg-moss/8";
@@ -72,7 +73,7 @@ export default function ConsensusMatrix({ parties, matrix }: Props) {
                           : ""
                       } ${isDiag ? "text-text-tertiary" : "text-ink"}`}
                     >
-                      {isDiag ? "—" : `${pct}`}
+                      {isDiag ? "—" : pct < 0 ? "–" : `${pct}`}
                     </div>
 
                     {/* Tooltip */}
@@ -82,7 +83,7 @@ export default function ConsensusMatrix({ parties, matrix }: Props) {
                           {row} &amp; {col}
                         </div>
                         <div className="text-[10px] text-text-secondary">
-                          {pct}% stemoverlap
+                          {pct < 0 ? "onvoldoende data" : `${pct}% stemoverlap`}
                         </div>
                       </div>
                     )}
