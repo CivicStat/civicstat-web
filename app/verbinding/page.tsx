@@ -20,19 +20,42 @@ interface PartyPair {
 }
 
 async function fetchConsensus() {
-  const res = await fetch(`${API_URL}/votes/consensus`, { next: { revalidate: 3600 } });
-  if (!res.ok) throw new Error("Failed to fetch consensus data");
-  return res.json() as Promise<{
-    parties: string[];
-    matrix: Record<string, Record<string, number>>;
-    topAgreement: PartyPair[];
-    topDisagreement: PartyPair[];
-    totalVotes: number;
-  }>;
+  try {
+    const res = await fetch(`${API_URL}/votes/consensus`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return null;
+    return res.json() as Promise<{
+      parties: string[];
+      matrix: Record<string, Record<string, number>>;
+      topAgreement: PartyPair[];
+      topDisagreement: PartyPair[];
+      totalVotes: number;
+    }>;
+  } catch {
+    return null;
+  }
 }
 
 export default async function VerbindingPage() {
-  const { parties, matrix, topAgreement, topDisagreement, totalVotes } = await fetchConsensus();
+  const data = await fetchConsensus();
+
+  if (!data) {
+    return (
+      <main className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
+        <div className="mb-8">
+          <h1 className="font-serif text-[26px] font-normal text-ink mb-2">
+            Verbinding &amp; consensus
+          </h1>
+          <p className="text-sm text-text-secondary">
+            Consensusdata is momenteel niet beschikbaar. Probeer het later opnieuw.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  const { parties, matrix, topAgreement, topDisagreement, totalVotes } = data;
 
   return (
     <main className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
