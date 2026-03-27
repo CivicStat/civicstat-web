@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import PartyBadge from "../../components/PartyBadge";
 import ConsensusMatrix from "./ConsensusMatrix";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Verbinding — CivicStat",
   description: "Welke partijen stemmen het vaakst hetzelfde? Ontdek consensus en verdeeldheid in de Tweede Kamer.",
