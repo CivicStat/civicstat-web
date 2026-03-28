@@ -61,8 +61,8 @@ export default function MotiesFilters({
       <div className="flex gap-1.5 flex-wrap">
         {[
           { value: undefined as string | undefined, label: "Alle" },
-          { value: "Aangenomen" as string | undefined, label: "Aangenomen" },
-          { value: "Verworpen" as string | undefined, label: "Verworpen" },
+          { value: "aangenomen" as string | undefined, label: "Aangenomen" },
+          { value: "verworpen" as string | undefined, label: "Verworpen" },
         ].map((f) => {
           const active = currentStatus === f.value;
           return (
