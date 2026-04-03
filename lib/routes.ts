@@ -5,6 +5,14 @@
  * propagates everywhere. Scoped to NL / Tweede Kamer and NL / Gemeenten.
  */
 
+/** Convert a party name/abbreviation to a URL-safe slug. */
+export function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 const TK = "/nl/tweede-kamer";
 const EK = "/nl/eerste-kamer";
 const GEMEENTE_BASE = "/nl/gemeenten";

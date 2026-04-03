@@ -15,7 +15,7 @@ import PartyAvatar from "../../../../../../components/PartyAvatar";
 import ConfidenceBadge from "../../../../../../components/ConfidenceBadge";
 import MethodologyLink from "../../../../../../components/MethodologyLink";
 import Term from "../../../../../../components/Term";
-import { gemeente } from "../../../../../../lib/routes";
+import { gemeente, slugify } from "../../../../../../lib/routes";
 import { getScoreConfidence } from "../../../../../../lib/scoring";
 import VooruitblikScore from "../../../../../../components/VooruitblikScore";
 
@@ -110,7 +110,8 @@ export default async function GemeentePartyDetailPage({ params }: Props) {
   const party = parties.find(
     (p) =>
       p.id === id ||
-      p.abbreviation.toLowerCase() === id.toLowerCase(),
+      p.abbreviation.toLowerCase() === id.toLowerCase() ||
+      slugify(p.abbreviation) === id.toLowerCase(),
   );
 
   if (!party) {

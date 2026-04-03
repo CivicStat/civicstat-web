@@ -10,7 +10,7 @@ import { getPartyColor } from "../../../../../lib/utils";
 import { getScoreConfidence } from "../../../../../lib/scoring";
 import PartyAvatar from "../../../../../components/PartyAvatar";
 import Term from "../../../../../components/Term";
-import { gemeente } from "../../../../../lib/routes";
+import { gemeente, slugify } from "../../../../../lib/routes";
 
 interface Props {
   params: Promise<{ city: string }>;
@@ -150,7 +150,7 @@ export default async function GemeentePartijenPage({ params, searchParams }: Pro
                 return (
                   <Link
                     key={p.id}
-                    href={r.partij(p.id)}
+                    href={r.partij(slugify(p.abbreviation))}
                     title={`${p.abbreviation}: ${p.seats} ${p.seats === 1 ? "zetel" : "zetels"}`}
                     className="block transition-opacity hover:opacity-100"
                     style={{
@@ -169,7 +169,7 @@ export default async function GemeentePartijenPage({ params, searchParams }: Pro
               .map((p) => (
                 <Link
                   key={p.id}
-                  href={r.partij(p.id)}
+                  href={r.partij(slugify(p.abbreviation))}
                   className="flex items-center gap-1 text-[11px] text-text-secondary hover:text-ink transition-colors"
                 >
                   <span
@@ -243,7 +243,7 @@ export default async function GemeentePartijenPage({ params, searchParams }: Pro
           return (
             <Link
               key={p.id}
-              href={r.partij(p.id)}
+              href={r.partij(slugify(p.abbreviation))}
               className={`block hover:bg-surface-sub/40 transition-colors ${
                 idx < sortedParties.length - 1 ? "border-b border-border-subtle" : ""
               }`}
