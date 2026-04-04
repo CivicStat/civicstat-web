@@ -19,9 +19,9 @@ export default async function EKSenatorenPage({
 }) {
   const sp = await searchParams;
 
-  let members;
+  let membersResponse;
   try {
-    members = await getScopedMembers(SLUG, {
+    membersResponse = await getScopedMembers(SLUG, {
       q: sp.q,
       party: sp.party,
     });
@@ -35,6 +35,8 @@ export default async function EKSenatorenPage({
       </div>
     );
   }
+
+  const members = membersResponse.members;
 
   // Extract unique parties for quick filters
   const parties = Array.from(

@@ -461,19 +461,34 @@ export async function getScopedParties(slug: string): Promise<PartyListItem[]> {
   );
 }
 
+export interface ScopedMembersResponse {
+  parliament: {
+    slug: string;
+    name: string;
+    level: string;
+    votingUnit: "PARTY_BLOC" | "INDIVIDUAL";
+  };
+  members: MemberListItem[];
+}
+
 export async function getScopedMembers(
   slug: string,
   params?: { q?: string; party?: string; limit?: number; offset?: number },
-): Promise<MemberListItem[]> {
+): Promise<ScopedMembersResponse> {
   const sp = new URLSearchParams();
   if (params?.q) sp.set("q", params.q);
   if (params?.party) sp.set("party", params.party);
   if (params?.limit) sp.set("limit", String(params.limit));
   if (params?.offset) sp.set("offset", String(params.offset));
   const qs = sp.toString();
-  return apiFetch<MemberListItem[]>(
+  const data = await apiFetch<ScopedMembersResponse | MemberListItem[]>(
     `/parliament/${encodeURIComponent(slug)}/members${qs ? `?${qs}` : ""}`,
   );
+  // Handle both wrapped { parliament, members } and legacy flat array responses
+  if (Array.isArray(data)) {
+    return { parliament: { slug, name: slug, level: "UNKNOWN", votingUnit: "INDIVIDUAL" }, members: data };
+  }
+  return data;
 }
 
 export async function getScopedMember(

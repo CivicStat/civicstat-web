@@ -43,9 +43,9 @@ export default async function GemeenteRaadsledenPage({
 
   const r = gemeente(city);
 
-  let members;
+  let membersResponse;
   try {
-    members = await getScopedMembers(city, {
+    membersResponse = await getScopedMembers(city, {
       q: sp.q,
       party: sp.party,
     });
@@ -59,6 +59,9 @@ export default async function GemeenteRaadsledenPage({
       </div>
     );
   }
+
+  const members = membersResponse.members;
+  const votingUnit = membersResponse.parliament.votingUnit;
 
   // Extract unique parties for quick filters
   const parties = Array.from(
