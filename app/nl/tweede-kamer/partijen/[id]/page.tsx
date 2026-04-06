@@ -90,11 +90,15 @@ export default async function PartyDetailPage({
   if (coalitions.length > 0) {
     coalitionData = await Promise.all(
       coalitions.map(async (c) => {
-        const [regeerakkoord, verwatering] = await Promise.all([
-          getRegeerakkoordScorecard(params.id, { year: c.year }),
-          getCoalitieverwatering(params.id, { year: c.year }),
-        ]);
-        return { coalition: c, regeerakkoord, verwatering };
+        try {
+          const [regeerakkoord, verwatering] = await Promise.all([
+            getRegeerakkoordScorecard(params.id, { year: c.year }),
+            getCoalitieverwatering(params.id, { year: c.year }),
+          ]);
+          return { coalition: c, regeerakkoord, verwatering };
+        } catch {
+          return { coalition: c, regeerakkoord: null, verwatering: null };
+        }
       }),
     );
   }
@@ -106,10 +110,14 @@ export default async function PartyDetailPage({
   if (coalitions.length > 0) {
     const latestCoalition = coalitions[coalitions.length - 1];
     const coalitionSlug = latestCoalition.name.toLowerCase().includes("schoof") ? "schoof" : "jetten";
-    [coalitionAlignment, vrijeStemmen] = await Promise.all([
-      getPartyCoalitionAlignment(params.id, coalitionSlug),
-      getPartyVrijeStemmen(params.id, activeYear, coalitionSlug),
-    ]);
+    try {
+      [coalitionAlignment, vrijeStemmen] = await Promise.all([
+        getPartyCoalitionAlignment(params.id, coalitionSlug),
+        getPartyVrijeStemmen(params.id, activeYear, coalitionSlug),
+      ]);
+    } catch {
+      // Coalition dynamics not available (e.g. dissolved party)
+    }
   }
 
   // Fetch all parties for prev/next navigation
@@ -131,6 +139,7 @@ export default async function PartyDetailPage({
   const seats = party.seats ?? 0;
   const activeMps = party.mps?.filter((m: any) => !m.endDate) || [];
   const vs = party.voteStats;
+  const isDissolved = party.endDate && new Date(party.endDate) < new Date();
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-7 pb-24">
@@ -190,6 +199,20 @@ export default async function PartyDetailPage({
           )}
         </div>
       </div>
+
+      {isDissolved && (
+        <div className="rounded-lg border border-border bg-surface-sub px-5 py-4 mb-8 text-sm text-text-secondary">
+          <p className="font-medium text-ink mb-1">Deze partij is opgeheven</p>
+          <p>
+            {party.abbreviation} is niet meer actief in de Tweede Kamer
+            {party.endDate ? ` (sinds ${new Date(party.endDate).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })})` : ""}.
+            Onderstaande gegevens zijn historisch.{" "}
+            <Link href={routes.tk.partijen} className="underline hover:text-ink">
+              Bekijk alle actieve partijen
+            </Link>.
+          </p>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
